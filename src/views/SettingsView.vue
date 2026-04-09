@@ -34,6 +34,16 @@
         <p v-if="seedMessage" class="seed-message">{{ seedMessage }}</p>
       </div>
 
+      <!-- Seed History -->
+      <div class="card settings-card">
+        <h2 class="settings-title">Ausgangswerte</h2>
+        <p class="settings-desc">Lade die aktuellen Max-Werte von Lisa und Gab als Startwerte in die History.</p>
+        <button class="btn btn-secondary btn-block" @click="seedHistory" :disabled="seedingHistory">
+          {{ seedingHistory ? 'Wird geladen...' : 'Ausgangswerte laden' }}
+        </button>
+        <p v-if="historyMessage" class="seed-message">{{ historyMessage }}</p>
+      </div>
+
       <!-- About -->
       <div class="card settings-card">
         <h2 class="settings-title">Info</h2>
@@ -58,6 +68,8 @@ import { db, generateId } from '../db/dexie.js'
 
 const authStore = useAuthStore()
 const seedMessage = ref('')
+const historyMessage = ref('')
+const seedingHistory = ref(false)
 
 async function updateName(userId, event) {
   const name = event.target.value.trim()
@@ -140,6 +152,130 @@ async function seedExercises() {
   }
 
   setTimeout(() => { seedMessage.value = '' }, 3000)
+}
+
+// History seed data from screenshots: [exerciseName, lisaMax, gabMax]
+const SEED_HISTORY = [
+  // Legs
+  ['Hack Squat', 22.5, 50],
+  ['hip thrusts', 30, 50],
+  ['"bad girl"', 40, 60],
+  ['seated leg curl', 52.5, 85],
+  ['seated leg extension', 50, 70],
+  ['calve raises', 25, 90],
+  ['lunges', 20, 50],
+  ['Leg Press', 0, 180],
+  ['Leg curl', 0, 70],
+  ['"good girl"', 0, 0],
+  // Chest
+  ['DB Bench press', 12, 36],
+  ['DB incline Bench press', 0, 34],
+  ['machine: chest press', 16.25, 100],
+  ['machine: incline chest press', 13.75, 100],
+  ['Cable Crossover', 0, 10],
+  ['BB Bench press', 40, 70],
+  ['BB incline Bench press', 0, 0],
+  // Back
+  ['weighted pull up', 33, 15],
+  ['Latzug', 45, 85],
+  ['chest supported row', 40, 130],
+  ['low row', 0, 120],
+  ['cable row (without chest support)', 40, 65],
+  ['lower back', 20, 40],
+  // Shoulders
+  ['shoulder press', 15, 85],
+  ['BB overhead press', 2.5, 25],
+  ['DB Side lateral', 6, 10],
+  // Arms
+  ['Cable Bicep Curl', 14, 28],
+  ['Cable Rope Triceps Pushdown', 15, 24],
+  ['Cable Overhead Triceps Extension', 0, 31],
+  ['Standing Concentration Curl', 0, 0],
+  // Core
+  ['core', 0, 0]
+]
+
+async function seedHistory() {
+  seedingHistory.value = true
+  historyMessage.value = ''
+
+  try {
+    // Check if already seeded
+    const existingMeta = await db.meta.get('historySeedDone')
+    if (existingMeta) {
+      historyMessage.value = 'Ausgangswerte bereits vorhanden.'
+      seedingHistory.value = false
+      setTimeout(() => { historyMessage.value = '' }, 3000)
+      return
+    }
+
+    // Load exercises
+    const allExercises = await db.exercises.toArray()
+    const exerciseMap = {}
+    for (const ex of allExercises) {
+      exerciseMap[ex.name.toLowerCase()] = ex.id
+    }
+
+    const seedDate = '2026-04-08' // Yesterday as baseline
+    const now = new Date().toISOString()
+
+    // Create a workout log entry for the seed
+    const workoutLogId = generateId()
+    await db.workoutLogs.add({
+      id: workoutLogId,
+      planId: 'seed',
+      date: seedDate,
+      startedAt: now,
+      completedAt: now
+    })
+
+    let added = 0
+    for (const [name, lisaMax, gabMax] of SEED_HISTORY) {
+      const exerciseId = exerciseMap[name.toLowerCase()]
+      if (!exerciseId) continue
+
+      // Lisa (user1)
+      if (lisaMax > 0) {
+        await db.setLogs.add({
+          id: generateId(),
+          workoutLogId,
+          exerciseId,
+          userId: 'user1',
+          setNumber: 1,
+          weight: lisaMax,
+          reps: 8,
+          date: seedDate,
+          createdAt: now
+        })
+        added++
+      }
+
+      // Gab (user2)
+      if (gabMax > 0) {
+        await db.setLogs.add({
+          id: generateId(),
+          workoutLogId,
+          exerciseId,
+          userId: 'user2',
+          setNumber: 1,
+          weight: gabMax,
+          reps: 8,
+          date: seedDate,
+          createdAt: now
+        })
+        added++
+      }
+    }
+
+    await db.meta.put({ key: 'historySeedDone', value: true })
+    historyMessage.value = `${added} Ausgangswerte eingetragen!`
+  } catch (e) {
+    console.error('Seed history error:', e)
+    historyMessage.value = 'Fehler beim Laden der Werte.'
+  }
+
+  seedingHistory.value = false
+  setTimeout(() => { historyMessage.value = '' }, 3000)
 }
 
 onMounted(() => authStore.loadUserNames())
