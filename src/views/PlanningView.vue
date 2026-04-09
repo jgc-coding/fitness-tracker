@@ -183,15 +183,24 @@
         placeholder="Uebung suchen..."
         class="search-input"
       />
+      <div v-if="addedExerciseNames.length" class="added-hint">
+        Hinzugefuegt: {{ addedExerciseNames.join(', ') }}
+      </div>
       <div class="swap-list">
         <button
           v-for="ex in filteredPickerExercises"
           :key="ex.id"
           class="swap-item"
+          :class="{ 'already-added': isExerciseInDay(ex.id) }"
           @click="addExerciseToDay(ex)"
         >
           <span class="swap-name">{{ ex.name }}</span>
           <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
+        </button>
+      </div>
+      <div class="picker-footer">
+        <button class="btn btn-primary btn-block" @click="showExercisePicker = false">
+          Fertig
         </button>
       </div>
     </Modal>
@@ -295,20 +304,32 @@ async function deleteDay(dayId) {
   }
 }
 
+const addedExerciseNames = ref([])
+
 function openExercisePicker(day) {
   pickerDay.value = day
   pickerSearch.value = ''
+  addedExerciseNames.value = []
   showExercisePicker.value = true
+}
+
+function isExerciseInDay(exerciseId) {
+  if (!pickerDay.value) return false
+  const day = plansStore.trainingDays.find(d => d.id === pickerDay.value.id)
+  return day?.exercises?.some(e => e.exerciseId === exerciseId) || false
 }
 
 async function addExerciseToDay(exercise) {
   if (!pickerDay.value) return
+  if (isExerciseInDay(exercise.id)) return // Already added
+  const day = plansStore.trainingDays.find(d => d.id === pickerDay.value.id) || pickerDay.value
   const updatedExercises = [
-    ...pickerDay.value.exercises,
-    { exerciseId: exercise.id, sets: 3, notes: '' }
+    ...day.exercises,
+    { exerciseId: exercise.id, sets: 2, notes: '' }
   ]
-  await plansStore.updateTrainingDay(pickerDay.value.id, { exercises: updatedExercises })
-  showExercisePicker.value = false
+  await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
+  addedExerciseNames.value.push(exercise.name)
+  // Keep modal open so user can add more exercises
 }
 
 async function removeExerciseFromDay(day, index) {
@@ -595,5 +616,26 @@ onMounted(async () => {
 .swap-meta {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+.swap-item.already-added {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.added-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+  padding: var(--space-xs) var(--space-md);
+  margin-bottom: var(--space-sm);
+  background: #e8f5e9;
+  border-radius: var(--radius-sm);
+}
+
+.picker-footer {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-md) 0;
+  background: var(--color-white);
 }
 </style>
