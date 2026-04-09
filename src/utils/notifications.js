@@ -31,8 +31,8 @@ export function showWorkoutNotification(dayTitle, exerciseLines) {
         registration.showNotification(dayTitle, {
           body,
           tag: NOTIFICATION_TAG,
-          icon: '/logo.svg',
-          badge: '/logo.svg',
+          icon: '/fitness-tracker/logo.svg',
+          badge: '/fitness-tracker/logo.svg',
           silent: true,
           requireInteraction: true, // Keeps it on screen until dismissed
           renotify: true,
@@ -46,7 +46,7 @@ export function showWorkoutNotification(dayTitle, exerciseLines) {
       new Notification(dayTitle, {
         body,
         tag: NOTIFICATION_TAG,
-        icon: '/logo.svg',
+        icon: '/fitness-tracker/logo.svg',
         silent: true,
         requireInteraction: true
       })
