@@ -7,9 +7,10 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['logo.svg'],
       manifest: {
+        id: '/fitness-tracker/',
         name: 'Keto Hybrid Fitness Tracker',
         short_name: 'FitTrack',
         description: 'Kraftsport Tracker fuer zwei',
@@ -18,17 +19,23 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/fitness-tracker/',
+        scope: '/fitness-tracker/',
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: 'icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/icons/icon-512.png',
+            src: 'icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: 'icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ]
       },
