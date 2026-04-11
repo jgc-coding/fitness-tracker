@@ -227,7 +227,6 @@ const newPlanType = ref('weekly')
 const editPlanName = ref('')
 const editPlanId = ref(null)
 const pickerSearch = ref('')
-const pickerDay = ref(null)
 const selectedWeekVariant = reactive({})
 const planTypes = PLAN_TYPES
 
@@ -304,7 +303,8 @@ async function deleteDay(dayId) {
   }
 }
 
-// Exercise picker state
+// Exercise picker state — store only the day ID, not the object reference
+const pickerDayId = ref(null)
 const pickerSelectedIds = ref([])
 const pickerInitialIds = ref([])
 
@@ -313,9 +313,8 @@ const pickerAddedCount = computed(() => {
 })
 
 function openExercisePicker(day) {
-  pickerDay.value = day
+  pickerDayId.value = day.id
   pickerSearch.value = ''
-  // Read current exercises directly from DB to avoid stale refs
   const currentIds = (day.exercises || []).map(e => e.exerciseId)
   pickerInitialIds.value = [...currentIds]
   pickerSelectedIds.value = [...currentIds]
@@ -332,28 +331,35 @@ function addExerciseToDay(exercise) {
 }
 
 async function finishPicker() {
-  const dayId = pickerDay.value?.id
-  const day = pickerDay.value
+  const dayId = pickerDayId.value
   showExercisePicker.value = false
-  if (!dayId || !day) return
+  if (!dayId) return
 
-  // Build COMPLETE exercises array from pickerSelectedIds
-  const exercises = pickerSelectedIds.value.map(id => {
-    // Preserve existing sets/notes config if exercise was already in the day
-    const existing = (day.exercises || []).find(e => e.exerciseId === id)
-    return existing || { exerciseId: id, sets: 2, notes: '' }
+  // Check if anything actually changed
+  const oldIds = pickerInitialIds.value.join(',')
+  const newIds = pickerSelectedIds.value.join(',')
+  if (oldIds === newIds) return
+
+  // Read current day from store (fresh reference, not stale)
+  const currentDay = plansStore.trainingDays.find(d => d.id === dayId)
+
+  // Build plain exercise objects (no reactive proxies)
+  const newExercises = pickerSelectedIds.value.map(id => {
+    const existing = (currentDay?.exercises || []).find(e => e.exerciseId === id)
+    if (existing) {
+      return { exerciseId: existing.exerciseId, sets: existing.sets, notes: existing.notes || '' }
+    }
+    return { exerciseId: id, sets: 2, notes: '' }
   })
 
-  // Only update if something actually changed
-  if (exercises.length === pickerInitialIds.value.length) return
-
-  await plansStore.updateTrainingDay(dayId, { exercises })
-  // Force refresh pickerDay reference for next open
+  await plansStore.updateTrainingDay(dayId, { exercises: newExercises })
   await plansStore.loadPlans()
 }
 
 async function removeExerciseFromDay(day, index) {
-  const updatedExercises = day.exercises.filter((_, i) => i !== index)
+  const updatedExercises = day.exercises
+    .filter((_, i) => i !== index)
+    .map(e => ({ exerciseId: e.exerciseId, sets: e.sets, notes: e.notes || '' }))
   await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
 }
 
