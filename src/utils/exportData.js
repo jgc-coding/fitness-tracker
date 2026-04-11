@@ -1,23 +1,67 @@
 import { db } from '../db/dexie.js'
 
 export async function exportToCSV(userId = null) {
-  let sets = await db.setLogs.toArray()
-  if (userId) {
-    sets = sets.filter(s => s.userId === userId)
+  if (!userId) return
+
+  // Build spreadsheet-style data (same structure as History view)
+  const allExercises = await db.exercises.orderBy('name').toArray()
+  const allSets = (await db.setLogs.toArray()).filter(s => s.userId === userId)
+
+  // Collect dates
+  const dateSet = new Set()
+  allSets.forEach(s => { if (s.date) dateSet.add(s.date) })
+  const dates = [...dateSet].sort()
+
+  // Build exercise data: exerciseId -> { [date]: { weight, reps } }
+  const exerciseData = {}
+  for (const set of allSets) {
+    if (!exerciseData[set.exerciseId]) exerciseData[set.exerciseId] = {}
+    const existing = exerciseData[set.exerciseId][set.date]
+    if (!existing || set.weight > existing.weight) {
+      exerciseData[set.exerciseId][set.date] = { weight: set.weight, reps: set.reps }
+    }
   }
 
-  const exercises = await db.exercises.toArray()
-  const exerciseMap = Object.fromEntries(exercises.map(e => [e.id, e.name]))
+  // Format dates as DD.MM
+  const formatDate = (d) => {
+    const dt = new Date(d)
+    return `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')}`
+  }
 
-  sets.sort((a, b) => a.date.localeCompare(b.date) || a.exerciseId.localeCompare(b.exerciseId) || a.setNumber - b.setNumber)
+  // Build CSV rows grouped by muscle group
+  const muscleOrder = ['legs', 'chest', 'back', 'shoulders', 'arms', 'core', 'full_body']
+  const muscleLabels = {
+    legs: 'Beine', chest: 'Brust', back: 'Ruecken', shoulders: 'Schultern',
+    arms: 'Arme', core: 'Core', full_body: 'Ganzkoerper'
+  }
 
-  const header = 'Datum,Benutzer,Uebung,Set,Gewicht (kg),Wiederholungen,Volumen,Gewicht steigern\n'
-  const rows = sets.map(s =>
-    `${s.date},${s.userId},${exerciseMap[s.exerciseId] || s.exerciseId},${s.setNumber},${s.weight},${s.reps},${s.weight * s.reps},${s.increaseNextTime ? 'Ja' : 'Nein'}`
-  ).join('\n')
+  // Header row
+  const header = ['Uebung', 'Max', ...dates.map(formatDate)]
+  const rows = [header.join(';')]
 
-  const csv = header + rows
-  downloadFile(csv, `fitness-export-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv')
+  for (const muscleId of muscleOrder) {
+    const groupExercises = allExercises.filter(e => e.muscleGroup === muscleId)
+    const withData = groupExercises.filter(e => exerciseData[e.id])
+    if (withData.length === 0) continue
+
+    // Muscle group separator
+    rows.push('')
+    rows.push(`--- ${muscleLabels[muscleId] || muscleId} ---`)
+
+    for (const ex of groupExercises) {
+      const data = exerciseData[ex.id] || {}
+      const weights = Object.values(data).map(d => d.weight)
+      const max = weights.length > 0 ? Math.max(...weights) : ''
+      const cells = dates.map(date => {
+        const d = data[date]
+        return d ? `${d.weight}kg x${d.reps}` : ''
+      })
+      rows.push([ex.name, max, ...cells].join(';'))
+    }
+  }
+
+  const csv = rows.join('\n')
+  downloadFile(csv, `fitness-export-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8')
 }
 
 export async function exportToJSON(userId = null) {

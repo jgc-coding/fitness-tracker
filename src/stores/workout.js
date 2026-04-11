@@ -76,7 +76,24 @@ export const useWorkoutStore = defineStore('workout', () => {
     const sets = currentSets.value.filter(
       s => s.exerciseId === exerciseId && s.userId === userId
     )
-    if (sets.length === 0) return
+
+    if (sets.length === 0) {
+      // No set saved yet — look at the most recent set from a previous workout
+      const prevSets = await db.setLogs
+        .where('[exerciseId+userId]')
+        .equals([exerciseId, userId])
+        .toArray()
+      if (prevSets.length === 0) return false
+      prevSets.sort((a, b) => b.date.localeCompare(a.date))
+      const lastDate = prevSets[0].date
+      const lastDateSets = prevSets.filter(s => s.date === lastDate)
+      const newValue = !lastDateSets[0].increaseNextTime
+      for (const set of lastDateSets) {
+        await db.setLogs.update(set.id, { increaseNextTime: newValue })
+        set.increaseNextTime = newValue
+      }
+      return newValue
+    }
 
     const newValue = !sets[0].increaseNextTime
     for (const set of sets) {
