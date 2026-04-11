@@ -183,8 +183,8 @@
         placeholder="Uebung suchen..."
         class="search-input"
       />
-      <div v-if="pickerExerciseIds.length > 0" class="added-hint">
-        {{ pickerExerciseIds.length }} Uebung(en) im Trainingstag
+      <div v-if="pickerAddedCount > 0" class="added-hint">
+        {{ pickerAddedCount }} Uebung(en) hinzugefuegt
       </div>
       <div class="swap-list">
         <button
@@ -199,8 +199,8 @@
         </button>
       </div>
       <div class="picker-footer">
-        <button class="btn btn-primary btn-block" @click="showExercisePicker = false">
-          Fertig
+        <button class="btn btn-primary btn-block" @click="finishPicker">
+          Fertig ({{ pickerAddedCount }} neue)
         </button>
       </div>
     </Modal>
@@ -208,7 +208,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, nextTick } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
@@ -305,35 +305,44 @@ async function deleteDay(dayId) {
 }
 
 const pickerDayId = ref(null)
-const pickerExerciseIds = ref([])
+const pickerExistingIds = ref([])
+const pickerNewExercises = ref([])
+
+const pickerAddedCount = computed(() => pickerNewExercises.value.length)
 
 function openExercisePicker(day) {
   pickerDay.value = day
   pickerDayId.value = day.id
   pickerSearch.value = ''
-  pickerExerciseIds.value = day.exercises.map(e => e.exerciseId)
+  pickerExistingIds.value = day.exercises.map(e => e.exerciseId)
+  pickerNewExercises.value = []
   showExercisePicker.value = true
 }
 
 function isExerciseInDay(exerciseId) {
-  return pickerExerciseIds.value.includes(exerciseId)
+  return pickerExistingIds.value.includes(exerciseId) ||
+    pickerNewExercises.value.some(e => e.exerciseId === exerciseId)
 }
 
-async function addExerciseToDay(exercise) {
-  if (!pickerDayId.value) return
-  if (pickerExerciseIds.value.includes(exercise.id)) return
-
-  // Mark as added immediately (local state)
-  pickerExerciseIds.value = [...pickerExerciseIds.value, exercise.id]
-
-  // Update store
-  const day = plansStore.trainingDays.find(d => d.id === pickerDayId.value)
-  if (!day) return
-  const updatedExercises = [
-    ...day.exercises,
+function addExerciseToDay(exercise) {
+  if (isExerciseInDay(exercise.id)) return
+  // Pure local state — no async, no store
+  pickerNewExercises.value = [
+    ...pickerNewExercises.value,
     { exerciseId: exercise.id, sets: 2, notes: '' }
   ]
-  await plansStore.updateTrainingDay(pickerDayId.value, { exercises: updatedExercises })
+}
+
+async function finishPicker() {
+  if (pickerNewExercises.value.length > 0 && pickerDayId.value) {
+    const day = plansStore.trainingDays.find(d => d.id === pickerDayId.value)
+    if (day) {
+      const updatedExercises = [...day.exercises, ...pickerNewExercises.value]
+      await plansStore.updateTrainingDay(pickerDayId.value, { exercises: updatedExercises })
+    }
+  }
+  pickerNewExercises.value = []
+  showExercisePicker.value = false
 }
 
 async function removeExerciseFromDay(day, index) {

@@ -86,7 +86,7 @@
             </div>
           </div>
 
-          <!-- Increase weight toggles -->
+          <!-- Increase weight next time -->
           <div class="increase-toggles">
             <button
               v-for="user in authStore.users"
@@ -96,7 +96,8 @@
               :style="{ '--user-color': user.color }"
               @click.stop="toggleIncrease(planExercise.exerciseId, user.id)"
             >
-              &#8593; {{ user.name }}
+              <span class="increase-arrow">&#9650;</span>
+              {{ user.name }}: Gewicht steigern
             </button>
           </div>
         </div>
@@ -680,18 +681,28 @@ onMounted(async () => {
 
 .increase-btn {
   flex: 1;
-  padding: var(--space-xs) var(--space-sm);
-  border: 1px solid var(--color-border);
+  padding: var(--space-sm);
+  border: 2px dashed var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-light);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
   transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.increase-btn .increase-arrow {
+  font-size: 10px;
 }
 
 .increase-btn.active {
-  border-color: var(--user-color);
-  color: var(--user-color);
-  background: color-mix(in srgb, var(--user-color) 8%, transparent);
+  border: 2px solid var(--user-color);
+  color: var(--color-white);
+  background: var(--user-color);
+  font-weight: var(--font-weight-bold);
 }
 
 /* Wheel Picker Modal */
