@@ -208,7 +208,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive, nextTick } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
@@ -304,52 +304,47 @@ async function deleteDay(dayId) {
   }
 }
 
-const pickerDayId = ref(null)
-const pickerExistingIds = ref([])
-const pickerNewExercises = ref([])
+// Exercise picker: collect selections locally, save all on "Fertig"
+const pickerSelectedIds = ref([])
 
-const pickerAddedCount = computed(() => pickerNewExercises.value.length)
+const pickerAddedCount = computed(() => {
+  if (!pickerDay.value) return 0
+  const existingCount = pickerDay.value.exercises?.length || 0
+  return pickerSelectedIds.value.length - existingCount
+})
 
 function openExercisePicker(day) {
   pickerDay.value = day
-  pickerDayId.value = day.id
   pickerSearch.value = ''
-  // Read existing exercises from store (fresh data)
-  const storeDay = plansStore.trainingDays.find(d => d.id === day.id)
-  pickerExistingIds.value = (storeDay || day).exercises.map(e => e.exerciseId)
-  pickerNewExercises.value = []
+  // Start with IDs of exercises already in this day
+  pickerSelectedIds.value = (day.exercises || []).map(e => e.exerciseId)
   showExercisePicker.value = true
 }
 
 function isExerciseInDay(exerciseId) {
-  return pickerExistingIds.value.includes(exerciseId) ||
-    pickerNewExercises.value.some(e => e.exerciseId === exerciseId)
+  return pickerSelectedIds.value.includes(exerciseId)
 }
 
 function addExerciseToDay(exercise) {
-  if (isExerciseInDay(exercise.id)) return
-  // Pure local state — no async, no store
-  pickerNewExercises.value = [
-    ...pickerNewExercises.value,
-    { exerciseId: exercise.id, sets: 2, notes: '' }
-  ]
+  if (pickerSelectedIds.value.includes(exercise.id)) return
+  pickerSelectedIds.value.push(exercise.id)
 }
 
 async function finishPicker() {
-  try {
-    if (pickerNewExercises.value.length > 0 && pickerDayId.value) {
-      const day = plansStore.trainingDays.find(d => d.id === pickerDayId.value)
-      if (day) {
-        const updatedExercises = [...day.exercises, ...pickerNewExercises.value]
-        await plansStore.updateTrainingDay(pickerDayId.value, { exercises: updatedExercises })
-      }
-    }
-  } catch (e) {
-    console.error('Fehler beim Speichern der Uebungen:', e)
-  } finally {
-    pickerNewExercises.value = []
-    showExercisePicker.value = false
-  }
+  const day = pickerDay.value
+  showExercisePicker.value = false
+  if (!day) return
+
+  // Build new exercises array: keep existing + add new
+  const existingIds = (day.exercises || []).map(e => e.exerciseId)
+  const newIds = pickerSelectedIds.value.filter(id => !existingIds.includes(id))
+
+  if (newIds.length === 0) return
+
+  const newExercises = newIds.map(id => ({ exerciseId: id, sets: 2, notes: '' }))
+  const updatedExercises = [...(day.exercises || []), ...newExercises]
+
+  await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
 }
 
 async function removeExerciseFromDay(day, index) {
