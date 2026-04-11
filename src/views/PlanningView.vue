@@ -304,20 +304,21 @@ async function deleteDay(dayId) {
   }
 }
 
-// Exercise picker: collect selections locally, save all on "Fertig"
+// Exercise picker state
 const pickerSelectedIds = ref([])
+const pickerInitialIds = ref([])
 
 const pickerAddedCount = computed(() => {
-  if (!pickerDay.value) return 0
-  const existingCount = pickerDay.value.exercises?.length || 0
-  return pickerSelectedIds.value.length - existingCount
+  return pickerSelectedIds.value.length - pickerInitialIds.value.length
 })
 
 function openExercisePicker(day) {
   pickerDay.value = day
   pickerSearch.value = ''
-  // Start with IDs of exercises already in this day
-  pickerSelectedIds.value = (day.exercises || []).map(e => e.exerciseId)
+  // Read current exercises directly from DB to avoid stale refs
+  const currentIds = (day.exercises || []).map(e => e.exerciseId)
+  pickerInitialIds.value = [...currentIds]
+  pickerSelectedIds.value = [...currentIds]
   showExercisePicker.value = true
 }
 
@@ -327,24 +328,28 @@ function isExerciseInDay(exerciseId) {
 
 function addExerciseToDay(exercise) {
   if (pickerSelectedIds.value.includes(exercise.id)) return
-  pickerSelectedIds.value.push(exercise.id)
+  pickerSelectedIds.value = [...pickerSelectedIds.value, exercise.id]
 }
 
 async function finishPicker() {
+  const dayId = pickerDay.value?.id
   const day = pickerDay.value
   showExercisePicker.value = false
-  if (!day) return
+  if (!dayId || !day) return
 
-  // Build new exercises array: keep existing + add new
-  const existingIds = (day.exercises || []).map(e => e.exerciseId)
-  const newIds = pickerSelectedIds.value.filter(id => !existingIds.includes(id))
+  // Build COMPLETE exercises array from pickerSelectedIds
+  const exercises = pickerSelectedIds.value.map(id => {
+    // Preserve existing sets/notes config if exercise was already in the day
+    const existing = (day.exercises || []).find(e => e.exerciseId === id)
+    return existing || { exerciseId: id, sets: 2, notes: '' }
+  })
 
-  if (newIds.length === 0) return
+  // Only update if something actually changed
+  if (exercises.length === pickerInitialIds.value.length) return
 
-  const newExercises = newIds.map(id => ({ exerciseId: id, sets: 2, notes: '' }))
-  const updatedExercises = [...(day.exercises || []), ...newExercises]
-
-  await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
+  await plansStore.updateTrainingDay(dayId, { exercises })
+  // Force refresh pickerDay reference for next open
+  await plansStore.loadPlans()
 }
 
 async function removeExerciseFromDay(day, index) {
