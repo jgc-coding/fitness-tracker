@@ -183,8 +183,8 @@
         placeholder="Uebung suchen..."
         class="search-input"
       />
-      <div v-if="addedExerciseNames.length" class="added-hint">
-        Hinzugefuegt: {{ addedExerciseNames.join(', ') }}
+      <div v-if="pickerExerciseIds.length > 0" class="added-hint">
+        {{ pickerExerciseIds.length }} Uebung(en) im Trainingstag
       </div>
       <div class="swap-list">
         <button
@@ -304,32 +304,36 @@ async function deleteDay(dayId) {
   }
 }
 
-const addedExerciseNames = ref([])
+const pickerDayId = ref(null)
+const pickerExerciseIds = ref([])
 
 function openExercisePicker(day) {
   pickerDay.value = day
+  pickerDayId.value = day.id
   pickerSearch.value = ''
-  addedExerciseNames.value = []
+  pickerExerciseIds.value = day.exercises.map(e => e.exerciseId)
   showExercisePicker.value = true
 }
 
 function isExerciseInDay(exerciseId) {
-  if (!pickerDay.value) return false
-  const day = plansStore.trainingDays.find(d => d.id === pickerDay.value.id)
-  return day?.exercises?.some(e => e.exerciseId === exerciseId) || false
+  return pickerExerciseIds.value.includes(exerciseId)
 }
 
 async function addExerciseToDay(exercise) {
-  if (!pickerDay.value) return
-  if (isExerciseInDay(exercise.id)) return // Already added
-  const day = plansStore.trainingDays.find(d => d.id === pickerDay.value.id) || pickerDay.value
+  if (!pickerDayId.value) return
+  if (pickerExerciseIds.value.includes(exercise.id)) return
+
+  // Mark as added immediately (local state)
+  pickerExerciseIds.value = [...pickerExerciseIds.value, exercise.id]
+
+  // Update store
+  const day = plansStore.trainingDays.find(d => d.id === pickerDayId.value)
+  if (!day) return
   const updatedExercises = [
     ...day.exercises,
     { exerciseId: exercise.id, sets: 2, notes: '' }
   ]
-  await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
-  addedExerciseNames.value.push(exercise.name)
-  // Keep modal open so user can add more exercises
+  await plansStore.updateTrainingDay(pickerDayId.value, { exercises: updatedExercises })
 }
 
 async function removeExerciseFromDay(day, index) {

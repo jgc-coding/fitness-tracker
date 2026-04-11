@@ -33,7 +33,8 @@ export function showWorkoutNotification(dayTitle, exerciseLines) {
           tag: NOTIFICATION_TAG,
           icon: '/fitness-tracker/logo.svg',
           badge: '/fitness-tracker/logo.svg',
-          silent: true,
+          silent: false,
+          vibrate: [100], // Short vibration — needed for Android lock screen visibility
           requireInteraction: true, // Keeps it on screen until dismissed
           renotify: true,
           actions: [
@@ -47,7 +48,6 @@ export function showWorkoutNotification(dayTitle, exerciseLines) {
         body,
         tag: NOTIFICATION_TAG,
         icon: '/fitness-tracker/logo.svg',
-        silent: true,
         requireInteraction: true
       })
     }
