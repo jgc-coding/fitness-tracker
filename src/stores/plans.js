@@ -76,9 +76,12 @@ export const usePlansStore = defineStore('plans', () => {
   }
 
   async function updateTrainingDay(dayId, updates) {
-    await db.trainingDays.update(dayId, { ...updates, updatedAt: new Date().toISOString() })
+    const updatedFields = { ...updates, updatedAt: new Date().toISOString() }
+    await db.trainingDays.update(dayId, updatedFields)
     const idx = trainingDays.value.findIndex(d => d.id === dayId)
-    if (idx !== -1) Object.assign(trainingDays.value[idx], updates)
+    if (idx !== -1) {
+      trainingDays.value[idx] = { ...trainingDays.value[idx], ...updatedFields }
+    }
   }
 
   async function deleteTrainingDay(dayId) {
