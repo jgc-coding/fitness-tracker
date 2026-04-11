@@ -35,9 +35,13 @@ export async function exportToCSV(userId = null) {
     arms: 'Arme', core: 'Core', full_body: 'Ganzkoerper'
   }
 
-  // Header row
-  const header = ['Uebung', 'Max', ...dates.map(formatDate)]
-  const rows = [header.join(';')]
+  // Header row: Uebung | Max | Date1 kg | Date1 Reps | Date2 kg | Date2 Reps | ...
+  const headerCells = ['Uebung', 'Max']
+  for (const date of dates) {
+    const label = formatDate(date)
+    headerCells.push(`${label} kg`, `${label} Reps`)
+  }
+  const rows = [headerCells.join(';')]
 
   for (const muscleId of muscleOrder) {
     const groupExercises = allExercises.filter(e => e.muscleGroup === muscleId)
@@ -52,11 +56,12 @@ export async function exportToCSV(userId = null) {
       const data = exerciseData[ex.id] || {}
       const weights = Object.values(data).map(d => d.weight)
       const max = weights.length > 0 ? Math.max(...weights) : ''
-      const cells = dates.map(date => {
+      const cells = [ex.name, max]
+      for (const date of dates) {
         const d = data[date]
-        return d ? `${d.weight}kg x${d.reps}` : ''
-      })
-      rows.push([ex.name, max, ...cells].join(';'))
+        cells.push(d ? d.weight : '', d ? d.reps : '')
+      }
+      rows.push(cells.join(';'))
     }
   }
 
