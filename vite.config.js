@@ -9,6 +9,17 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['logo.svg'],
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/firestore\.googleapis\.com/,
+            handler: 'NetworkOnly'
+          }
+        ]
+      },
       manifest: {
         id: '/fitness-tracker/',
         name: 'Keto Hybrid Fitness Tracker',
@@ -39,15 +50,6 @@ export default defineConfig({
           }
         ]
       },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com/,
-            handler: 'NetworkOnly'
-          }
-        ]
-      }
     })
   ]
 })

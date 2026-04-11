@@ -314,7 +314,9 @@ function openExercisePicker(day) {
   pickerDay.value = day
   pickerDayId.value = day.id
   pickerSearch.value = ''
-  pickerExistingIds.value = day.exercises.map(e => e.exerciseId)
+  // Read existing exercises from store (fresh data)
+  const storeDay = plansStore.trainingDays.find(d => d.id === day.id)
+  pickerExistingIds.value = (storeDay || day).exercises.map(e => e.exerciseId)
   pickerNewExercises.value = []
   showExercisePicker.value = true
 }
@@ -334,15 +336,20 @@ function addExerciseToDay(exercise) {
 }
 
 async function finishPicker() {
-  if (pickerNewExercises.value.length > 0 && pickerDayId.value) {
-    const day = plansStore.trainingDays.find(d => d.id === pickerDayId.value)
-    if (day) {
-      const updatedExercises = [...day.exercises, ...pickerNewExercises.value]
-      await plansStore.updateTrainingDay(pickerDayId.value, { exercises: updatedExercises })
+  try {
+    if (pickerNewExercises.value.length > 0 && pickerDayId.value) {
+      const day = plansStore.trainingDays.find(d => d.id === pickerDayId.value)
+      if (day) {
+        const updatedExercises = [...day.exercises, ...pickerNewExercises.value]
+        await plansStore.updateTrainingDay(pickerDayId.value, { exercises: updatedExercises })
+      }
     }
+  } catch (e) {
+    console.error('Fehler beim Speichern der Uebungen:', e)
+  } finally {
+    pickerNewExercises.value = []
+    showExercisePicker.value = false
   }
-  pickerNewExercises.value = []
-  showExercisePicker.value = false
 }
 
 async function removeExerciseFromDay(day, index) {
