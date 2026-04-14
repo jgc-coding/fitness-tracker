@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { db, generateId } from '../db/dexie.js'
+import { toTitleCase } from '../utils/formatters.js'
 
 export function useExercises() {
   const exercises = ref([])
@@ -42,6 +43,15 @@ export function useExercises() {
     return exercises.value.find(e => e.id === id)
   }
 
+  function getExerciseDisplayName(id) {
+    const ex = exercises.value.find(e => e.id === id)
+    return ex ? toTitleCase(ex.name) : 'Unbekannt'
+  }
+
+  function getExerciseNotes(id) {
+    return exercises.value.find(e => e.id === id)?.notes || ''
+  }
+
   function filterExercises(muscleGroup = null, equipment = null, search = '') {
     return exercises.value.filter(e => {
       if (muscleGroup && e.muscleGroup !== muscleGroup) return false
@@ -51,5 +61,16 @@ export function useExercises() {
     })
   }
 
-  return { exercises, loading, loadExercises, addExercise, updateExercise, deleteExercise, getExerciseById, filterExercises }
+  return {
+    exercises,
+    loading,
+    loadExercises,
+    addExercise,
+    updateExercise,
+    deleteExercise,
+    getExerciseById,
+    getExerciseDisplayName,
+    getExerciseNotes,
+    filterExercises
+  }
 }

@@ -63,7 +63,12 @@
           @click="openExerciseInput(index)"
         >
           <div class="exercise-name-row">
-            <h3 class="exercise-name">{{ getExerciseName(planExercise.exerciseId) }}</h3>
+            <h3 class="exercise-name">
+              {{ getExerciseName(planExercise.exerciseId) }}<span
+                v-if="getExerciseNotes(planExercise.exerciseId)"
+                class="exercise-notes-inline"
+              > ({{ getExerciseNotes(planExercise.exerciseId) }})</span>
+            </h3>
             <button class="btn-icon" @click.stop="openSwap(index)">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
             </button>
@@ -83,22 +88,16 @@
                 </template>
                 <template v-else>--</template>
               </span>
+              <button
+                class="increase-icon-btn"
+                :class="{ active: increaseToggles[planExercise.exerciseId]?.[user.id] }"
+                :style="{ '--user-color': user.color }"
+                :title="`${user.name}: Gewicht beim nächsten Mal steigern`"
+                @click.stop="toggleIncrease(planExercise.exerciseId, user.id)"
+              >
+                <img src="/logo.svg" alt="" class="increase-icon-logo" />
+              </button>
             </div>
-          </div>
-
-          <!-- Increase weight next time -->
-          <div class="increase-toggles">
-            <button
-              v-for="user in authStore.users"
-              :key="user.id"
-              class="increase-btn"
-              :class="{ active: increaseToggles[planExercise.exerciseId]?.[user.id] }"
-              :style="{ '--user-color': user.color }"
-              @click.stop="toggleIncrease(planExercise.exerciseId, user.id)"
-            >
-              <span class="increase-arrow">&#9650;</span>
-              {{ user.name }}: Gewicht steigern
-            </button>
           </div>
         </div>
 
@@ -188,7 +187,7 @@
       <input v-model="swapSearch" type="text" placeholder="Uebung suchen..." class="search-input" />
       <div class="swap-list">
         <button v-for="ex in filteredSwapExercises" :key="ex.id" class="swap-item" @click="swapExercise(ex.id)">
-          <span class="swap-name">{{ ex.name }}</span>
+          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
           <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
         </button>
       </div>
@@ -199,7 +198,7 @@
       <input v-model="quickAddSearch" type="text" placeholder="Uebung suchen..." class="search-input" />
       <div class="swap-list">
         <button v-for="ex in filteredQuickAddExercises" :key="ex.id" class="swap-item" @click="quickAddExercise(ex)">
-          <span class="swap-name">{{ ex.name }}</span>
+          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
           <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
         </button>
       </div>
@@ -220,6 +219,7 @@ import { useExercises } from '../composables/useExercises.js'
 import { useHistory } from '../composables/useHistory.js'
 import { isDeloadWeek, formatDate, getToday } from '../utils/dateHelpers.js'
 import { MUSCLE_GROUPS } from '../utils/constants.js'
+import { toTitleCase } from '../utils/formatters.js'
 import {
   requestNotificationPermission,
   isNotificationSupported,
@@ -331,7 +331,12 @@ const otherUserName = computed(() => {
 })
 
 function getExerciseName(exerciseId) {
-  return getExerciseById(exerciseId)?.name || 'Unbekannt'
+  const name = getExerciseById(exerciseId)?.name
+  return name ? toTitleCase(name) : 'Unbekannt'
+}
+
+function getExerciseNotes(exerciseId) {
+  return getExerciseById(exerciseId)?.notes || ''
 }
 
 function getMuscleLabel(id) {
@@ -622,6 +627,15 @@ onMounted(async () => {
 .exercise-name {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
+  flex: 1;
+  min-width: 0;
+}
+
+.exercise-notes-inline {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 .btn-icon {
@@ -646,21 +660,28 @@ onMounted(async () => {
 .user-value {
   flex: 1;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
   border-left: 3px solid;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: var(--color-bg);
   font-size: var(--font-size-sm);
+  min-width: 0;
 }
 
 .user-value-name {
   color: var(--color-text-light);
+  flex-shrink: 0;
 }
 
 .user-value-data {
   font-weight: var(--font-weight-semibold);
+  flex: 1;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rec-hint {
@@ -673,36 +694,36 @@ onMounted(async () => {
   font-weight: var(--font-weight-bold);
 }
 
-.increase-toggles {
-  display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
-}
-
-.increase-btn {
-  flex: 1;
-  padding: var(--space-sm);
-  border: 2px dashed var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
-  transition: all 0.15s;
+.increase-icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  opacity: 0.35;
 }
 
-.increase-btn .increase-arrow {
-  font-size: 10px;
+.increase-icon-btn:active {
+  background: var(--color-bg);
 }
 
-.increase-btn.active {
-  border: 2px solid var(--user-color);
-  color: var(--color-white);
-  background: var(--user-color);
-  font-weight: var(--font-weight-bold);
+.increase-icon-btn.active {
+  opacity: 1;
+  border-color: var(--user-color);
+  background: color-mix(in srgb, var(--user-color) 12%, white);
+}
+
+.increase-icon-logo {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 /* Wheel Picker Modal */

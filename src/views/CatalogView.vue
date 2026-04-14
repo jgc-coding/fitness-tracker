@@ -52,7 +52,7 @@
           @click="editExercise(ex)"
         >
           <div class="exercise-info">
-            <h3 class="exercise-name">{{ ex.name }}</h3>
+            <h3 class="exercise-name">{{ toTitleCase(ex.name) }}</h3>
             <div class="exercise-tags">
               <span class="tag">{{ getMuscleLabel(ex.muscleGroup) }}</span>
               <span class="tag">{{ getEquipmentLabel(ex.equipment) }}</span>
@@ -139,6 +139,7 @@ import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
 import { useExercises } from '../composables/useExercises.js'
 import { MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
+import { toTitleCase } from '../utils/formatters.js'
 
 const { exercises, loading, loadExercises, addExercise, updateExercise, deleteExercise, filterExercises } = useExercises()
 
