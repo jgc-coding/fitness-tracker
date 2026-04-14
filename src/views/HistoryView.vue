@@ -56,7 +56,7 @@
                 </tr>
                 <!-- Exercise rows -->
                 <tr v-for="ex in group.exercises" :key="ex.id" class="exercise-row">
-                  <td class="col-exercise sticky-col">{{ ex.name }}</td>
+                  <td class="col-exercise sticky-col">{{ toTitleCase(ex.name) }}</td>
                   <td class="col-max sticky-max">
                     <span v-if="ex.max > 0" class="max-value">{{ ex.max }}</span>
                   </td>
@@ -104,6 +104,7 @@ import { useAuthStore } from '../stores/auth.js'
 import { useHistory } from '../composables/useHistory.js'
 import { useExercises } from '../composables/useExercises.js'
 import { exportToCSV, exportToJSON } from '../utils/exportData.js'
+import { toTitleCase } from '../utils/formatters.js'
 
 const authStore = useAuthStore()
 const { buildSpreadsheetData } = useHistory()

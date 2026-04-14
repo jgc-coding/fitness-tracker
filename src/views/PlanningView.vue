@@ -35,8 +35,11 @@
                   Aktivieren
                 </button>
                 <span v-else class="active-badge">Aktiv</span>
-                <button class="btn-icon" @click="editPlan(plan)">
+                <button class="btn-icon" @click="editPlan(plan)" title="Plan bearbeiten">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon danger" @click="deletePlan(plan)" title="Plan löschen">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </button>
               </div>
             </div>
@@ -194,7 +197,7 @@
           :class="{ 'already-added': isExerciseInDay(ex.id) }"
           @click="addExerciseToDay(ex)"
         >
-          <span class="swap-name">{{ ex.name }}</span>
+          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
           <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
         </button>
       </div>
@@ -215,6 +218,7 @@ import Modal from '../components/shared/Modal.vue'
 import { usePlansStore } from '../stores/plans.js'
 import { useExercises } from '../composables/useExercises.js'
 import { PLAN_TYPES, MUSCLE_GROUPS } from '../utils/constants.js'
+import { toTitleCase } from '../utils/formatters.js'
 
 const plansStore = usePlansStore()
 const { exercises, loadExercises, getExerciseById } = useExercises()
@@ -236,7 +240,8 @@ const filteredPickerExercises = computed(() => {
 })
 
 function getExerciseName(id) {
-  return getExerciseById(id)?.name || 'Unbekannt'
+  const name = getExerciseById(id)?.name
+  return name ? toTitleCase(name) : 'Unbekannt'
 }
 
 function getMuscleLabel(id) {
@@ -273,6 +278,12 @@ async function confirmDeletePlan() {
   if (confirm('Plan wirklich loeschen? Alle Trainingstage werden ebenfalls geloescht.')) {
     await plansStore.deletePlan(editPlanId.value)
     showEditPlan.value = false
+  }
+}
+
+async function deletePlan(plan) {
+  if (confirm(`Plan "${plan.name}" wirklich löschen? Alle darin enthaltenen Trainingstage werden ebenfalls gelöscht.`)) {
+    await plansStore.deletePlan(plan.id)
   }
 }
 
