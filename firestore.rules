@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Security rules for the Fitness Tracker app.
+// Data is shared between Lisa and Gab, both signed in anonymously.
+// Anyone authenticated (anonymously or otherwise) can read/write.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{collection}/{docId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

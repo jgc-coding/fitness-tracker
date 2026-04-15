@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { db, generateId } from '../db/dexie.js'
 import { getToday } from '../utils/dateHelpers.js'
+import { pushRecord } from '../services/syncService.js'
 
 export const useWorkoutStore = defineStore('workout', () => {
   const activeWorkout = ref(null)
@@ -24,6 +25,7 @@ export const useWorkoutStore = defineStore('workout', () => {
         updatedAt: new Date().toISOString()
       }
       await db.workoutLogs.add(existing)
+      pushRecord('workoutLogs', existing.id, existing)
     }
 
     activeWorkout.value = existing
@@ -46,13 +48,16 @@ export const useWorkoutStore = defineStore('workout', () => {
     )
 
     if (existing) {
+      const updatedAt = new Date().toISOString()
       await db.setLogs.update(existing.id, {
         weight: Number(weight),
         reps: Number(reps),
-        updatedAt: new Date().toISOString()
+        updatedAt
       })
       existing.weight = Number(weight)
       existing.reps = Number(reps)
+      existing.updatedAt = updatedAt
+      pushRecord('setLogs', existing.id, { ...existing })
     } else {
       const setLog = {
         id: generateId(),
@@ -65,10 +70,12 @@ export const useWorkoutStore = defineStore('workout', () => {
         isWarmup: false,
         date: activeWorkout.value.date,
         increaseNextTime: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
       await db.setLogs.add(setLog)
       currentSets.value.push(setLog)
+      pushRecord('setLogs', setLog.id, setLog)
     }
   }
 
@@ -88,27 +95,34 @@ export const useWorkoutStore = defineStore('workout', () => {
       const lastDate = prevSets[0].date
       const lastDateSets = prevSets.filter(s => s.date === lastDate)
       const newValue = !lastDateSets[0].increaseNextTime
+      const updatedAt = new Date().toISOString()
       for (const set of lastDateSets) {
-        await db.setLogs.update(set.id, { increaseNextTime: newValue })
+        await db.setLogs.update(set.id, { increaseNextTime: newValue, updatedAt })
         set.increaseNextTime = newValue
+        set.updatedAt = updatedAt
+        pushRecord('setLogs', set.id, { ...set })
       }
       return newValue
     }
 
     const newValue = !sets[0].increaseNextTime
+    const updatedAt = new Date().toISOString()
     for (const set of sets) {
-      await db.setLogs.update(set.id, { increaseNextTime: newValue })
+      await db.setLogs.update(set.id, { increaseNextTime: newValue, updatedAt })
       set.increaseNextTime = newValue
+      set.updatedAt = updatedAt
+      pushRecord('setLogs', set.id, { ...set })
     }
     return newValue
   }
 
   async function finishWorkout() {
     if (!activeWorkout.value) return
-    await db.workoutLogs.update(activeWorkout.value.id, {
-      completedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    })
+    const updatedAt = new Date().toISOString()
+    const completedAt = new Date().toISOString()
+    await db.workoutLogs.update(activeWorkout.value.id, { completedAt, updatedAt })
+    const full = await db.workoutLogs.get(activeWorkout.value.id)
+    if (full) pushRecord('workoutLogs', full.id, full)
     activeWorkout.value = null
     currentSets.value = []
   }

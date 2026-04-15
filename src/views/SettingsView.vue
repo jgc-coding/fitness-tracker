@@ -49,7 +49,7 @@
         <h2 class="settings-title">Info</h2>
         <div class="about-row">
           <span>Version</span>
-          <span>1.0.2</span>
+          <span>1.0.3</span>
         </div>
         <div class="about-row">
           <span>Daten</span>
@@ -65,6 +65,7 @@ import { ref, onMounted } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import { useAuthStore } from '../stores/auth.js'
 import { db, generateId } from '../db/dexie.js'
+import { pushRecord } from '../services/syncService.js'
 
 const authStore = useAuthStore()
 const seedMessage = ref('')
@@ -132,7 +133,7 @@ async function seedExercises() {
 
   for (const ex of DEFAULT_EXERCISES) {
     if (!existingNames.has(ex.name.toLowerCase())) {
-      await db.exercises.add({
+      const exercise = {
         id: generateId(),
         name: ex.name,
         muscleGroup: ex.muscleGroup,
@@ -140,7 +141,9 @@ async function seedExercises() {
         notes: '',
         createdAt: now,
         updatedAt: now
-      })
+      }
+      await db.exercises.add(exercise)
+      pushRecord('exercises', exercise.id, exercise)
       added++
     }
   }
@@ -221,13 +224,16 @@ async function seedHistory() {
 
     // Create a workout log entry for the seed
     const workoutLogId = generateId()
-    await db.workoutLogs.add({
+    const workoutLog = {
       id: workoutLogId,
       planId: 'seed',
       date: seedDate,
       startedAt: now,
-      completedAt: now
-    })
+      completedAt: now,
+      updatedAt: now
+    }
+    await db.workoutLogs.add(workoutLog)
+    pushRecord('workoutLogs', workoutLogId, workoutLog)
 
     let added = 0
     for (const [name, lisaMax, gabMax] of SEED_HISTORY) {
@@ -236,7 +242,7 @@ async function seedHistory() {
 
       // Lisa (user1)
       if (lisaMax > 0) {
-        await db.setLogs.add({
+        const setLog = {
           id: generateId(),
           workoutLogId,
           exerciseId,
@@ -245,14 +251,17 @@ async function seedHistory() {
           weight: lisaMax,
           reps: 8,
           date: seedDate,
-          createdAt: now
-        })
+          createdAt: now,
+          updatedAt: now
+        }
+        await db.setLogs.add(setLog)
+        pushRecord('setLogs', setLog.id, setLog)
         added++
       }
 
       // Gab (user2)
       if (gabMax > 0) {
-        await db.setLogs.add({
+        const setLog = {
           id: generateId(),
           workoutLogId,
           exerciseId,
@@ -261,13 +270,18 @@ async function seedHistory() {
           weight: gabMax,
           reps: 8,
           date: seedDate,
-          createdAt: now
-        })
+          createdAt: now,
+          updatedAt: now
+        }
+        await db.setLogs.add(setLog)
+        pushRecord('setLogs', setLog.id, setLog)
         added++
       }
     }
 
-    await db.meta.put({ key: 'historySeedDone', value: true })
+    const metaRec = { key: 'historySeedDone', value: true, updatedAt: now }
+    await db.meta.put(metaRec)
+    pushRecord('meta', 'historySeedDone', metaRec)
     historyMessage.value = `${added} Ausgangswerte eingetragen!`
   } catch (e) {
     console.error('Seed history error:', e)

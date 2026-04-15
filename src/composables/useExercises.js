@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { db, generateId } from '../db/dexie.js'
 import { toTitleCase } from '../utils/formatters.js'
+import { pushRecord, pushDelete } from '../services/syncService.js'
 
 export function useExercises() {
   const exercises = ref([])
@@ -10,6 +11,13 @@ export function useExercises() {
     loading.value = true
     exercises.value = await db.exercises.orderBy('name').toArray()
     loading.value = false
+  }
+
+  // Reload when sync pulls remote exercise changes
+  if (typeof window !== 'undefined') {
+    window.addEventListener('fitness-sync-changed', (e) => {
+      if (e.detail?.collection === 'exercises') loadExercises()
+    })
   }
 
   async function addExercise(name, muscleGroup, equipment, notes = '') {
@@ -25,18 +33,23 @@ export function useExercises() {
     await db.exercises.add(exercise)
     exercises.value.push(exercise)
     exercises.value.sort((a, b) => a.name.localeCompare(b.name))
+    pushRecord('exercises', exercise.id, exercise)
     return exercise
   }
 
   async function updateExercise(id, updates) {
-    await db.exercises.update(id, { ...updates, updatedAt: new Date().toISOString() })
+    const updatedAt = new Date().toISOString()
+    await db.exercises.update(id, { ...updates, updatedAt })
     const idx = exercises.value.findIndex(e => e.id === id)
-    if (idx !== -1) Object.assign(exercises.value[idx], updates)
+    if (idx !== -1) Object.assign(exercises.value[idx], updates, { updatedAt })
+    const full = await db.exercises.get(id)
+    if (full) pushRecord('exercises', id, full)
   }
 
   async function deleteExercise(id) {
     await db.exercises.delete(id)
     exercises.value = exercises.value.filter(e => e.id !== id)
+    pushDelete('exercises', id)
   }
 
   function getExerciseById(id) {
