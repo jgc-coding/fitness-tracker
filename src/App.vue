@@ -12,7 +12,13 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import BottomNav from './components/layout/BottomNav.vue'
+import { initSync } from './services/syncService.js'
+
+onMounted(() => {
+  initSync()
+})
 </script>
 
 <style scoped>

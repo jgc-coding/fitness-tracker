@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { db } from '../db/dexie.js'
 import { USERS } from '../utils/constants.js'
+import { pushRecord } from '../services/syncService.js'
 
 export const useAuthStore = defineStore('auth', () => {
   const users = ref([...USERS])
@@ -11,7 +12,10 @@ export const useAuthStore = defineStore('auth', () => {
     const user = users.value.find(u => u.id === userId)
     if (user) {
       user.name = name
-      await db.meta.put({ key: `userName_${userId}`, value: name })
+      const key = `userName_${userId}`
+      const record = { key, value: name, updatedAt: new Date().toISOString() }
+      await db.meta.put(record)
+      pushRecord('meta', key, record)
     }
   }
 

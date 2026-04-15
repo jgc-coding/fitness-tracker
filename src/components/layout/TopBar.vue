@@ -8,6 +8,7 @@
       </div>
       <h1 class="top-bar-title">{{ title }}</h1>
       <div class="top-bar-right">
+        <span class="sync-dot" :class="'sync-' + syncStatus" :title="syncTitle"></span>
         <slot name="right"></slot>
       </div>
     </div>
@@ -15,11 +16,28 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { syncStatus, lastSyncAt } from '../../services/syncService.js'
+
 defineProps({
   title: {
     type: String,
     default: ''
   }
+})
+
+const syncTitle = computed(() => {
+  const last = lastSyncAt.value
+    ? ` (zuletzt ${lastSyncAt.value.toLocaleTimeString('de-DE')})`
+    : ''
+  const labels = {
+    idle: 'Sync nicht gestartet',
+    connecting: 'Verbinde mit Cloud...',
+    synced: 'Synchronisiert',
+    offline: 'Offline',
+    error: 'Sync-Fehler'
+  }
+  return (labels[syncStatus.value] || syncStatus.value) + last
 })
 </script>
 
@@ -62,5 +80,36 @@ defineProps({
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.sync-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transition: background 0.2s;
+}
+
+.sync-dot.sync-synced {
+  background: var(--color-success, #2e7d32);
+}
+
+.sync-dot.sync-connecting {
+  background: #f0a500;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.sync-dot.sync-error {
+  background: var(--color-danger, #c62828);
+}
+
+.sync-dot.sync-offline {
+  background: var(--color-text-muted);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>
