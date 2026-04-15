@@ -186,24 +186,41 @@
         placeholder="Uebung suchen..."
         class="search-input"
       />
-      <div v-if="pickerAddedCount > 0" class="added-hint">
-        {{ pickerAddedCount }} Uebung(en) hinzugefuegt
+      <div class="sort-tabs">
+        <button
+          v-for="opt in sortOptions"
+          :key="opt.id"
+          class="sort-tab"
+          :class="{ active: pickerSortBy === opt.id }"
+          @click="pickerSortBy = opt.id"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+      <div v-if="pickerDiffCount !== 0" class="added-hint">
+        {{ pickerDiffCount > 0 ? `${pickerDiffCount} Uebung(en) hinzugefuegt` : `${-pickerDiffCount} Uebung(en) entfernt` }}
       </div>
       <div class="swap-list">
-        <button
-          v-for="ex in filteredPickerExercises"
-          :key="ex.id"
-          class="swap-item"
-          :class="{ 'already-added': isExerciseInDay(ex.id) }"
-          @click="addExerciseToDay(ex)"
-        >
-          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
-          <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
-        </button>
+        <template v-for="group in groupedPickerExercises" :key="group.label">
+          <div v-if="group.label" class="swap-group-header">{{ group.label }}</div>
+          <button
+            v-for="ex in group.items"
+            :key="ex.id"
+            class="swap-item"
+            :class="{ 'is-selected': isExerciseInDay(ex.id) }"
+            @click="toggleExerciseInPicker(ex)"
+          >
+            <span class="swap-check">
+              <svg v-if="isExerciseInDay(ex.id)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+            <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
+          </button>
+        </template>
       </div>
       <div class="picker-footer">
         <button class="btn btn-primary btn-block" @click="finishPicker">
-          Fertig ({{ pickerAddedCount }} neue)
+          Fertig ({{ pickerSelectedIds.length }} ausgewaehlt)
         </button>
       </div>
     </Modal>
@@ -217,7 +234,7 @@ import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
 import { usePlansStore } from '../stores/plans.js'
 import { useExercises } from '../composables/useExercises.js'
-import { PLAN_TYPES, MUSCLE_GROUPS } from '../utils/constants.js'
+import { PLAN_TYPES, MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
 
 const plansStore = usePlansStore()
@@ -234,9 +251,44 @@ const pickerSearch = ref('')
 const selectedWeekVariant = reactive({})
 const planTypes = PLAN_TYPES
 
+const pickerSortBy = ref('name') // 'name' | 'muscle' | 'equipment'
+const sortOptions = [
+  { id: 'name', label: 'A–Z' },
+  { id: 'muscle', label: 'Muskelgruppe' },
+  { id: 'equipment', label: 'Geraet' }
+]
+
 const filteredPickerExercises = computed(() => {
   if (!pickerSearch.value) return exercises.value
   return exercises.value.filter(e => e.name.toLowerCase().includes(pickerSearch.value.toLowerCase()))
+})
+
+const groupedPickerExercises = computed(() => {
+  const items = [...filteredPickerExercises.value]
+  const nameSort = (a, b) => toTitleCase(a.name).localeCompare(toTitleCase(b.name), 'de')
+
+  if (pickerSortBy.value === 'name') {
+    return [{ label: '', items: items.sort(nameSort) }]
+  }
+
+  const isMuscle = pickerSortBy.value === 'muscle'
+  const order = isMuscle ? MUSCLE_GROUPS : EQUIPMENT_TYPES
+  const keyField = isMuscle ? 'muscleGroup' : 'equipment'
+  const groups = new Map()
+  for (const o of order) groups.set(o.id, [])
+  const other = []
+  for (const ex of items) {
+    const k = ex[keyField]
+    if (groups.has(k)) groups.get(k).push(ex)
+    else other.push(ex)
+  }
+  const result = []
+  for (const o of order) {
+    const arr = groups.get(o.id)
+    if (arr && arr.length) result.push({ label: o.label, items: arr.sort(nameSort) })
+  }
+  if (other.length) result.push({ label: 'Sonstiges', items: other.sort(nameSort) })
+  return result
 })
 
 function getExerciseName(id) {
@@ -319,7 +371,7 @@ const pickerDayId = ref(null)
 const pickerSelectedIds = ref([])
 const pickerInitialIds = ref([])
 
-const pickerAddedCount = computed(() => {
+const pickerDiffCount = computed(() => {
   return pickerSelectedIds.value.length - pickerInitialIds.value.length
 })
 
@@ -336,9 +388,12 @@ function isExerciseInDay(exerciseId) {
   return pickerSelectedIds.value.includes(exerciseId)
 }
 
-function addExerciseToDay(exercise) {
-  if (pickerSelectedIds.value.includes(exercise.id)) return
-  pickerSelectedIds.value = [...pickerSelectedIds.value, exercise.id]
+function toggleExerciseInPicker(exercise) {
+  if (pickerSelectedIds.value.includes(exercise.id)) {
+    pickerSelectedIds.value = pickerSelectedIds.value.filter(id => id !== exercise.id)
+  } else {
+    pickerSelectedIds.value = [...pickerSelectedIds.value, exercise.id]
+  }
 }
 
 async function finishPicker() {
@@ -635,11 +690,15 @@ onMounted(async () => {
 
 .swap-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   border-bottom: 1px solid var(--color-border);
   text-align: left;
+}
+
+.swap-item .swap-name {
+  flex: 1;
 }
 
 .swap-item:active {
@@ -655,9 +714,63 @@ onMounted(async () => {
   color: var(--color-text-muted);
 }
 
-.swap-item.already-added {
-  opacity: 0.4;
-  pointer-events: none;
+.swap-item.is-selected {
+  background: var(--color-bg);
+}
+
+.swap-item.is-selected .swap-name {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.swap-check {
+  width: 18px;
+  height: 18px;
+  margin-right: var(--space-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  color: var(--color-white);
+}
+
+.swap-item.is-selected .swap-check {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.sort-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.sort-tab {
+  flex: 1;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-text-light);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.sort-tab.active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.swap-group-header {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--space-md) var(--space-md) var(--space-xs);
+  background: var(--color-bg);
 }
 
 .added-hint {
