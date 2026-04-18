@@ -11,7 +11,11 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   async function startWorkout(trainingDay, planId) {
     const today = getToday()
-    let existing = await db.workoutLogs.where({ date: today }).first()
+    // Look for an existing log for THIS specific training day today — not just
+    // any log on today's date. Otherwise switching training days on the same
+    // day would reuse the wrong workoutLog and mislabel history.
+    const logs = await db.workoutLogs.where({ date: today }).toArray()
+    let existing = logs.find(l => l.trainingDayId === trainingDay.id) || null
 
     if (!existing) {
       existing = {
@@ -25,6 +29,13 @@ export const useWorkoutStore = defineStore('workout', () => {
         updatedAt: new Date().toISOString()
       }
       await db.workoutLogs.add(existing)
+      pushRecord('workoutLogs', existing.id, existing)
+    } else if (existing.completedAt) {
+      // Re-opening a finished day — clear completedAt so new sets append to
+      // the right session rather than a "finished" one.
+      const updatedAt = new Date().toISOString()
+      await db.workoutLogs.update(existing.id, { completedAt: null, updatedAt })
+      existing = { ...existing, completedAt: null, updatedAt }
       pushRecord('workoutLogs', existing.id, existing)
     }
 
@@ -42,6 +53,15 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   async function saveSet(exerciseId, userId, setNumber, weight, reps) {
     if (!activeWorkout.value) return
+
+    // Validate numeric inputs — NaN would be serialized as null by Firestore
+    // and break max/volume calculations downstream.
+    const w = Number(weight)
+    const r = Number(reps)
+    if (!Number.isFinite(w) || w < 0) return
+    if (!Number.isFinite(r) || r < 0) return
+    weight = w
+    reps = r
 
     const existing = currentSets.value.find(
       s => s.exerciseId === exerciseId && s.userId === userId && s.setNumber === setNumber
@@ -129,9 +149,10 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   async function resumeTodaysWorkout() {
     const today = getToday()
-    const existing = await db.workoutLogs.where({ date: today }).first()
-    if (existing && !existing.completedAt) {
-      activeWorkout.value = existing
+    const logs = await db.workoutLogs.where({ date: today }).toArray()
+    const unfinished = logs.find(l => !l.completedAt)
+    if (unfinished) {
+      activeWorkout.value = unfinished
       await loadSets()
       return true
     }
