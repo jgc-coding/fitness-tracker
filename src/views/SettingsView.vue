@@ -49,7 +49,7 @@
         <h2 class="settings-title">Info</h2>
         <div class="about-row">
           <span>Version</span>
-          <span>1.0.4</span>
+          <span>1.0.5</span>
         </div>
         <div class="about-row">
           <span>Daten</span>
@@ -203,10 +203,20 @@ async function seedHistory() {
   historyMessage.value = ''
 
   try {
-    // Check if already seeded
-    const existingMeta = await db.meta.get('historySeedDone')
-    if (existingMeta) {
+    // Check if already seeded ON THIS DEVICE. We deliberately use localStorage
+    // (not the synced `meta` table) so the second device can still refuse or
+    // skip independently. Also short-circuit if we already see seed data in
+    // the synced DB (the partner already did the seed).
+    if (localStorage.getItem('historySeedDone') === '1') {
       historyMessage.value = 'Ausgangswerte bereits vorhanden.'
+      seedingHistory.value = false
+      setTimeout(() => { historyMessage.value = '' }, 3000)
+      return
+    }
+    const seedWorkout = await db.workoutLogs.where({ planId: 'seed' }).first()
+    if (seedWorkout) {
+      localStorage.setItem('historySeedDone', '1')
+      historyMessage.value = 'Ausgangswerte sind bereits via Sync vorhanden.'
       seedingHistory.value = false
       setTimeout(() => { historyMessage.value = '' }, 3000)
       return
@@ -279,9 +289,7 @@ async function seedHistory() {
       }
     }
 
-    const metaRec = { key: 'historySeedDone', value: true, updatedAt: now }
-    await db.meta.put(metaRec)
-    pushRecord('meta', 'historySeedDone', metaRec)
+    localStorage.setItem('historySeedDone', '1')
     historyMessage.value = `${added} Ausgangswerte eingetragen!`
   } catch (e) {
     console.error('Seed history error:', e)

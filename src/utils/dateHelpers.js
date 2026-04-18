@@ -30,14 +30,24 @@ export function formatDateShort(date) {
 }
 
 export function getToday() {
-  return new Date().toISOString().split('T')[0]
+  // Use LOCAL date, not UTC. Otherwise workouts started between midnight and
+  // ~02:00 local time are logged under the previous day.
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 export function isDeloadWeek(deloadStartDate, deloadIntervalWeeks) {
   if (!deloadStartDate || !deloadIntervalWeeks) return false
-  const start = new Date(deloadStartDate)
+  // Compute the diff in calendar days via UTC midnights to avoid DST drift.
+  const [sy, sm, sd] = String(deloadStartDate).split('-').map(Number)
   const now = new Date()
-  const diffMs = now - start
-  const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000))
-  return diffWeeks >= 0 && diffWeeks % deloadIntervalWeeks === deloadIntervalWeeks - 1
+  const startUtc = Date.UTC(sy, (sm || 1) - 1, sd || 1)
+  const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+  const diffDays = Math.floor((nowUtc - startUtc) / 86400000)
+  if (diffDays < 0) return false
+  const diffWeeks = Math.floor(diffDays / 7)
+  return diffWeeks % deloadIntervalWeeks === deloadIntervalWeeks - 1
 }

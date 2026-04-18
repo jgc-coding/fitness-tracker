@@ -34,13 +34,19 @@ function toPlain(obj) {
   return JSON.parse(JSON.stringify(obj))
 }
 
-// Determine if remote version should overwrite local
-// Returns true if remote should win (apply it), false if local is newer/equal
+// Determine if remote version should overwrite local.
+// Returns true if remote should win (apply it), false if local is newer/equal.
+// Handles missing timestamps defensively so a ghost remote without updatedAt
+// can't overwrite a local record.
 function shouldApplyRemote(local, remote) {
   if (!local) return true
-  const lt = local.updatedAt || local.createdAt || ''
-  const rt = remote.updatedAt || remote.createdAt || ''
-  // Apply remote if strictly newer (or equal, for safety / idempotency)
+  const lt = local.updatedAt || local.createdAt || null
+  const rt = remote.updatedAt || remote.createdAt || null
+  // If remote has no timestamp, never let it win.
+  if (!rt) return false
+  // If local has no timestamp, remote wins (fills in missing data).
+  if (!lt) return true
+  // Otherwise lexicographic ISO-string compare: apply on equal-or-newer.
   return rt >= lt
 }
 
@@ -100,10 +106,10 @@ async function reconcileCollection(tableName, keyField) {
       // Not in cloud yet — push it
       await setDoc(fsDoc(firestore, tableName, String(id)), toPlain(local))
     } else {
-      // Compare timestamps; push local if newer
-      const lt = local.updatedAt || local.createdAt || ''
-      const rt = remote.updatedAt || remote.createdAt || ''
-      if (lt > rt) {
+      // Compare timestamps; push local if strictly newer.
+      const lt = local.updatedAt || local.createdAt || null
+      const rt = remote.updatedAt || remote.createdAt || null
+      if (lt && (!rt || lt > rt)) {
         await setDoc(fsDoc(firestore, tableName, String(id)), toPlain(local))
       }
     }
