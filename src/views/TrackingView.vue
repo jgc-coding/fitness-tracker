@@ -20,19 +20,8 @@
         Deload-Woche: Volumen um 50% reduzieren
       </div>
 
-      <!-- No active plan -->
-      <EmptyState
-        v-if="!plansStore.activePlan"
-        title="Kein aktiver Trainingsplan"
-        description="Erstelle zuerst einen Trainingsplan im Bereich Planung."
-      >
-        <router-link to="/planning" class="btn btn-primary" style="margin-top: 12px">
-          Zur Planung
-        </router-link>
-      </EmptyState>
-
-      <!-- Plan exists but no workout started -->
-      <div v-else-if="!workoutStore.isWorkoutActive" class="start-section">
+      <!-- No active workout: choose what to start -->
+      <div v-if="!workoutStore.isWorkoutActive" class="start-section">
         <h2 class="section-title">Training starten</h2>
         <div class="day-cards">
           <button
@@ -44,7 +33,18 @@
             <span class="day-title">{{ day.title }}</span>
             <span class="day-exercises">{{ day.exercises.length }} Uebungen</span>
           </button>
+
+          <!-- Individual training — always available, independent of the plan -->
+          <button class="card day-card day-card-custom" @click="openCustomPicker">
+            <span class="day-title">Individuelles Training</span>
+            <span class="day-exercises">Uebungen frei waehlen</span>
+          </button>
         </div>
+
+        <p v-if="!plansStore.activePlan" class="no-plan-hint">
+          Kein aktiver Trainingsplan — du kannst trotzdem ein individuelles Training
+          starten oder in der <router-link to="/planning">Planung</router-link> einen Plan anlegen.
+        </p>
       </div>
 
       <!-- Active workout -->
@@ -203,13 +203,41 @@
         </button>
       </div>
     </Modal>
+
+    <!-- Individual Training: multi-select exercise picker -->
+    <Modal v-model="showCustomPicker" title="Individuelles Training" fullHeight>
+      <input v-model="customSearch" type="text" placeholder="Uebung suchen..." class="search-input" />
+      <div class="swap-list">
+        <button
+          v-for="ex in filteredCustomExercises"
+          :key="ex.id"
+          class="swap-item"
+          :class="{ 'is-selected': customSelectedIds.includes(ex.id) }"
+          @click="toggleCustomExercise(ex.id)"
+        >
+          <span class="swap-check">
+            <svg v-if="customSelectedIds.includes(ex.id)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+          <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
+        </button>
+      </div>
+      <div class="picker-footer">
+        <button
+          class="btn btn-primary btn-block"
+          :disabled="customSelectedIds.length === 0"
+          @click="startCustom"
+        >
+          Training starten ({{ customSelectedIds.length }})
+        </button>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
-import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
 import { useWorkoutStore } from '../stores/workout.js'
@@ -232,7 +260,7 @@ const workoutStore = useWorkoutStore()
 const plansStore = usePlansStore()
 const authStore = useAuthStore()
 const { exercises, loadExercises, getExerciseById } = useExercises()
-const { getMaxWeight, getLastSets, shouldIncreaseWeight } = useHistory()
+const { getLatestWeight, getLastSets, shouldIncreaseWeight } = useHistory()
 
 const showDaySelector = ref(false)
 const showSwapModal = ref(false)
@@ -247,6 +275,11 @@ const increaseToggles = reactive({})
 const lastSetsCache = reactive({})
 const workoutExercises = ref([])
 const currentDay = ref(null)
+
+// Individual ("custom") training: multi-select exercise picker state
+const showCustomPicker = ref(false)
+const customSearch = ref('')
+const customSelectedIds = ref([])
 
 // Wheel picker state
 const activeExerciseIndex = ref(-1)
@@ -273,6 +306,11 @@ const filteredSwapExercises = computed(() => {
 const filteredQuickAddExercises = computed(() => {
   if (!quickAddSearch.value) return exercises.value
   return exercises.value.filter(e => e.name.toLowerCase().includes(quickAddSearch.value.toLowerCase()))
+})
+
+const filteredCustomExercises = computed(() => {
+  if (!customSearch.value) return exercises.value
+  return exercises.value.filter(e => e.name.toLowerCase().includes(customSearch.value.toLowerCase()))
 })
 
 const activeExerciseName = computed(() => {
@@ -356,8 +394,8 @@ async function loadRecommendations() {
     if (!lastSetsCache[ex.exerciseId]) lastSetsCache[ex.exerciseId] = {}
 
     for (const user of authStore.users) {
-      const max = await getMaxWeight(ex.exerciseId, user.id)
-      if (max) recommendations[ex.exerciseId][user.id] = max
+      const latest = await getLatestWeight(ex.exerciseId, user.id)
+      if (latest) recommendations[ex.exerciseId][user.id] = latest
 
       const shouldInc = await shouldIncreaseWeight(ex.exerciseId, user.id)
       increaseFlags[ex.exerciseId][user.id] = shouldInc
@@ -491,6 +529,43 @@ function quickAddExercise(exercise) {
   loadRecommendations()
 }
 
+function openCustomPicker() {
+  customSearch.value = ''
+  customSelectedIds.value = []
+  showCustomPicker.value = true
+}
+
+function toggleCustomExercise(id) {
+  if (customSelectedIds.value.includes(id)) {
+    customSelectedIds.value = customSelectedIds.value.filter(x => x !== id)
+  } else {
+    customSelectedIds.value = [...customSelectedIds.value, id]
+  }
+}
+
+async function startCustom() {
+  if (customSelectedIds.value.length === 0) return
+  showCustomPicker.value = false
+  // Preserve picker order; default to 2 sets like the planning picker does.
+  const dayExercises = customSelectedIds.value.map(id => ({ exerciseId: id, sets: 2, notes: '' }))
+  workoutStore.startCustomWorkout(dayExercises)
+  currentDay.value = { title: 'Individuelles Training', exercises: dayExercises }
+  workoutExercises.value = [...dayExercises]
+  await loadRecommendations()
+  await requestNotificationPermission()
+  updateNotification()
+}
+
+// Keep the in-memory custom log's exercise list in sync with the view, so an
+// individual workout survives navigating away and back within the session
+// (incl. exercises added via quick-add or swapped during the workout).
+watch(workoutExercises, (list) => {
+  const aw = workoutStore.activeWorkout
+  if (aw?.isCustom) {
+    aw.exercises = list.map(e => ({ ...e }))
+  }
+}, { deep: true })
+
 async function finishWorkout() {
   await workoutStore.finishWorkout()
   workoutExercises.value = []
@@ -516,6 +591,14 @@ onMounted(async () => {
       workoutExercises.value = [...day.exercises]
       await loadRecommendations()
     }
+  } else if (workoutStore.activeWorkout?.isCustom) {
+    // Memory-only custom workout from earlier this session (e.g. user navigated
+    // away to another tab and came back). resumeTodaysWorkout can't find it in
+    // the DB, so rebuild the view from the in-memory log.
+    const aw = workoutStore.activeWorkout
+    currentDay.value = { title: aw.title || 'Individuelles Training', exercises: aw.exercises || [] }
+    workoutExercises.value = [...(aw.exercises || [])]
+    await loadRecommendations()
   }
 })
 </script>
@@ -822,5 +905,61 @@ onMounted(async () => {
 
 .start-section {
   padding-top: var(--space-md);
+}
+
+.day-card-custom {
+  border: 1px dashed var(--color-border);
+}
+
+.no-plan-hint {
+  margin-top: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.no-plan-hint a {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Multi-select rows in the individual-training picker */
+.swap-item .swap-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.swap-item.is-selected {
+  background: var(--color-bg);
+}
+
+.swap-item.is-selected .swap-name {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.swap-check {
+  width: 18px;
+  height: 18px;
+  margin-right: var(--space-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  color: var(--color-white);
+}
+
+.swap-item.is-selected .swap-check {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.picker-footer {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-md) 0;
+  background: var(--color-white);
 }
 </style>

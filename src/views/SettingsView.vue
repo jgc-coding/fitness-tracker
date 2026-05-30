@@ -49,7 +49,7 @@
         <h2 class="settings-title">Info</h2>
         <div class="about-row">
           <span>Version</span>
-          <span>1.0.5</span>
+          <span>1.0.6</span>
         </div>
         <div class="about-row">
           <span>Daten</span>

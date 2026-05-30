@@ -13,6 +13,9 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Inject our notificationclick handler into the generated SW so tapping
+        // the workout notification opens/focuses the app (see public/sw-custom.js).
+        importScripts: ['sw-custom.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firestore\.googleapis\.com/,
