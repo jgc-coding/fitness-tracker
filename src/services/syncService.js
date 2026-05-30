@@ -1,15 +1,12 @@
 import { ref } from 'vue'
-import { signInAnonymously } from 'firebase/auth'
-import {
-  collection as fsCollection,
-  doc as fsDoc,
-  setDoc,
-  deleteDoc,
-  onSnapshot,
-  getDocs
-} from 'firebase/firestore'
-import { firestore, auth } from '../db/firebase.js'
 import { db } from '../db/dexie.js'
+
+// Firebase APIs + instances are loaded lazily in initSync() so the Firebase SDK
+// is code-split out of the main bundle. Until that runs these stay null and the
+// push* helpers below no-op (they guard on `fb`).
+let fb = null
+let firestore = null
+let auth = null
 
 // Collections we sync. Each entry describes a Dexie table + its primary key field.
 // For most tables the key field is `id`, but `meta` uses `key`.
@@ -94,7 +91,7 @@ async function reconcileCollection(tableName, keyField) {
   if (locals.length === 0) return
 
   // Fetch remote once
-  const remoteSnap = await getDocs(fsCollection(firestore, tableName))
+  const remoteSnap = await fb.getDocs(fb.collection(firestore, tableName))
   const remoteMap = new Map()
   remoteSnap.forEach((d) => remoteMap.set(d.id, d.data()))
 
@@ -104,13 +101,13 @@ async function reconcileCollection(tableName, keyField) {
     const remote = remoteMap.get(id)
     if (!remote) {
       // Not in cloud yet — push it
-      await setDoc(fsDoc(firestore, tableName, String(id)), toPlain(local))
+      await fb.setDoc(fb.doc(firestore, tableName, String(id)), toPlain(local))
     } else {
       // Compare timestamps; push local if strictly newer.
       const lt = local.updatedAt || local.createdAt || null
       const rt = remote.updatedAt || remote.createdAt || null
       if (lt && (!rt || lt > rt)) {
-        await setDoc(fsDoc(firestore, tableName, String(id)), toPlain(local))
+        await fb.setDoc(fb.doc(firestore, tableName, String(id)), toPlain(local))
       }
     }
   }
@@ -122,13 +119,32 @@ export async function initSync() {
   syncStatus.value = 'connecting'
 
   try {
-    await signInAnonymously(auth)
+    // Lazily load Firebase (code-split out of the main bundle) plus the APIs we use.
+    const [{ initFirebase }, authMod, fsMod] = await Promise.all([
+      import('../db/firebase.js'),
+      import('firebase/auth'),
+      import('firebase/firestore')
+    ])
+    const instances = await initFirebase()
+    firestore = instances.firestore
+    auth = instances.auth
+    fb = {
+      signInAnonymously: authMod.signInAnonymously,
+      collection: fsMod.collection,
+      doc: fsMod.doc,
+      setDoc: fsMod.setDoc,
+      deleteDoc: fsMod.deleteDoc,
+      onSnapshot: fsMod.onSnapshot,
+      getDocs: fsMod.getDocs
+    }
+
+    await fb.signInAnonymously(auth)
 
     // Set up real-time listeners for each collection.
     // The first firing delivers the current Firestore state.
     for (const { name, keyField } of SYNCED) {
-      const unsub = onSnapshot(
-        fsCollection(firestore, name),
+      const unsub = fb.onSnapshot(
+        fb.collection(firestore, name),
         (snap) => handleSnapshot(name, keyField, snap),
         (err) => {
           console.error(`[sync] listener error for ${name}:`, err)
@@ -155,9 +171,9 @@ export async function initSync() {
 // Push a single record (add or update) to Firestore.
 // Called by stores after every successful local Dexie write.
 export async function pushRecord(collectionName, id, data) {
-  if (!initialized || !auth.currentUser || !id) return
+  if (!fb || !auth?.currentUser || !id) return
   try {
-    await setDoc(fsDoc(firestore, collectionName, String(id)), toPlain(data))
+    await fb.setDoc(fb.doc(firestore, collectionName, String(id)), toPlain(data))
     lastSyncAt.value = new Date()
   } catch (err) {
     console.error(`[sync] push failed for ${collectionName}/${id}:`, err)
@@ -166,9 +182,9 @@ export async function pushRecord(collectionName, id, data) {
 
 // Delete a single record from Firestore.
 export async function pushDelete(collectionName, id) {
-  if (!initialized || !auth.currentUser || !id) return
+  if (!fb || !auth?.currentUser || !id) return
   try {
-    await deleteDoc(fsDoc(firestore, collectionName, String(id)))
+    await fb.deleteDoc(fb.doc(firestore, collectionName, String(id)))
     lastSyncAt.value = new Date()
   } catch (err) {
     console.error(`[sync] delete failed for ${collectionName}/${id}:`, err)
@@ -186,5 +202,6 @@ export function stopSync() {
   for (const unsub of unsubscribers) unsub()
   unsubscribers.length = 0
   initialized = false
+  fb = null
   syncStatus.value = 'idle'
 }

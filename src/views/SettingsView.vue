@@ -49,11 +49,15 @@
         <h2 class="settings-title">Info</h2>
         <div class="about-row">
           <span>Version</span>
-          <span>1.0.6</span>
+          <span>{{ appVersion }}</span>
         </div>
         <div class="about-row">
           <span>Daten</span>
           <span>Lokal (IndexedDB)</span>
+        </div>
+        <div class="about-row">
+          <span>Cloud-Sync</span>
+          <span :style="syncStatus === 'error' ? { color: 'var(--color-danger)' } : null">{{ syncLabel }}</span>
         </div>
       </div>
     </div>
@@ -61,16 +65,33 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import { useAuthStore } from '../stores/auth.js'
 import { db, generateId } from '../db/dexie.js'
-import { pushRecord } from '../services/syncService.js'
+import { pushRecord, syncStatus, lastSyncAt } from '../services/syncService.js'
 
 const authStore = useAuthStore()
 const seedMessage = ref('')
 const historyMessage = ref('')
 const seedingHistory = ref(false)
+// __APP_VERSION__ is injected at build time from package.json (see vite.config.js)
+const appVersion = __APP_VERSION__
+
+const SYNC_LABELS = {
+  idle: 'Nicht gestartet',
+  connecting: 'Verbinde...',
+  synced: 'Aktiv',
+  offline: 'Offline',
+  error: 'Fehler'
+}
+
+const syncLabel = computed(() => {
+  const base = SYNC_LABELS[syncStatus.value] || syncStatus.value
+  return lastSyncAt.value
+    ? `${base} (${lastSyncAt.value.toLocaleTimeString('de-DE')})`
+    : base
+})
 
 async function updateName(userId, event) {
   const name = event.target.value.trim()
