@@ -29,7 +29,7 @@ export function useHistory() {
     loading.value = false
   }
 
-  async function getMaxWeight(exerciseId, userId) {
+  async function getLatestWeight(exerciseId, userId) {
     const sets = await db.setLogs
       .where('[exerciseId+userId]')
       .equals([exerciseId, userId])
@@ -37,13 +37,16 @@ export function useHistory() {
 
     if (sets.length === 0) return null
 
-    let max = null
-    for (const set of sets) {
-      if (!max || set.weight > max.weight) {
-        max = set
-      }
-    }
-    return max
+    // Most recently LOGGED value — deliberately NOT the all-time heaviest.
+    // Newest date first; within the same date the set that was entered last
+    // wins (highest setNumber, then latest createdAt). This reflects "what we
+    // lifted last time" rather than a personal record from weeks ago.
+    sets.sort((a, b) =>
+      b.date.localeCompare(a.date) ||
+      (b.setNumber - a.setNumber) ||
+      String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+    )
+    return sets[0]
   }
 
   async function getLastSets(exerciseId, userId) {
@@ -153,5 +156,5 @@ export function useHistory() {
     return { muscleGroups: groups, dates }
   }
 
-  return { workoutHistory, loading, loadHistory, getMaxWeight, getLastSets, shouldIncreaseWeight, getExerciseHistory, buildSpreadsheetData }
+  return { workoutHistory, loading, loadHistory, getLatestWeight, getLastSets, shouldIncreaseWeight, getExerciseHistory, buildSpreadsheetData }
 }

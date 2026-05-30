@@ -43,6 +43,30 @@ export const useWorkoutStore = defineStore('workout', () => {
     await loadSets()
   }
 
+  // Ad-hoc workout that is NOT tied to a plan/training day. The log lives only
+  // in memory — it is never written to db.workoutLogs, so it doesn't appear as
+  // a saved workout in the history and can't be resumed after a full reload.
+  // Sets logged against it ARE persisted (saveSet writes to db.setLogs + sync),
+  // so the weights still feed each exercise's history/stats.
+  // `exercises` is kept on the in-memory log so the view can rebuild its list
+  // after navigating away and back within the same session.
+  function startCustomWorkout(exercises = []) {
+    activeWorkout.value = {
+      id: generateId(),
+      date: getToday(),
+      planId: null,
+      trainingDayId: null,
+      isCustom: true,
+      title: 'Individuelles Training',
+      exercises: exercises.map(e => ({ ...e })),
+      startedAt: new Date().toISOString(),
+      completedAt: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    currentSets.value = []
+  }
+
   async function loadSets() {
     if (!activeWorkout.value) return
     currentSets.value = await db.setLogs
@@ -138,11 +162,15 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   async function finishWorkout() {
     if (!activeWorkout.value) return
-    const updatedAt = new Date().toISOString()
-    const completedAt = new Date().toISOString()
-    await db.workoutLogs.update(activeWorkout.value.id, { completedAt, updatedAt })
-    const full = await db.workoutLogs.get(activeWorkout.value.id)
-    if (full) pushRecord('workoutLogs', full.id, full)
+    // Custom workouts are memory-only — there's no db.workoutLogs row to
+    // complete, so just clear the in-memory state. The sets already persisted.
+    if (!activeWorkout.value.isCustom) {
+      const updatedAt = new Date().toISOString()
+      const completedAt = new Date().toISOString()
+      await db.workoutLogs.update(activeWorkout.value.id, { completedAt, updatedAt })
+      const full = await db.workoutLogs.get(activeWorkout.value.id)
+      if (full) pushRecord('workoutLogs', full.id, full)
+    }
     activeWorkout.value = null
     currentSets.value = []
   }
@@ -170,6 +198,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     currentSets,
     isWorkoutActive,
     startWorkout,
+    startCustomWorkout,
     loadSets,
     saveSet,
     toggleIncreaseNextTime,
