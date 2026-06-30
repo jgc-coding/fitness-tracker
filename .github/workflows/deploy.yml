@@ -23,7 +23,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run build
+      # Build the original two-user app into dist/, then build the standalone
+      # single-user variant into dist/single/. Both ship in the same Pages
+      # artifact and are served at /fitness-tracker/ and /fitness-tracker/single/.
+      - run: npm run build:all
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
