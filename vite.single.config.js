@@ -3,14 +3,22 @@ import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'node:fs'
 
-// Single source of truth for the app version: package.json. Exposed to the app
-// as the __APP_VERSION__ compile-time constant (used in SettingsView).
+// Build config for "FitTrack Single" — the standalone, single-user, local-only
+// variant. It lives in ./single, reuses the root node_modules, and builds into
+// dist/single so it can be served from GitHub Pages at /fitness-tracker/single/
+// alongside (but fully independent of) the original two-user app.
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
 
 export default defineConfig({
-  base: '/fitness-tracker/',
+  root: 'single',
+  base: '/fitness-tracker/single/',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version)
+  },
+  build: {
+    // Relative to `root` (single/) -> repo-root/dist/single
+    outDir: '../dist/single',
+    emptyOutDir: true
   },
   plugins: [
     vue(),
@@ -21,32 +29,21 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        // The standalone "FitTrack Single" variant is served from the
-        // /fitness-tracker/single/ subpath. Make sure this app's SPA
-        // navigation fallback never hijacks those routes with this app's
-        // index.html when both are installed in the same browser.
-        navigateFallbackDenylist: [/^\/fitness-tracker\/single\//],
-        // Inject our notificationclick handler into the generated SW so tapping
-        // the workout notification opens/focuses the app (see public/sw-custom.js).
-        importScripts: ['sw-custom.js'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com/,
-            handler: 'NetworkOnly'
-          }
-        ]
+        // Inject the notificationclick handler (see single/public/sw-custom.js).
+        importScripts: ['sw-custom.js']
+        // No Firebase here — FitTrack Single is local-only.
       },
       manifest: {
-        id: '/fitness-tracker/',
-        name: 'Keto Hybrid Fitness Tracker',
-        short_name: 'FitTrack',
-        description: 'Kraftsport Tracker fuer zwei',
+        id: '/fitness-tracker/single/',
+        name: 'FitTrack Single',
+        short_name: 'FitTrack Single',
+        description: 'Kraftsport Tracker — lokal, fuer eine Person',
         theme_color: '#911f2f',
         background_color: '#f3f6f7',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/fitness-tracker/',
-        scope: '/fitness-tracker/',
+        start_url: '/fitness-tracker/single/',
+        scope: '/fitness-tracker/single/',
         icons: [
           {
             src: 'icons/icon-192.png',
@@ -65,7 +62,7 @@ export default defineConfig({
             purpose: 'maskable'
           }
         ]
-      },
+      }
     })
   ]
 })

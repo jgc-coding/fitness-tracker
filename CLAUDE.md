@@ -62,7 +62,23 @@ public/
 npm run dev       # Entwicklungsserver (Port 5173)
 npm run build     # Produktions-Build nach /dist
 npm run preview   # Build lokal testen (Port 4173)
+
+# FitTrack Single (unabhaengige Einzelnutzer-Variante, siehe unten)
+npm run dev:single     # Dev-Server der Single-Variante
+npm run build:single   # Build nach /dist/single
+npm run build:all      # Beide Apps bauen (Haupt-App + Single) — wird im Deploy genutzt
 ```
+
+## FitTrack Single (unabhaengige Variante)
+Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nutzer-App.
+- **Speicherort:** `single/` (eigene `index.html` + Kopie von `src/`), Build-Config `vite.single.config.js`
+- **Unabhaengig:** Kein Firebase, kein Cloud-Sync. Eigene IndexedDB-Datenbank `FitnessTrackerSingle`
+  (Haupt-App nutzt `FitnessTracker`) — auch im selben Browser keine gemeinsamen Daten.
+- **Ein Nutzer:** `USERS` enthaelt nur `user1`; Dual-User-UI (User-Tabs, History-Umschalter) ist ausgeblendet.
+- **Base-Path:** `/fitness-tracker/single/` — eigene PWA (Name „FitTrack Single", eigener Scope/Manifest/Service-Worker).
+- **Deploy:** `deploy.yml` baut via `npm run build:all` beide Apps in dieselbe GitHub-Pages-Artifact
+  (`/fitness-tracker/` und `/fitness-tracker/single/`). Die Haupt-App bleibt unveraendert; einzige Anpassung
+  dort ist eine `navigateFallbackDenylist` fuer `/single/`, damit sich die Service-Worker nicht stoeren.
 
 ## Architektur-Hinweise
 - **Offline-first:** Alle Reads kommen aus IndexedDB, Writes gehen in IndexedDB + syncQueue
