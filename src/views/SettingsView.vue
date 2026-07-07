@@ -44,6 +44,40 @@
         <p v-if="historyMessage" class="seed-message">{{ historyMessage }}</p>
       </div>
 
+      <!-- Backup -->
+      <div class="card settings-card">
+        <h2 class="settings-title">Backup</h2>
+        <p class="settings-desc">
+          Sichert alle Daten (beide Nutzer) als JSON-Datei. Der Import
+          ergaenzt und aktualisiert nur — vorhandene neuere Eintraege bleiben
+          unangetastet.
+        </p>
+        <button class="btn btn-secondary btn-block" @click="doBackupExport">
+          Backup exportieren (JSON)
+        </button>
+        <button
+          class="btn btn-secondary btn-block"
+          style="margin-top: var(--space-sm)"
+          @click="backupFileInput?.click()"
+        >
+          Backup importieren
+        </button>
+        <input
+          ref="backupFileInput"
+          type="file"
+          accept=".json,application/json"
+          style="display: none"
+          @change="doBackupImport"
+        />
+        <p
+          v-if="backupMessage"
+          class="seed-message"
+          :style="backupError ? { color: 'var(--color-danger)' } : null"
+        >
+          {{ backupMessage }}
+        </p>
+      </div>
+
       <!-- Cloud Sync -->
       <div class="card settings-card">
         <h2 class="settings-title">Cloud-Sync</h2>
@@ -134,13 +168,18 @@ import {
   authUserEmail,
   pendingPushCount,
   signIn,
-  signOutSync
+  signOutSync,
+  resyncAll
 } from '../services/syncService.js'
+import { exportToJSON, importFromJSON } from '../utils/exportData.js'
 
 const authStore = useAuthStore()
 const seedMessage = ref('')
 const historyMessage = ref('')
 const seedingHistory = ref(false)
+const backupFileInput = ref(null)
+const backupMessage = ref('')
+const backupError = ref(false)
 // __APP_VERSION__ is injected at build time from package.json (see vite.config.js)
 const appVersion = __APP_VERSION__
 
@@ -183,6 +222,38 @@ async function doSignIn() {
 
 async function doSignOut() {
   await signOutSync()
+}
+
+async function doBackupExport() {
+  try {
+    await exportToJSON() // ohne userId = komplette Datenbank
+    backupError.value = false
+    backupMessage.value = 'Backup-Datei wurde heruntergeladen.'
+  } catch (e) {
+    console.error('Backup export error:', e)
+    backupError.value = true
+    backupMessage.value = 'Export fehlgeschlagen.'
+  }
+  setTimeout(() => { backupMessage.value = '' }, 5000)
+}
+
+async function doBackupImport(event) {
+  const file = event.target.files?.[0]
+  event.target.value = '' // reset, damit dieselbe Datei erneut waehlbar ist
+  if (!file) return
+  try {
+    const text = await file.text()
+    const { imported, skipped } = await importFromJSON(text)
+    await authStore.loadUserNames()
+    resyncAll() // bringt neue lokale Daten in die Cloud (falls angemeldet)
+    backupError.value = false
+    backupMessage.value = `Import fertig: ${imported} uebernommen, ${skipped} unveraendert.`
+  } catch (e) {
+    console.error('Backup import error:', e)
+    backupError.value = true
+    backupMessage.value = e?.message || 'Import fehlgeschlagen.'
+  }
+  setTimeout(() => { backupMessage.value = '' }, 6000)
 }
 
 const syncLabel = computed(() => {
