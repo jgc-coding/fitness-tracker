@@ -52,8 +52,8 @@ export async function exportToCSV(userId = null) {
     rows.push('')
     rows.push(`--- ${muscleLabels[muscleId] || muscleId} ---`)
 
-    for (const ex of groupExercises) {
-      const data = exerciseData[ex.id] || {}
+    for (const ex of withData) {
+      const data = exerciseData[ex.id]
       const weights = Object.values(data).map(d => d.weight)
       const max = weights.length > 0 ? Math.max(...weights) : ''
       const cells = [ex.name, max]
@@ -65,7 +65,9 @@ export async function exportToCSV(userId = null) {
     }
   }
 
-  const csv = rows.join('\n')
+  // UTF-8-BOM (U+FEFF) vorne dran, sonst zeigt Excel Umlaute in
+  // Uebungsnamen als Muellzeichen an.
+  const csv = String.fromCharCode(0xfeff) + rows.join('\n')
   downloadFile(csv, `fitness-export-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8')
 }
 
