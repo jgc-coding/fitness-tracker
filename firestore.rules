@@ -1,12 +1,19 @@
 rules_version = '2';
 
 // Security rules for the Fitness Tracker app.
-// Data is shared between Lisa and Gab, both signed in anonymously.
-// Anyone authenticated (anonymously or otherwise) can read/write.
+//
+// Zugriff hat NUR das gemeinsame Fitness-Konto (E-Mail/Passwort-Login).
+// WICHTIG: Vor dem Einspielen in der Firebase Console die Platzhalter-E-Mail
+// unten durch die echte Konto-E-Mail ersetzen (Gross-/Kleinschreibung egal,
+// Firebase liefert sie kleingeschrieben).
+//
+// Schritt-fuer-Schritt-Anleitung: docs/firebase-absicherung.md
+// (Reihenfolge einhalten, sonst stoppt der Sync auf den Handys!)
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{collection}/{docId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if request.auth != null
+        && request.auth.token.email == 'FITNESS-KONTO@BEISPIEL.DE';
     }
   }
 }
