@@ -7,10 +7,13 @@ PWA (Progressive Web App) zum Tracken, Planen und Auswerten von Kraftsport-Train
 - **Frontend:** Vue 3 (Composition API) + Vite 6
 - **Routing:** Vue Router 4 (5 Routen, Lazy Loading)
 - **State:** Pinia (Stores: auth, plans, workout)
-- **Offline-DB:** Dexie.js v4 (IndexedDB)
+- **Offline-DB:** Dexie.js v4 (IndexedDB, Schema v2 mit `deletions`-Tombstones)
+- **Cloud-Sync:** Firebase (Firestore + Auth), lazy geladen; Login mit gemeinsamem
+  E-Mail/Passwort-Konto — Setup/Regeln: `docs/firebase-absicherung.md` + `firestore.rules`
 - **PWA:** vite-plugin-pwa (Workbox, Service Worker)
 - **Hosting:** GitHub Pages via GitHub Actions (`deploy.yml`)
-- **CSS:** Custom, keine UI-Bibliothek
+- **CSS:** Custom, keine UI-Bibliothek. Moderne Features wie `color-mix` fuer NEUE
+  Styles meiden (alte Android-WebViews) — statische rgba-Werte bevorzugen
 - **Sprache:** JavaScript (kein TypeScript)
 
 ## Design-Tokens
@@ -28,31 +31,42 @@ src/
     auth.js              Benutzernamen, User-Verwaltung
     plans.js             Trainingsplaene, Trainingstage, CRUD
     workout.js           Aktives Workout, Set-Logging, Gewicht-Steigern-Flag
-  db/dexie.js            Dexie-Schema: exercises, plans, trainingDays, workoutLogs, setLogs, syncQueue, meta
+  db/dexie.js            Dexie-Schema v2: exercises, plans, trainingDays, workoutLogs,
+                         setLogs, syncQueue (Push-Retry), meta, deletions (Tombstones)
+  db/firebase.js         Firebase-Init (lazy import; nur Haupt-App)
+  services/
+    syncService.js       Cloud-Sync: E-Mail-Login, Firestore-Listener, Reconcile,
+                         Tombstones, Retry-Queue, Status-Refs (syncStatus, pendingPushCount)
   composables/           Wiederverwendbare Logik
     useExercises.js      Uebungen laden, suchen, CRUD
-    useHistory.js        Spreadsheet-Daten, Max-Gewichte, Steigerungslogik
+    useHistory.js        Spreadsheet-Daten, letzte Werte, Steigerungslogik
   views/
     TrackingView.vue     Workout ausfuehren, WheelPicker, Dual-User, Notifications
     PlanningView.vue     Plaene erstellen, Trainingstage, Uebungen zuordnen
     HistoryView.vue      Horizontales Spreadsheet, gruppiert nach Muskelgruppe
     CatalogView.vue      Uebungskatalog mit Suche und Filtern
-    SettingsView.vue     Benutzernamen, Seed-Uebungen, Seed-History
+    SettingsView.vue     Benutzernamen, Seeds, Backup (Export/Import), Cloud-Login, Info
   components/
-    layout/              BottomNav (5 Tabs), TopBar
-    shared/              Modal, EmptyState, WheelPicker
+    layout/              BottomNav (5 Tabs), TopBar (mit Sync-Status-Punkt)
+    shared/              Modal (Android-Back schliesst!), EmptyState, WheelPicker
   utils/
     constants.js         MUSCLE_GROUPS, EQUIPMENT_TYPES, USERS, PLAN_TYPES
     dateHelpers.js       Datumsfunktionen, KW-Erkennung, Deload-Berechnung
+    formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
     notifications.js     Service Worker Notifications fuer Sperrbildschirm
-    exportData.js        CSV-Export (Spreadsheet-Layout), JSON-Backup
-    volumeCalc.js        Volumenberechnung
+    exportData.js        CSV-Export (mit UTF-8-BOM), JSON-Backup + Import (merge-only)
   styles/
     variables.css        CSS Custom Properties (Farben, Abstande, Fonts)
     global.css           Reset, Basisstile, Utility-Klassen
 public/
   logo.svg               Keto Hybrid Logo
   icons/                 PWA-Icons (192px, 512px)
+  sw-custom.js           notificationclick-Handler (wird in den SW injiziert)
+scripts/
+  check-drift.mjs        Waechter: geteilte Dateien src/ <-> single/src/ identisch
+docs/
+  firebase-absicherung.md  Console-Anleitung (Konto, Registrierung sperren, Rules)
+firestore.rules          Vorlage der Firestore-Regeln (Einspielen manuell via Console)
 .github/workflows/
   deploy.yml             CI/CD: Build + Deploy auf GitHub Pages (Branch: master)
 ```
@@ -66,11 +80,15 @@ npm run preview   # Build lokal testen (Port 4173)
 # FitTrack Single (unabhaengige Einzelnutzer-Variante, siehe unten)
 npm run dev:single     # Dev-Server der Single-Variante
 npm run build:single   # Build nach /dist/single
-npm run build:all      # Beide Apps bauen (Haupt-App + Single) — wird im Deploy genutzt
+npm run check:drift    # Prueft, ob src/ und single/src/ synchron sind
+npm run build:all      # check:drift + beide Apps bauen — wird im Deploy genutzt
 ```
 
 ## FitTrack Single (unabhaengige Variante)
 Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nutzer-App.
+- **WICHTIG — Doppel-Wartung:** `single/src/` ist eine Kopie von `src/`. Jede Aenderung an
+  einer geteilten Datei MUSS in beide Kopien (`cp src/X single/src/X`). `npm run check:drift`
+  erzwingt das vor jedem Build; bewusste Ausnahmen stehen in `scripts/check-drift.mjs`.
 - **Speicherort:** `single/` (eigene `index.html` + Kopie von `src/`), Build-Config `vite.single.config.js`
 - **Unabhaengig:** Kein Firebase, kein Cloud-Sync. Eigene IndexedDB-Datenbank `FitnessTrackerSingle`
   (Haupt-App nutzt `FitnessTracker`) — auch im selben Browser keine gemeinsamen Daten.
@@ -81,16 +99,27 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
   dort ist eine `navigateFallbackDenylist` fuer `/single/`, damit sich die Service-Worker nicht stoeren.
 
 ## Architektur-Hinweise
-- **Offline-first:** Alle Reads kommen aus IndexedDB, Writes gehen in IndexedDB + syncQueue
+- **Offline-first:** Alle Reads kommen aus IndexedDB. Writes gehen in IndexedDB und werden
+  (wenn angemeldet) direkt nach Firestore gepusht; fehlgeschlagene Pushes landen in der
+  `syncQueue` und werden automatisch nachgeholt (App-Start, online-Event, naechster Erfolg).
+- **Sync-Auth:** Kein Sync ohne Login (Status `auth-required`, Banner im Tracking).
+  Anonyme Alt-Sessions werden aktiv abgemeldet. Die App hat KEINE Registrierung —
+  Konten entstehen nur in der Firebase Console (`docs/firebase-absicherung.md`).
+- **Loeschen = Tombstone:** `pushDelete` schreibt zuerst einen Merker in `deletions`
+  (lokal, offline-faehig), dann Cloud. Reconcile ueberspringt tombstoned Records —
+  sonst laedt ein Offline-Geraet Geloeschtes wieder hoch ("Wiederauferstehung").
 - **Gewichtsschritte:** 1.25kg fuer Barbell/Machine-Weight, 1kg fuer alle anderen
 - **Exercise Picker (Planung):** Sammelt Uebungen lokal, speichert batch beim Schliessen
 - **Base-Path:** `/fitness-tracker/` in Vite, Router und PWA-Manifest
 - **Default-User:** Lisa (user1), Gab (user2)
-- **Default-Sets:** 2 pro Uebung bei Planerstellung
+- **Default-Sets:** 2 pro Uebung bei Planerstellung (im Tracking wird derzeit nur
+  Satz 1 erfasst — bekannte Produkt-Entscheidung, offen als Punkt 11 des Audits)
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
 - **`/backup-restore`** — Vollstaendiges Backup aller IndexedDB-Daten als JSON, oder Wiederherstellung aus Backup-Datei
 
 ## Connectoren/APIs
-<!-- Firebase-Integration steht noch aus — Cloud-Sync zwischen 2 Geraeten geplant -->
+- Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth). Config in
+  `src/db/firebase.js` (der API-Key ist bei Firebase kein Geheimnis — der Schutz
+  liegt in den Firestore-Rules + gesperrter Registrierung, siehe docs/).
