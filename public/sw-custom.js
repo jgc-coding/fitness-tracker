@@ -14,7 +14,13 @@ self.addEventListener('notificationclick', (event) => {
   // notification should persist until the workout is finished. The app clears
   // it explicitly via dismissWorkoutNotification(). (Some Android versions may
   // still auto-dismiss on tap — that's a platform limitation we can't override.)
-  const APP_URL = '/fitness-tracker/'
+
+  // Match strictly against this SW's scope. The old `includes('/fitness-tracker')`
+  // also matched plain browser tabs and windows of the standalone Single app
+  // under /fitness-tracker/single/ and could focus the wrong window.
+  const APP_SCOPE = self.registration.scope // e.g. https://host/fitness-tracker/
+  const isOwnClient = (url) =>
+    url.startsWith(APP_SCOPE) && !url.startsWith(APP_SCOPE + 'single/')
 
   event.waitUntil(
     (async () => {
@@ -25,13 +31,13 @@ self.addEventListener('notificationclick', (event) => {
 
       // Prefer focusing an existing app window over opening a duplicate.
       for (const client of windowClients) {
-        if (client.url.includes('/fitness-tracker') && 'focus' in client) {
+        if (isOwnClient(client.url) && 'focus' in client) {
           return client.focus()
         }
       }
 
       if (self.clients.openWindow) {
-        return self.clients.openWindow(APP_URL)
+        return self.clients.openWindow(APP_SCOPE)
       }
     })()
   )
