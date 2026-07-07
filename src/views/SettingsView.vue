@@ -85,6 +85,12 @@
             <span>Status</span>
             <span :style="syncStatus === 'error' ? { color: 'var(--color-danger)' } : null">{{ syncLabel }}</span>
           </div>
+          <div v-if="pendingPushCount > 0" class="about-row">
+            <span>Ausstehend</span>
+            <span :style="{ color: 'var(--color-danger)' }">
+              {{ pendingPushCount }} Aenderung(en) — wird automatisch nachgeholt
+            </span>
+          </div>
           <div v-if="authUserEmail" class="about-row">
             <span>Konto</span>
             <span>{{ authUserEmail }}</span>
@@ -126,6 +132,7 @@ import {
   syncStatus,
   lastSyncAt,
   authUserEmail,
+  pendingPushCount,
   signIn,
   signOutSync
 } from '../services/syncService.js'
