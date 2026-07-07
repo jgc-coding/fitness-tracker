@@ -2,33 +2,6 @@ import { ref } from 'vue'
 import { db } from '../db/dexie.js'
 
 export function useHistory() {
-  const workoutHistory = ref([])
-  const loading = ref(false)
-
-  async function loadHistory(userId = null, limit = 50) {
-    loading.value = true
-    const logs = await db.workoutLogs.orderBy('date').reverse().limit(limit).toArray()
-
-    const enriched = []
-    for (const log of logs) {
-      let sets = await db.setLogs.where('workoutLogId').equals(log.id).toArray()
-      if (userId) {
-        sets = sets.filter(s => s.userId === userId)
-      }
-      if (sets.length === 0 && userId) continue
-
-      const day = await db.trainingDays.get(log.trainingDayId)
-      enriched.push({
-        ...log,
-        trainingDayTitle: day?.title || 'Unbekannt',
-        sets
-      })
-    }
-
-    workoutHistory.value = enriched
-    loading.value = false
-  }
-
   async function getLatestWeight(exerciseId, userId) {
     const sets = await db.setLogs
       .where('[exerciseId+userId]')
@@ -66,30 +39,6 @@ export function useHistory() {
   async function shouldIncreaseWeight(exerciseId, userId) {
     const lastSets = await getLastSets(exerciseId, userId)
     return lastSets.some(s => s.increaseNextTime)
-  }
-
-  async function getExerciseHistory(exerciseId, userId, limit = 20) {
-    const sets = await db.setLogs
-      .where('[exerciseId+userId]')
-      .equals([exerciseId, userId])
-      .toArray()
-
-    sets.sort((a, b) => b.date.localeCompare(a.date) || a.setNumber - b.setNumber)
-
-    const byDate = {}
-    for (const set of sets) {
-      if (!byDate[set.date]) byDate[set.date] = []
-      byDate[set.date].push(set)
-    }
-
-    return Object.entries(byDate)
-      .slice(0, limit)
-      .map(([date, dateSets]) => ({
-        date,
-        sets: dateSets,
-        maxWeight: Math.max(...dateSets.map(s => s.weight)),
-        totalVolume: dateSets.reduce((sum, s) => sum + s.weight * s.reps, 0)
-      }))
   }
 
   /**
@@ -132,9 +81,11 @@ export function useHistory() {
     const groups = []
     for (const muscleId of muscleOrder) {
       const groupExercises = allExercises
-        .filter(e => e.muscleGroup === muscleId)
+        // Nur Uebungen, die dieser User tatsaechlich geloggt hat — sonst
+        // waechst die Tabelle mit jedem Katalog-Eintrag um eine leere Zeile.
+        .filter(e => e.muscleGroup === muscleId && exerciseData[e.id])
         .map(e => {
-          const data = exerciseData[e.id] || {}
+          const data = exerciseData[e.id]
           const weights = Object.values(data).map(d => d.weight)
           return {
             id: e.id,
@@ -156,5 +107,5 @@ export function useHistory() {
     return { muscleGroups: groups, dates }
   }
 
-  return { workoutHistory, loading, loadHistory, getLatestWeight, getLastSets, shouldIncreaseWeight, getExerciseHistory, buildSpreadsheetData }
+  return { getLatestWeight, getLastSets, shouldIncreaseWeight, buildSpreadsheetData }
 }

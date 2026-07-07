@@ -52,8 +52,8 @@ export async function exportToCSV(userId = null) {
     rows.push('')
     rows.push(`--- ${muscleLabels[muscleId] || muscleId} ---`)
 
-    for (const ex of groupExercises) {
-      const data = exerciseData[ex.id] || {}
+    for (const ex of withData) {
+      const data = exerciseData[ex.id]
       const weights = Object.values(data).map(d => d.weight)
       const max = weights.length > 0 ? Math.max(...weights) : ''
       const cells = [ex.name, max]
@@ -65,12 +65,17 @@ export async function exportToCSV(userId = null) {
     }
   }
 
-  const csv = rows.join('\n')
+  // UTF-8-BOM (U+FEFF) vorne dran, sonst zeigt Excel Umlaute in
+  // Uebungsnamen als Muellzeichen an.
+  const csv = String.fromCharCode(0xfeff) + rows.join('\n')
   downloadFile(csv, `fitness-export-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8')
 }
 
 export async function exportToJSON(userId = null) {
   const data = {
+    exportVersion: 2,
+    appVersion: __APP_VERSION__,
+    exportedAt: new Date().toISOString(),
     exercises: await db.exercises.toArray(),
     plans: await db.plans.toArray(),
     trainingDays: await db.trainingDays.toArray(),
@@ -78,11 +83,104 @@ export async function exportToJSON(userId = null) {
     setLogs: userId
       ? (await db.setLogs.toArray()).filter(s => s.userId === userId)
       : await db.setLogs.toArray(),
-    exportedAt: new Date().toISOString()
+    meta: await db.meta.toArray(),
+    deletions: await db.deletions.toArray()
   }
 
   const json = JSON.stringify(data, null, 2)
   downloadFile(json, `fitness-export-${new Date().toISOString().split('T')[0]}.json`, 'application/json')
+}
+
+// Tables a backup may contain, with their primary key field.
+const IMPORT_TABLES = [
+  { name: 'exercises', keyField: 'id' },
+  { name: 'plans', keyField: 'id' },
+  { name: 'trainingDays', keyField: 'id' },
+  { name: 'workoutLogs', keyField: 'id' },
+  { name: 'setLogs', keyField: 'id' },
+  { name: 'meta', keyField: 'key' },
+  { name: 'deletions', keyField: 'id' }
+]
+
+/**
+ * Restore from a JSON backup. MERGE-only: a record is written when it doesn't
+ * exist yet or the backup copy is newer (updatedAt). Nothing is deleted except
+ * records the backup itself marks as deleted (tombstones) that weren't changed
+ * afterwards. Works with old v1 exports (missing tables are skipped).
+ * Returns { imported, skipped } for the UI message.
+ */
+export async function importFromJSON(jsonText) {
+  let data
+  try {
+    data = JSON.parse(jsonText)
+  } catch {
+    throw new Error('Die Datei ist kein gueltiges JSON.')
+  }
+  if (!data || typeof data !== 'object' || !Array.isArray(data.exercises)) {
+    throw new Error('Das ist kein Fitness-Tracker-Backup (Struktur unbekannt).')
+  }
+
+  let imported = 0
+  let skipped = 0
+
+  for (const { name, keyField } of IMPORT_TABLES) {
+    const rows = data[name]
+    const table = db[name]
+    if (!Array.isArray(rows) || !table) continue
+
+    for (const row of rows) {
+      const key = row?.[keyField]
+      if (key === undefined || key === null || key === '') {
+        skipped++
+        continue
+      }
+      try {
+        const existing = await table.get(key)
+        const incoming = row.updatedAt || row.createdAt || row.deletedAt || ''
+        const current = existing
+          ? existing.updatedAt || existing.createdAt || existing.deletedAt || ''
+          : null
+        if (!existing || incoming > current) {
+          await table.put(row)
+          imported++
+        } else {
+          skipped++
+        }
+      } catch (e) {
+        console.error(`Import failed for ${name}/${key}:`, e)
+        skipped++
+      }
+    }
+  }
+
+  // Apply imported tombstones locally: remove records the backup knows as
+  // deleted, unless they were modified again after the deletion.
+  if (Array.isArray(data.deletions)) {
+    for (const t of data.deletions) {
+      if (!t?.collection || !t?.recordId) continue
+      const table = db[t.collection]
+      if (!table || t.collection === 'deletions') continue
+      try {
+        const rec = await table.get(t.recordId)
+        if (!rec) continue
+        const recTime = rec.updatedAt || rec.createdAt || ''
+        if (!recTime || recTime <= (t.deletedAt || '')) {
+          await table.delete(t.recordId)
+        }
+      } catch (e) {
+        console.error('Tombstone apply on import failed:', e)
+      }
+    }
+  }
+
+  // Let open views reload their reactive state from Dexie.
+  for (const collection of ['exercises', 'plans', 'trainingDays', 'workoutLogs', 'setLogs']) {
+    window.dispatchEvent(
+      new CustomEvent('fitness-sync-changed', { detail: { collection } })
+    )
+  }
+
+  return { imported, skipped }
 }
 
 function downloadFile(content, filename, mimeType) {
