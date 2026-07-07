@@ -20,10 +20,13 @@ const SYNCED = [
 ]
 
 // Reactive state for UI
-export const syncStatus = ref('idle') // 'idle' | 'connecting' | 'synced' | 'offline' | 'error'
+// 'auth-required' = no signed-in account; sync is paused until login (Settings).
+export const syncStatus = ref('idle') // 'idle' | 'connecting' | 'auth-required' | 'synced' | 'offline' | 'error'
 export const lastSyncAt = ref(null)
+export const authUserEmail = ref(null)
 
 let initialized = false
+let sessionStarted = false
 const unsubscribers = []
 
 // Strip Vue reactive proxies + ensure no undefined values (Firestore rejects them)
@@ -129,7 +132,9 @@ export async function initSync() {
     firestore = instances.firestore
     auth = instances.auth
     fb = {
-      signInAnonymously: authMod.signInAnonymously,
+      signInWithEmailAndPassword: authMod.signInWithEmailAndPassword,
+      onAuthStateChanged: authMod.onAuthStateChanged,
+      signOut: authMod.signOut,
       collection: fsMod.collection,
       doc: fsMod.doc,
       setDoc: fsMod.setDoc,
@@ -138,34 +143,76 @@ export async function initSync() {
       getDocs: fsMod.getDocs
     }
 
-    await fb.signInAnonymously(auth)
-
-    // Set up real-time listeners for each collection.
-    // The first firing delivers the current Firestore state.
-    for (const { name, keyField } of SYNCED) {
-      const unsub = fb.onSnapshot(
-        fb.collection(firestore, name),
-        (snap) => handleSnapshot(name, keyField, snap),
-        (err) => {
-          console.error(`[sync] listener error for ${name}:`, err)
-          syncStatus.value = 'error'
-        }
-      )
-      unsubscribers.push(unsub)
-    }
-
-    // Push any local records that aren't in the cloud yet (first-time sync
-    // from devices that had offline data before cloud sync was enabled).
-    // Run in background; don't block status update.
-    Promise.all(SYNCED.map(({ name, keyField }) => reconcileCollection(name, keyField)))
-      .catch((err) => console.error('[sync] reconcile error:', err))
-
-    syncStatus.value = 'synced'
-    lastSyncAt.value = new Date()
+    // Sync runs only for a signed-in email/password account (the shared
+    // fitness account). Anonymous sessions from older app versions are
+    // signed out so those devices land on the login form in Settings.
+    fb.onAuthStateChanged(auth, (user) => {
+      if (user && user.isAnonymous) {
+        fb.signOut(auth).catch(() => {})
+        return
+      }
+      if (user) {
+        authUserEmail.value = user.email
+        startSyncSession()
+      } else {
+        authUserEmail.value = null
+        stopListeners()
+        syncStatus.value = 'auth-required'
+      }
+    })
   } catch (err) {
     console.error('[sync] init failed:', err)
     syncStatus.value = 'error'
   }
+}
+
+// Sign in with the shared account. Errors bubble up to the caller (Settings
+// UI shows them); onAuthStateChanged then starts the sync session.
+export async function signIn(email, password) {
+  if (!fb || !auth) throw new Error('Sync ist noch nicht initialisiert')
+  await fb.signInWithEmailAndPassword(auth, email, password)
+}
+
+export async function signOutSync() {
+  if (!fb || !auth) return
+  await fb.signOut(auth)
+}
+
+// Start listeners + reconcile once a user is signed in. Guarded so a repeated
+// auth event (e.g. token refresh) doesn't register duplicate listeners.
+function startSyncSession() {
+  if (sessionStarted) return
+  sessionStarted = true
+  syncStatus.value = 'connecting'
+
+  // Set up real-time listeners for each collection.
+  // The first firing delivers the current Firestore state.
+  for (const { name, keyField } of SYNCED) {
+    const unsub = fb.onSnapshot(
+      fb.collection(firestore, name),
+      (snap) => handleSnapshot(name, keyField, snap),
+      (err) => {
+        console.error(`[sync] listener error for ${name}:`, err)
+        syncStatus.value = 'error'
+      }
+    )
+    unsubscribers.push(unsub)
+  }
+
+  // Push any local records that aren't in the cloud yet (first-time sync
+  // from devices that had offline data before cloud sync was enabled).
+  // Run in background; don't block status update.
+  Promise.all(SYNCED.map(({ name, keyField }) => reconcileCollection(name, keyField)))
+    .catch((err) => console.error('[sync] reconcile error:', err))
+
+  syncStatus.value = 'synced'
+  lastSyncAt.value = new Date()
+}
+
+function stopListeners() {
+  for (const unsub of unsubscribers) unsub()
+  unsubscribers.length = 0
+  sessionStarted = false
 }
 
 // Push a single record (add or update) to Firestore.
@@ -199,8 +246,7 @@ export async function pushBulkDelete(collectionName, ids) {
 }
 
 export function stopSync() {
-  for (const unsub of unsubscribers) unsub()
-  unsubscribers.length = 0
+  stopListeners()
   initialized = false
   fb = null
   syncStatus.value = 'idle'
