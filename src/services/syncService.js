@@ -433,6 +433,21 @@ if (typeof window !== 'undefined') {
   window.addEventListener('online', () => flushQueue())
 }
 
+// Full re-reconcile on demand, e.g. after a backup import brought in local
+// data the cloud doesn't know yet. No-op when not signed in (login triggers
+// the same reconcile anyway).
+export async function resyncAll() {
+  if (!fb || !auth?.currentUser) return
+  try {
+    await reconcileDeletions()
+    await Promise.all(SYNCED.map(({ name, keyField }) => reconcileCollection(name, keyField)))
+    await flushQueue()
+    lastSyncAt.value = new Date()
+  } catch (err) {
+    console.error('[sync] resync failed:', err)
+  }
+}
+
 export function stopSync() {
   stopListeners()
   initialized = false
