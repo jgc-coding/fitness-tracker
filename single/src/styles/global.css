@@ -59,6 +59,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .card {
   background: var(--color-card);
+  border: 1px solid rgba(221, 225, 227, 0.55);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: var(--space-md);
@@ -73,13 +74,24 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: var(--radius-sm);
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
-  transition: background-color 0.15s, opacity 0.15s;
+  transition: background-color 0.15s, opacity 0.15s, transform 0.1s ease;
   min-height: 44px;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  transform: none;
+  cursor: default;
 }
 
 .btn-primary {
   background-color: var(--color-accent);
   color: var(--color-white);
+  box-shadow: 0 1px 3px rgba(145, 31, 47, 0.35);
 }
 
 .btn-primary:active {
@@ -109,13 +121,23 @@ input[type="number"]::-webkit-inner-spin-button {
   width: 100%;
 }
 
-/* Page transition */
-.page-enter-active,
-.page-leave-active {
-  transition: opacity 0.15s ease;
+/* Sichtbarer Fokus nur bei Tastatur-Navigation (nicht beim Tippen) */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
-.page-enter-from,
+/* Page transition: Fade + minimaler Lift, wirkt nach App statt Webseite */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
 .page-leave-to {
   opacity: 0;
 }

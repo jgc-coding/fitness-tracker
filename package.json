@@ -10,7 +10,8 @@
     "dev:single": "vite --config vite.single.config.js",
     "build:single": "vite build --config vite.single.config.js",
     "preview:single": "vite preview --config vite.single.config.js",
-    "build:all": "npm run build && npm run build:single"
+    "check:drift": "node scripts/check-drift.mjs",
+    "build:all": "npm run check:drift && npm run build && npm run build:single"
   },
   "dependencies": {
     "dexie": "^4.0.11",
