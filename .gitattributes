@@ -1,0 +1,8 @@
+# Zeilenenden: im Repo immer LF, unabhaengig von der Maschine (Windows/CI).
+* text=auto eol=lf
+
+# Binaerdateien nie anfassen
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.ico binary
