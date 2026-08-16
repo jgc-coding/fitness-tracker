@@ -43,15 +43,11 @@ export const useWorkoutStore = defineStore('workout', () => {
     await loadSets()
   }
 
-  // Ad-hoc workout that is NOT tied to a plan/training day. The log lives only
-  // in memory — it is never written to db.workoutLogs, so it doesn't appear as
-  // a saved workout in the history and can't be resumed after a full reload.
-  // Sets logged against it ARE persisted (saveSet writes to db.setLogs + sync),
-  // so the weights still feed each exercise's history/stats.
-  // `exercises` is kept on the in-memory log so the view can rebuild its list
-  // after navigating away and back within the same session.
-  function startCustomWorkout(exercises = []) {
-    activeWorkout.value = {
+  // Ad-hoc workout that is NOT tied to a plan/training day. Persisted in
+  // db.workoutLogs like plan workouts (since v1.2.0), so it survives reloads
+  // and Android killing the PWA; `exercises` carries the picked list.
+  async function startCustomWorkout(exercises = []) {
+    const log = {
       id: generateId(),
       date: getToday(),
       planId: null,
@@ -64,7 +60,23 @@ export const useWorkoutStore = defineStore('workout', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
+    await db.workoutLogs.add(log)
+    pushRecord('workoutLogs', log.id, log)
+    activeWorkout.value = log
     currentSets.value = []
+  }
+
+  // Merkt Abweichungen von der Plan-Liste (Tausch, Quick-Add) am aktiven
+  // Workout-Log, damit sie Tab-Wechsel und App-Neustart ueberleben.
+  async function persistWorkoutExercises(list) {
+    if (!activeWorkout.value) return
+    const exercises = list.map(e => ({ ...e }))
+    const updatedAt = new Date().toISOString()
+    activeWorkout.value.exercises = exercises
+    activeWorkout.value.updatedAt = updatedAt
+    await db.workoutLogs.update(activeWorkout.value.id, { exercises, updatedAt })
+    const full = await db.workoutLogs.get(activeWorkout.value.id)
+    if (full) pushRecord('workoutLogs', full.id, full)
   }
 
   async function loadSets() {
@@ -121,6 +133,21 @@ export const useWorkoutStore = defineStore('workout', () => {
       currentSets.value.push(setLog)
       pushRecord('setLogs', setLog.id, setLog)
     }
+
+    markExerciseUsed(exerciseId)
+  }
+
+  // Nutzung fuer die "zuletzt benutzt"-Sortierung merken (Tausch-/Add-Listen).
+  // Bewusst fire-and-forget: ein Fehler hier darf das Satz-Speichern nicht stoeren.
+  function markExerciseUsed(exerciseId) {
+    const lastUsedAt = new Date().toISOString()
+    db.exercises.update(exerciseId, { lastUsedAt, updatedAt: lastUsedAt })
+      .then(async (count) => {
+        if (!count) return
+        const full = await db.exercises.get(exerciseId)
+        if (full) pushRecord('exercises', exerciseId, full)
+      })
+      .catch(() => {})
   }
 
   async function toggleIncreaseNextTime(exerciseId, userId) {
@@ -162,15 +189,11 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   async function finishWorkout() {
     if (!activeWorkout.value) return
-    // Custom workouts are memory-only — there's no db.workoutLogs row to
-    // complete, so just clear the in-memory state. The sets already persisted.
-    if (!activeWorkout.value.isCustom) {
-      const updatedAt = new Date().toISOString()
-      const completedAt = new Date().toISOString()
-      await db.workoutLogs.update(activeWorkout.value.id, { completedAt, updatedAt })
-      const full = await db.workoutLogs.get(activeWorkout.value.id)
-      if (full) pushRecord('workoutLogs', full.id, full)
-    }
+    const updatedAt = new Date().toISOString()
+    const completedAt = new Date().toISOString()
+    await db.workoutLogs.update(activeWorkout.value.id, { completedAt, updatedAt })
+    const full = await db.workoutLogs.get(activeWorkout.value.id)
+    if (full) pushRecord('workoutLogs', full.id, full)
     activeWorkout.value = null
     currentSets.value = []
   }
@@ -178,7 +201,11 @@ export const useWorkoutStore = defineStore('workout', () => {
   async function resumeTodaysWorkout() {
     const today = getToday()
     const logs = await db.workoutLogs.where({ date: today }).toArray()
-    const unfinished = logs.find(l => !l.completedAt)
+    // Bei mehreren unfertigen Logs (z.B. Individuell begonnen, dann Plan-Tag
+    // gestartet) gewinnt das zuletzt gestartete.
+    const unfinished = logs
+      .filter(l => !l.completedAt)
+      .sort((a, b) => String(b.startedAt || '').localeCompare(String(a.startedAt || '')))[0]
     if (unfinished) {
       activeWorkout.value = unfinished
       await loadSets()
@@ -199,6 +226,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     isWorkoutActive,
     startWorkout,
     startCustomWorkout,
+    persistWorkoutExercises,
     loadSets,
     saveSet,
     toggleIncreaseNextTime,

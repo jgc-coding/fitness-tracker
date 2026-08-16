@@ -61,6 +61,21 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'maskable'
           }
+        ],
+        // Long-Press aufs App-Icon: Schnellzugriffe (analog zur Haupt-App)
+        shortcuts: [
+          {
+            name: 'Individuelles Training',
+            short_name: 'Individuell',
+            url: '/fitness-tracker/single/tracking?start=custom',
+            icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }]
+          },
+          {
+            name: 'History',
+            short_name: 'History',
+            url: '/fitness-tracker/single/history',
+            icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }]
+          }
         ]
       }
     })

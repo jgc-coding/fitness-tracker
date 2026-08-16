@@ -138,7 +138,7 @@
         <!-- Recommendation hint -->
         <div v-if="pickerRecommendation" class="picker-rec">
           Empfehlung: {{ pickerRecommendation.weight }}kg
-          <span v-if="pickerShouldIncrease" class="increase-hint"> &#8593; steigern!</span>
+          <span v-if="pickerShouldIncrease" class="increase-hint"> &#8593; erhoeht</span>
         </div>
 
         <!-- Wheel pickers side by side -->
@@ -189,13 +189,36 @@
 
     <!-- Exercise Swap Modal -->
     <Modal v-model="showSwapModal" title="Uebung tauschen" fullHeight>
-      <input v-model="swapSearch" type="text" placeholder="Uebung suchen..." class="search-input" />
-      <div class="swap-list">
-        <button v-for="ex in filteredSwapExercises" :key="ex.id" class="swap-item" @click="swapExercise(ex.id)">
-          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
-          <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
+      <!-- Schritt 2: nur heute oder dauerhaft in den Plan uebernehmen? -->
+      <div v-if="swapTargetId" class="swap-confirm">
+        <p class="swap-confirm-text">
+          <strong>{{ getExerciseName(swapTargetId) }}</strong> statt
+          {{ swapOriginalName }} — nur fuer heute oder dauerhaft im Plan?
+        </p>
+        <button class="btn btn-primary btn-block" @click="applySwap(false)">Nur heute</button>
+        <button
+          v-if="canSwapPermanently"
+          class="btn btn-secondary btn-block"
+          style="margin-top: var(--space-sm)"
+          @click="applySwap(true)"
+        >
+          Dauerhaft im Plan ersetzen
         </button>
       </div>
+
+      <!-- Schritt 1: Ersatz waehlen — gleiche Muskelgruppe zuerst -->
+      <template v-else>
+        <input v-model="swapSearch" type="text" placeholder="Uebung suchen..." class="search-input" />
+        <div class="swap-list">
+          <template v-for="section in swapSections" :key="section.label">
+            <div v-if="section.items.length && section.label" class="swap-section-label">{{ section.label }}</div>
+            <button v-for="ex in section.items" :key="ex.id" class="swap-item" @click="swapTargetId = ex.id">
+              <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+              <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
+            </button>
+          </template>
+        </div>
+      </template>
     </Modal>
 
     <!-- Quick Add Exercise Modal -->
@@ -241,7 +264,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import TopBar from '../components/layout/TopBar.vue'
 import Modal from '../components/shared/Modal.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
@@ -260,8 +284,10 @@ import {
   dismissWorkoutNotification,
   buildExerciseLines
 } from '../utils/notifications.js'
-import { syncStatus } from '../services/syncService.js'
+import { syncStatus, flushQueue } from '../services/syncService.js'
+import { db } from '../db/dexie.js'
 
+const route = useRoute()
 const workoutStore = useWorkoutStore()
 const plansStore = usePlansStore()
 const authStore = useAuthStore()
@@ -304,20 +330,44 @@ const isDeload = computed(() => {
 
 const availableDays = computed(() => plansStore.getTodaysTrainingDays())
 
-const filteredSwapExercises = computed(() => {
-  if (!swapSearch.value) return exercises.value
-  return exercises.value.filter(e => e.name.toLowerCase().includes(swapSearch.value.toLowerCase()))
+// "Zuletzt benutzt" nach vorn, Rest alphabetisch — die eigenen Standard-
+// Uebungen stehen damit oben statt irgendwo im Alphabet.
+function byLastUsedThenName(a, b) {
+  const la = a.lastUsedAt || ''
+  const lb = b.lastUsedAt || ''
+  if (la !== lb) return lb.localeCompare(la)
+  return a.name.localeCompare(b.name)
+}
+
+function searchFilter(list, term) {
+  if (!term) return list
+  const t = term.toLowerCase()
+  return list.filter(e => e.name.toLowerCase().includes(t))
+}
+
+// Tausch-Liste in zwei Abschnitten: erst dieselbe Muskelgruppe (beim
+// "Geraet belegt"-Tausch fast immer das Gesuchte), dann alle anderen.
+const swapSections = computed(() => {
+  const current = swapIndex.value >= 0
+    ? getExerciseById(workoutExercises.value[swapIndex.value]?.exerciseId)
+    : null
+  const list = searchFilter(exercises.value, swapSearch.value)
+  if (!current) return [{ label: '', items: [...list].sort(byLastUsedThenName) }]
+  const same = list.filter(e => e.muscleGroup === current.muscleGroup && e.id !== current.id).sort(byLastUsedThenName)
+  const others = list.filter(e => e.muscleGroup !== current.muscleGroup).sort(byLastUsedThenName)
+  return [
+    { label: `Gleiche Muskelgruppe (${getMuscleLabel(current.muscleGroup)})`, items: same },
+    { label: 'Andere Muskelgruppen', items: others }
+  ]
 })
 
-const filteredQuickAddExercises = computed(() => {
-  if (!quickAddSearch.value) return exercises.value
-  return exercises.value.filter(e => e.name.toLowerCase().includes(quickAddSearch.value.toLowerCase()))
-})
+const filteredQuickAddExercises = computed(() =>
+  [...searchFilter(exercises.value, quickAddSearch.value)].sort(byLastUsedThenName)
+)
 
-const filteredCustomExercises = computed(() => {
-  if (!customSearch.value) return exercises.value
-  return exercises.value.filter(e => e.name.toLowerCase().includes(customSearch.value.toLowerCase()))
-})
+const filteredCustomExercises = computed(() =>
+  [...searchFilter(exercises.value, customSearch.value)].sort(byLastUsedThenName)
+)
 
 const activeExerciseName = computed(() => {
   if (activeExerciseIndex.value < 0) return ''
@@ -393,6 +443,12 @@ function getSavedValue(exerciseId, userId, field) {
   return set ? set[field] : null
 }
 
+// Gewichtsschritt der Uebung: 1.25 kg fuer Langhantel/Maschine, sonst 1 kg
+function getWeightStep(exerciseId) {
+  const eq = getExerciseById(exerciseId)?.equipment
+  return eq === 'barbell' || eq === 'machine_weight' ? 1.25 : 1
+}
+
 async function loadRecommendations() {
   for (const ex of workoutExercises.value) {
     if (!recommendations[ex.exerciseId]) recommendations[ex.exerciseId] = {}
@@ -401,10 +457,18 @@ async function loadRecommendations() {
 
     for (const user of authStore.users) {
       const latest = await getLatestWeight(ex.exerciseId, user.id)
-      if (latest) recommendations[ex.exerciseId][user.id] = latest
 
       const shouldInc = await shouldIncreaseWeight(ex.exerciseId, user.id)
       increaseFlags[ex.exerciseId][user.id] = shouldInc
+
+      if (latest) {
+        // Steigern-Merker wirkt direkt auf den Vorschlag: Schrittweite aufschlagen,
+        // der Pfeil im UI zeigt dann nur noch an, DASS erhoeht wurde.
+        const weight = shouldInc
+          ? Math.round((latest.weight + getWeightStep(ex.exerciseId)) * 100) / 100
+          : latest.weight
+        recommendations[ex.exerciseId][user.id] = { ...latest, weight }
+      }
 
       const last = await getLastSets(ex.exerciseId, user.id)
       lastSetsCache[ex.exerciseId][user.id] = last
@@ -425,8 +489,9 @@ function openExerciseInput(index) {
   } else {
     const rec = recommendations[ex.exerciseId]?.[pickerUserId.value]
     const lastSets = lastSetsCache[ex.exerciseId]?.[pickerUserId.value]
-    pickerWeight.value = rec?.weight || 20
-    pickerReps.value = lastSets?.[0]?.reps || 10
+    // ?? statt ||: 0 kg (Koerpergewichtsuebung) ist ein gueltiger Wert
+    pickerWeight.value = rec?.weight ?? 20
+    pickerReps.value = lastSets?.[0]?.reps ?? 10
   }
 
   showWheelPicker.value = true
@@ -443,8 +508,8 @@ watch(pickerUserId, (userId) => {
   } else {
     const rec = recommendations[ex.exerciseId]?.[userId]
     const lastSets = lastSetsCache[ex.exerciseId]?.[userId]
-    pickerWeight.value = rec?.weight || 20
-    pickerReps.value = lastSets?.[0]?.reps || 10
+    pickerWeight.value = rec?.weight ?? 20
+    pickerReps.value = lastSets?.[0]?.reps ?? 10
   }
 })
 
@@ -481,6 +546,58 @@ async function enableNotifications() {
   }
 }
 
+// Daten fuer die Log-Knoepfe in der Sperrbildschirm-Notification: je Nutzer die
+// Warteschlange der noch offenen Uebungen samt fertigem setLog-Datensatz.
+// Der Service Worker schreibt beim Knopfdruck den ersten Eintrag in IndexedDB —
+// auch bei geschlossener App (siehe public/sw-custom.js).
+function buildNotificationQuickLog() {
+  const aw = workoutStore.activeWorkout
+  if (!aw) return { actions: [], data: null }
+  const queues = {}
+  const userNames = {}
+  const actions = []
+  for (const user of authStore.users) {
+    userNames[user.id] = user.name
+    const queue = []
+    for (const ex of workoutExercises.value) {
+      const saved = workoutStore.getSetsForExercise(ex.exerciseId, user.id).find(s => s.setNumber === 1)
+      if (saved) continue
+      const rec = recommendations[ex.exerciseId]?.[user.id]
+      const lastSets = lastSetsCache[ex.exerciseId]?.[user.id]
+      const weight = rec?.weight ?? 20
+      const reps = lastSets?.[0]?.reps ?? 10
+      queue.push({
+        label: `${getExerciseName(ex.exerciseId)} ${weight}kg x${reps}`,
+        set: {
+          workoutLogId: aw.id,
+          exerciseId: ex.exerciseId,
+          userId: user.id,
+          setNumber: 1,
+          weight,
+          reps,
+          isWarmup: false,
+          date: aw.date,
+          increaseNextTime: false
+        }
+      })
+    }
+    queues[user.id] = queue
+    if (queue.length > 0) {
+      actions.push({ action: `log-${user.id}`, title: `${user.name} OK: ${queue[0].label}` })
+    }
+  }
+  return {
+    actions,
+    data: {
+      kind: 'workout-quicklog',
+      dbName: db.name,
+      title: currentDay.value?.title || 'Workout',
+      userNames,
+      queues
+    }
+  }
+}
+
 function updateNotification() {
   if (!currentDay.value) return
   const lines = buildExerciseLines(
@@ -490,13 +607,25 @@ function updateNotification() {
     recommendations,
     getSavedValue
   )
-  showWorkoutNotification(currentDay.value.title, lines)
+  const { actions, data } = buildNotificationQuickLog()
+  showWorkoutNotification(currentDay.value.title, lines, { actions, data })
+}
+
+// Vom Sperrbildschirm geloggte Saetze (Service Worker) in Ansicht und Cloud holen
+async function onSwMessage(e) {
+  if (e.data?.type !== 'quicklog-saved') return
+  await workoutStore.loadSets()
+  updateNotification()
+  flushQueue()
 }
 
 async function startWorkout(day) {
   currentDay.value = day
-  workoutExercises.value = [...day.exercises]
   await workoutStore.startWorkout(day, plansStore.activePlan.id)
+  // Ein heute schon begonnener Tag kann Abweichungen (Tausch/Quick-Add) am Log
+  // tragen — die gewinnen gegen die Plan-Liste.
+  const aw = workoutStore.activeWorkout
+  workoutExercises.value = [...(aw?.exercises?.length ? aw.exercises : day.exercises)]
   await loadRecommendations()
   await requestNotificationPermission()
   updateNotification()
@@ -508,31 +637,67 @@ async function switchDay(day) {
   await startWorkout(day)
 }
 
+const swapTargetId = ref(null)
+
+const swapOriginalName = computed(() => {
+  if (swapIndex.value < 0) return ''
+  const ex = workoutExercises.value[swapIndex.value]
+  return ex ? getExerciseName(ex.exerciseId) : ''
+})
+
+// "Dauerhaft" gibt es nur fuer Uebungen, die wirklich im Plan-Tag stehen —
+// nicht fuer Quick-Adds (Index hinter Planlaenge) und nicht im individuellen Training.
+const canSwapPermanently = computed(() => {
+  const day = currentDay.value
+  if (!day?.id || workoutStore.activeWorkout?.isCustom) return false
+  return swapIndex.value >= 0 && swapIndex.value < (day.exercises?.length || 0)
+})
+
 function openSwap(index) {
   swapIndex.value = index
   swapSearch.value = ''
+  swapTargetId.value = null
   showSwapModal.value = true
 }
 
-async function swapExercise(newExerciseId) {
+async function applySwap(permanent) {
+  const newExerciseId = swapTargetId.value
+  if (!newExerciseId) return
   if (swapIndex.value >= 0 && swapIndex.value < workoutExercises.value.length) {
     workoutExercises.value[swapIndex.value] = {
       ...workoutExercises.value[swapIndex.value],
       exerciseId: newExerciseId
     }
+    // Abweichung am Workout-Log sichern — sonst ist sie nach Tab-Wechsel/Reload weg
+    await workoutStore.persistWorkoutExercises(workoutExercises.value)
+
+    if (permanent && canSwapPermanently.value) {
+      const day = currentDay.value
+      const updated = day.exercises.map((e, i) =>
+        i === swapIndex.value ? { ...e, exerciseId: newExerciseId } : e
+      )
+      await plansStore.updateTrainingDay(day.id, { exercises: updated })
+      // updateTrainingDay ersetzt das Objekt im Store — Referenz nachziehen
+      currentDay.value = plansStore.trainingDays.find(d => d.id === day.id) || day
+    }
+
     await loadRecommendations()
+    updateNotification()
   }
+  swapTargetId.value = null
   showSwapModal.value = false
 }
 
-function quickAddExercise(exercise) {
+async function quickAddExercise(exercise) {
   workoutExercises.value.push({
     exerciseId: exercise.id,
     sets: 3,
     notes: ''
   })
   showQuickAdd.value = false
-  loadRecommendations()
+  await workoutStore.persistWorkoutExercises(workoutExercises.value)
+  await loadRecommendations()
+  updateNotification()
 }
 
 function openCustomPicker() {
@@ -554,23 +719,13 @@ async function startCustom() {
   showCustomPicker.value = false
   // Preserve picker order; default to 2 sets like the planning picker does.
   const dayExercises = customSelectedIds.value.map(id => ({ exerciseId: id, sets: 2, notes: '' }))
-  workoutStore.startCustomWorkout(dayExercises)
+  await workoutStore.startCustomWorkout(dayExercises)
   currentDay.value = { title: 'Individuelles Training', exercises: dayExercises }
   workoutExercises.value = [...dayExercises]
   await loadRecommendations()
   await requestNotificationPermission()
   updateNotification()
 }
-
-// Keep the in-memory custom log's exercise list in sync with the view, so an
-// individual workout survives navigating away and back within the session
-// (incl. exercises added via quick-add or swapped during the workout).
-watch(workoutExercises, (list) => {
-  const aw = workoutStore.activeWorkout
-  if (aw?.isCustom) {
-    aw.exercises = list.map(e => ({ ...e }))
-  }
-}, { deep: true })
 
 async function finishWorkout() {
   await workoutStore.finishWorkout()
@@ -591,20 +746,34 @@ onMounted(async () => {
 
   const resumed = await workoutStore.resumeTodaysWorkout()
   if (resumed && workoutStore.activeWorkout) {
-    const day = plansStore.trainingDays.find(d => d.id === workoutStore.activeWorkout.trainingDayId)
-    if (day) {
-      currentDay.value = day
-      workoutExercises.value = [...day.exercises]
-      await loadRecommendations()
-    }
-  } else if (workoutStore.activeWorkout?.isCustom) {
-    // Memory-only custom workout from earlier this session (e.g. user navigated
-    // away to another tab and came back). resumeTodaysWorkout can't find it in
-    // the DB, so rebuild the view from the in-memory log.
     const aw = workoutStore.activeWorkout
-    currentDay.value = { title: aw.title || 'Individuelles Training', exercises: aw.exercises || [] }
-    workoutExercises.value = [...(aw.exercises || [])]
+    if (aw.isCustom) {
+      // Individuelle Trainings liegen seit v1.2.0 in der DB und ueberleben Reloads
+      currentDay.value = { title: aw.title || 'Individuelles Training', exercises: aw.exercises || [] }
+      workoutExercises.value = [...(aw.exercises || [])]
+    } else {
+      const day = plansStore.trainingDays.find(d => d.id === aw.trainingDayId)
+      // Abweichungen vom Plan (Tausch/Quick-Add) liegen am Log und gewinnen;
+      // Fallback auf die Plan-Liste. Ohne Tag (geloescht) traegt das Log die Liste.
+      currentDay.value = day || { title: 'Workout', exercises: aw.exercises || [] }
+      workoutExercises.value = [...(aw.exercises?.length ? aw.exercises : (day?.exercises || []))]
+    }
     await loadRecommendations()
+  }
+
+  // App-Shortcut "Individuelles Training" (Long-Press aufs App-Icon)
+  if (route.query.start === 'custom' && !workoutStore.isWorkoutActive) {
+    openCustomPicker()
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', onSwMessage)
+  }
+})
+
+onUnmounted(() => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.removeEventListener('message', onSwMessage)
   }
 })
 </script>
@@ -912,6 +1081,18 @@ onMounted(async () => {
 
 .swap-item:active {
   background: var(--color-bg);
+}
+
+.swap-section-label {
+  padding: var(--space-sm) 0 var(--space-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.swap-confirm-text {
+  margin-bottom: var(--space-md);
+  line-height: 1.5;
 }
 
 .swap-name {

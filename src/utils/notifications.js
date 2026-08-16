@@ -16,10 +16,16 @@ export function isNotificationPermitted() {
   return 'Notification' in window && Notification.permission === 'granted'
 }
 
-export function showWorkoutNotification(dayTitle, exerciseLines) {
+export function showWorkoutNotification(dayTitle, exerciseLines, extra = {}) {
   if (!isNotificationPermitted()) return
 
   const body = exerciseLines.join('\n')
+
+  // Quick-Log-Knoepfe (siehe TrackingView.buildNotificationQuickLog) haben
+  // Vorrang; Android zeigt meist nur 2 Actions. "Oeffnen" ist verzichtbar,
+  // weil ein Tap auf die Notification selbst die App oeffnet.
+  const actions = (extra.actions || []).slice(0, 2)
+  if (actions.length < 2) actions.push({ action: 'open', title: 'Oeffnen' })
 
   // Close existing notification first
   dismissWorkoutNotification()
@@ -37,9 +43,8 @@ export function showWorkoutNotification(dayTitle, exerciseLines) {
           vibrate: [100], // Short vibration — needed for Android lock screen visibility
           requireInteraction: true, // Keeps it on screen until dismissed
           renotify: true,
-          actions: [
-            { action: 'open', title: 'Oeffnen' }
-          ]
+          actions,
+          data: extra.data || null
         })
       })
     } else {
