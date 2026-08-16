@@ -673,8 +673,10 @@ async function applySwap(permanent) {
 
     if (permanent && canSwapPermanently.value) {
       const day = currentDay.value
+      // Jeden Eintrag flach kopieren: reaktive Vue-Proxys kann IndexedDB
+      // nicht klonen (DataCloneError beim put).
       const updated = day.exercises.map((e, i) =>
-        i === swapIndex.value ? { ...e, exerciseId: newExerciseId } : e
+        i === swapIndex.value ? { ...e, exerciseId: newExerciseId } : { ...e }
       )
       await plansStore.updateTrainingDay(day.id, { exercises: updated })
       // updateTrainingDay ersetzt das Objekt im Store — Referenz nachziehen
