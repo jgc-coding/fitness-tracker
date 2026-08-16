@@ -140,6 +140,7 @@ import Modal from '../components/shared/Modal.vue'
 import { useExercises } from '../composables/useExercises.js'
 import { MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
+import { db } from '../db/dexie.js'
 
 const { exercises, loading, loadExercises, addExercise, updateExercise, deleteExercise, filterExercises } = useExercises()
 
@@ -206,7 +207,13 @@ async function saveEditExercise() {
 }
 
 async function confirmDeleteExercise() {
-  if (confirm('Uebung wirklich loeschen?')) {
+  // Mit Historie warnen: die Eintraege verschwinden aus History und Export,
+  // weil Zeilen dort nur aus dem Katalog entstehen (Saetze bleiben in der DB).
+  const usageCount = await db.setLogs.filter(s => s.exerciseId === editId.value).count()
+  const frage = usageCount > 0
+    ? `Diese Uebung hat ${usageCount} Trainingseintraege. Beim Loeschen verschwinden sie aus History und Export. Trotzdem loeschen?`
+    : 'Uebung wirklich loeschen?'
+  if (confirm(frage)) {
     await deleteExercise(editId.value)
     showEditExercise.value = false
   }

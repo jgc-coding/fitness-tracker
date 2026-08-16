@@ -30,7 +30,7 @@
       />
 
       <!-- Spreadsheet table -->
-      <div v-else-if="spreadsheet.dates.length > 0" class="spreadsheet-wrapper">
+      <div v-else-if="spreadsheet.dates.length > 0" ref="sheetWrapper" class="spreadsheet-wrapper">
         <div class="spreadsheet">
           <table>
             <thead>
@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
@@ -114,6 +114,7 @@ const selectedUser = ref('user1')
 const showExport = ref(false)
 const loading = ref(true)
 const spreadsheet = reactive({ muscleGroups: [], dates: [] })
+const sheetWrapper = ref(null)
 
 function formatDateHeader(dateStr) {
   const d = new Date(dateStr)
@@ -132,6 +133,10 @@ async function loadData() {
     const data = await buildSpreadsheetData(selectedUser.value)
     spreadsheet.muscleGroups = data.muscleGroups
     spreadsheet.dates = data.dates
+    // Neueste Trainings stehen ganz rechts — beim Oeffnen direkt dorthin
+    // scrollen, denn der Standardblick ist "was war letztes Mal?".
+    await nextTick()
+    if (sheetWrapper.value) sheetWrapper.value.scrollLeft = sheetWrapper.value.scrollWidth
   } catch (e) {
     console.error('Error loading history:', e)
     spreadsheet.muscleGroups = []

@@ -11,7 +11,9 @@ const loading = ref(false)
 
 async function loadExercises() {
   loading.value = true
-  exercises.value = await db.exercises.orderBy('name').toArray()
+  // localeCompare statt IndexedDB-Byte-Reihenfolge: sonst sortieren
+  // Grossbuchstaben vor Kleinbuchstaben und die Liste wirkt durcheinander.
+  exercises.value = (await db.exercises.toArray()).sort((a, b) => a.name.localeCompare(b.name))
   loading.value = false
 }
 
