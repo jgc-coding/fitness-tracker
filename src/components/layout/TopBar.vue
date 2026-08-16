@@ -33,6 +33,7 @@ const syncTitle = computed(() => {
   const labels = {
     idle: 'Sync nicht gestartet',
     connecting: 'Verbinde mit Cloud...',
+    'auth-required': 'Anmeldung erforderlich (Einstellungen)',
     synced: 'Synchronisiert',
     offline: 'Offline',
     error: 'Sync-Fehler'
@@ -102,6 +103,10 @@ const syncTitle = computed(() => {
 
 .sync-dot.sync-error {
   background: var(--color-danger, #c62828);
+}
+
+.sync-dot.sync-auth-required {
+  background: var(--color-warning, #d4a017);
 }
 
 .sync-dot.sync-offline {

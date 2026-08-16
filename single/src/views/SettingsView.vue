@@ -34,6 +34,40 @@
         <p v-if="seedMessage" class="seed-message">{{ seedMessage }}</p>
       </div>
 
+      <!-- Backup -->
+      <div class="card settings-card">
+        <h2 class="settings-title">Backup</h2>
+        <p class="settings-desc">
+          Sichert alle Daten als JSON-Datei — wichtig, denn deine Daten
+          liegen nur auf diesem Geraet. Der Import ergaenzt und aktualisiert
+          nur, vorhandene neuere Eintraege bleiben unangetastet.
+        </p>
+        <button class="btn btn-secondary btn-block" @click="doBackupExport">
+          Backup exportieren (JSON)
+        </button>
+        <button
+          class="btn btn-secondary btn-block"
+          style="margin-top: var(--space-sm)"
+          @click="backupFileInput?.click()"
+        >
+          Backup importieren
+        </button>
+        <input
+          ref="backupFileInput"
+          type="file"
+          accept=".json,application/json"
+          style="display: none"
+          @change="doBackupImport"
+        />
+        <p
+          v-if="backupMessage"
+          class="seed-message"
+          :style="backupError ? { color: 'var(--color-danger)' } : null"
+        >
+          {{ backupMessage }}
+        </p>
+      </div>
+
       <!-- About -->
       <div class="card settings-card">
         <h2 class="settings-title">Info</h2>
@@ -63,9 +97,13 @@ import { ref } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import { useAuthStore } from '../stores/auth.js'
 import { db, generateId } from '../db/dexie.js'
+import { exportToJSON, importFromJSON } from '../utils/exportData.js'
 
 const authStore = useAuthStore()
 const seedMessage = ref('')
+const backupFileInput = ref(null)
+const backupMessage = ref('')
+const backupError = ref(false)
 // __APP_VERSION__ is injected at build time from package.json (see vite.single.config.js)
 const appVersion = __APP_VERSION__
 
@@ -74,6 +112,37 @@ async function updateName(userId, event) {
   if (name) {
     await authStore.updateUserName(userId, name)
   }
+}
+
+async function doBackupExport() {
+  try {
+    await exportToJSON()
+    backupError.value = false
+    backupMessage.value = 'Backup-Datei wurde heruntergeladen.'
+  } catch (e) {
+    console.error('Backup export error:', e)
+    backupError.value = true
+    backupMessage.value = 'Export fehlgeschlagen.'
+  }
+  setTimeout(() => { backupMessage.value = '' }, 5000)
+}
+
+async function doBackupImport(event) {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (!file) return
+  try {
+    const text = await file.text()
+    const { imported, skipped } = await importFromJSON(text)
+    await authStore.loadUserNames()
+    backupError.value = false
+    backupMessage.value = `Import fertig: ${imported} uebernommen, ${skipped} unveraendert.`
+  } catch (e) {
+    console.error('Backup import error:', e)
+    backupError.value = true
+    backupMessage.value = e?.message || 'Import fehlgeschlagen.'
+  }
+  setTimeout(() => { backupMessage.value = '' }, 6000)
 }
 
 const DEFAULT_EXERCISES = [

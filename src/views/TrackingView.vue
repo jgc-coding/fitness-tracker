@@ -9,6 +9,11 @@
     </TopBar>
 
     <div class="container page-content">
+      <!-- Sync paused banner: no signed-in account -->
+      <router-link v-if="syncStatus === 'auth-required'" to="/settings" class="sync-banner">
+        Cloud-Sync pausiert — zum Anmelden hier tippen
+      </router-link>
+
       <!-- Notification permission banner -->
       <div v-if="showNotifBanner" class="notif-banner" @click="enableNotifications">
         Tippe hier, um Workout-Info auf dem Sperrbildschirm zu aktivieren
@@ -255,6 +260,7 @@ import {
   dismissWorkoutNotification,
   buildExerciseLines
 } from '../utils/notifications.js'
+import { syncStatus } from '../services/syncService.js'
 
 const workoutStore = useWorkoutStore()
 const plansStore = usePlansStore()
@@ -619,6 +625,20 @@ onMounted(async () => {
   margin-bottom: var(--space-sm);
   cursor: pointer;
   position: relative;
+}
+
+.sync-banner {
+  display: block;
+  background: var(--color-user2-bg);
+  color: var(--color-user2);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-user2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+  margin-bottom: var(--space-sm);
+  text-decoration: none;
 }
 
 .notif-dismiss {

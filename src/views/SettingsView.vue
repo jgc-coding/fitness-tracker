@@ -44,6 +44,102 @@
         <p v-if="historyMessage" class="seed-message">{{ historyMessage }}</p>
       </div>
 
+      <!-- Backup -->
+      <div class="card settings-card">
+        <h2 class="settings-title">Backup</h2>
+        <p class="settings-desc">
+          Sichert alle Daten (beide Nutzer) als JSON-Datei. Der Import
+          ergaenzt und aktualisiert nur — vorhandene neuere Eintraege bleiben
+          unangetastet.
+        </p>
+        <button class="btn btn-secondary btn-block" @click="doBackupExport">
+          Backup exportieren (JSON)
+        </button>
+        <button
+          class="btn btn-secondary btn-block"
+          style="margin-top: var(--space-sm)"
+          @click="backupFileInput?.click()"
+        >
+          Backup importieren
+        </button>
+        <input
+          ref="backupFileInput"
+          type="file"
+          accept=".json,application/json"
+          style="display: none"
+          @change="doBackupImport"
+        />
+        <p
+          v-if="backupMessage"
+          class="seed-message"
+          :style="backupError ? { color: 'var(--color-danger)' } : null"
+        >
+          {{ backupMessage }}
+        </p>
+      </div>
+
+      <!-- Cloud Sync -->
+      <div class="card settings-card">
+        <h2 class="settings-title">Cloud-Sync</h2>
+
+        <template v-if="syncStatus === 'auth-required'">
+          <p class="settings-desc">
+            Melde dich mit dem gemeinsamen Fitness-Konto an, damit beide
+            Handys ihre Daten teilen. Ohne Anmeldung laeuft die App normal
+            weiter — nur eben ohne Abgleich.
+          </p>
+          <form @submit.prevent="doSignIn">
+            <input
+              v-model="loginEmail"
+              type="email"
+              class="form-input login-field"
+              placeholder="E-Mail"
+              autocomplete="username"
+            />
+            <input
+              v-model="loginPassword"
+              type="password"
+              class="form-input login-field"
+              placeholder="Passwort"
+              autocomplete="current-password"
+            />
+            <button
+              type="submit"
+              class="btn btn-primary btn-block"
+              :disabled="signingIn || !loginEmail || !loginPassword"
+            >
+              {{ signingIn ? 'Anmelden...' : 'Anmelden' }}
+            </button>
+          </form>
+          <p v-if="loginError" class="login-error">{{ loginError }}</p>
+        </template>
+
+        <template v-else>
+          <div class="about-row">
+            <span>Status</span>
+            <span :style="syncStatus === 'error' ? { color: 'var(--color-danger)' } : null">{{ syncLabel }}</span>
+          </div>
+          <div v-if="pendingPushCount > 0" class="about-row">
+            <span>Ausstehend</span>
+            <span :style="{ color: 'var(--color-danger)' }">
+              {{ pendingPushCount }} Aenderung(en) — wird automatisch nachgeholt
+            </span>
+          </div>
+          <div v-if="authUserEmail" class="about-row">
+            <span>Konto</span>
+            <span>{{ authUserEmail }}</span>
+          </div>
+          <button
+            v-if="authUserEmail"
+            class="btn btn-secondary btn-block"
+            style="margin-top: var(--space-sm)"
+            @click="doSignOut"
+          >
+            Abmelden
+          </button>
+        </template>
+      </div>
+
       <!-- About -->
       <div class="card settings-card">
         <h2 class="settings-title">Info</h2>
@@ -55,10 +151,6 @@
           <span>Daten</span>
           <span>Lokal (IndexedDB)</span>
         </div>
-        <div class="about-row">
-          <span>Cloud-Sync</span>
-          <span :style="syncStatus === 'error' ? { color: 'var(--color-danger)' } : null">{{ syncLabel }}</span>
-        </div>
       </div>
     </div>
   </div>
@@ -69,21 +161,99 @@ import { ref, computed, onMounted } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import { useAuthStore } from '../stores/auth.js'
 import { db, generateId } from '../db/dexie.js'
-import { pushRecord, syncStatus, lastSyncAt } from '../services/syncService.js'
+import {
+  pushRecord,
+  syncStatus,
+  lastSyncAt,
+  authUserEmail,
+  pendingPushCount,
+  signIn,
+  signOutSync,
+  resyncAll
+} from '../services/syncService.js'
+import { exportToJSON, importFromJSON } from '../utils/exportData.js'
 
 const authStore = useAuthStore()
 const seedMessage = ref('')
 const historyMessage = ref('')
 const seedingHistory = ref(false)
+const backupFileInput = ref(null)
+const backupMessage = ref('')
+const backupError = ref(false)
 // __APP_VERSION__ is injected at build time from package.json (see vite.config.js)
 const appVersion = __APP_VERSION__
+
+const loginEmail = ref('')
+const loginPassword = ref('')
+const loginError = ref('')
+const signingIn = ref(false)
 
 const SYNC_LABELS = {
   idle: 'Nicht gestartet',
   connecting: 'Verbinde...',
+  'auth-required': 'Anmeldung erforderlich',
   synced: 'Aktiv',
   offline: 'Offline',
   error: 'Fehler'
+}
+
+// Firebase auth error codes -> readable German messages
+const LOGIN_ERRORS = {
+  'auth/invalid-credential': 'E-Mail oder Passwort ist falsch.',
+  'auth/invalid-email': 'Das ist keine gueltige E-Mail-Adresse.',
+  'auth/user-disabled': 'Dieses Konto wurde deaktiviert.',
+  'auth/too-many-requests': 'Zu viele Versuche — bitte kurz warten.',
+  'auth/network-request-failed': 'Keine Verbindung — bitte spaeter erneut versuchen.'
+}
+
+async function doSignIn() {
+  if (signingIn.value) return
+  loginError.value = ''
+  signingIn.value = true
+  try {
+    await signIn(loginEmail.value.trim(), loginPassword.value)
+    loginPassword.value = ''
+  } catch (e) {
+    loginError.value = LOGIN_ERRORS[e?.code] || 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
+    console.error('Login error:', e)
+  }
+  signingIn.value = false
+}
+
+async function doSignOut() {
+  await signOutSync()
+}
+
+async function doBackupExport() {
+  try {
+    await exportToJSON() // ohne userId = komplette Datenbank
+    backupError.value = false
+    backupMessage.value = 'Backup-Datei wurde heruntergeladen.'
+  } catch (e) {
+    console.error('Backup export error:', e)
+    backupError.value = true
+    backupMessage.value = 'Export fehlgeschlagen.'
+  }
+  setTimeout(() => { backupMessage.value = '' }, 5000)
+}
+
+async function doBackupImport(event) {
+  const file = event.target.files?.[0]
+  event.target.value = '' // reset, damit dieselbe Datei erneut waehlbar ist
+  if (!file) return
+  try {
+    const text = await file.text()
+    const { imported, skipped } = await importFromJSON(text)
+    await authStore.loadUserNames()
+    resyncAll() // bringt neue lokale Daten in die Cloud (falls angemeldet)
+    backupError.value = false
+    backupMessage.value = `Import fertig: ${imported} uebernommen, ${skipped} unveraendert.`
+  } catch (e) {
+    console.error('Backup import error:', e)
+    backupError.value = true
+    backupMessage.value = e?.message || 'Import fehlgeschlagen.'
+  }
+  setTimeout(() => { backupMessage.value = '' }, 6000)
 }
 
 const syncLabel = computed(() => {
@@ -387,6 +557,17 @@ onMounted(() => authStore.loadUserNames())
   margin-top: var(--space-sm);
   font-size: var(--font-size-sm);
   color: var(--color-success);
+  text-align: center;
+}
+
+.login-field {
+  margin-bottom: var(--space-sm);
+}
+
+.login-error {
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
   text-align: center;
 }
 

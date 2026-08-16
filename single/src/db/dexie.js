@@ -16,6 +16,13 @@ db.version(1).stores({
   meta: 'key'
 })
 
+// v2 (additiv, verlustfrei): Ohne Cloud-Sync entstehen hier zwar keine
+// Tombstones (pushDelete ist ein No-op), aber die geteilte exportData.js
+// liest/schreibt die Tabelle — z.B. beim Import eines Backups der Haupt-App.
+db.version(2).stores({
+  deletions: 'id, collection, deletedAt'
+})
+
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
 }
