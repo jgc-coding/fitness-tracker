@@ -3,6 +3,50 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.2.0] — 2026-08-16
+
+Gym-UX-Release (Befunde V2-V13 + Ideen I2-I4 der /improve-Runde "Gym-UX").
+Zusaetzlich zur Entscheidung dokumentiert: Es bleibt bewusst bei EINEM
+getrackten Satz je Uebung (Referenzwert), kein Multi-Set-Tracking.
+
+### Features
+- **Quick-Log vom Sperrbildschirm (I3):** Die Workout-Benachrichtigung hat je
+  Nutzer einen Knopf "Name OK: Uebung Gewicht x Wdh" — ein Tap traegt den Satz
+  mit den vorgeschlagenen Werten ein, ohne die App zu oeffnen (der Service
+  Worker schreibt direkt in die lokale Datenbank; Sync holt es nach).
+- **Tausch nur heute oder dauerhaft (I2):** Beim Uebungs-Tausch fragt die App,
+  ob der Ersatz nur fuer heute gilt oder den Plan dauerhaft aendern soll.
+- **Zuletzt benutzt zuerst (I2):** Tausch-, Hinzufuegen- und Individuell-Listen
+  sortieren nach zuletzt benutzter Uebung; die Tausch-Liste zeigt zusaetzlich
+  die gleiche Muskelgruppe zuerst (V7).
+- **App-Shortcuts (I4):** Long-Press aufs App-Icon bietet "Individuelles
+  Training" und "History".
+
+### Fixes
+- **Tausch/Quick-Add ueberleben Tab-Wechsel und Reload (V2):** Abweichungen vom
+  Plan werden am Workout-Protokoll gespeichert statt nur in der Ansicht.
+  Vorher verschwand die getauschte Uebung (samt sichtbarem Satz) beim
+  Zurueckkommen.
+- **Individuelles Training ist reload-fest (V3):** Es liegt jetzt wie
+  Plan-Workouts in der Datenbank und wird nach App-Neustart fortgesetzt.
+- **0-kg-Vorschlag (V4):** Koerpergewichtsuebungen mit 0 kg bekommen nicht mehr
+  faelschlich 20 kg vorgeschlagen.
+- **Katalog-Sortierung (V5):** Uebungen sortieren jetzt sprachbewusst; klein-
+  geschriebene Namen landen nicht mehr am Listenende.
+- **Loesch-Warnung (V6):** Uebung mit Trainingseintraegen loeschen warnt, dass
+  die Eintraege aus History und Export verschwinden.
+- **History oeffnet bei den neuesten Trainings (V9)** statt ganz links bei den
+  aeltesten.
+- **Steigern-Merker wirkt (V10):** Der Vorschlag rechnet die Schrittweite
+  (1,25 kg Langhantel/Maschine, sonst 1 kg) direkt ein.
+
+### Intern
+- v1.1.0 (Sicherheits-Release) in diesen Stand gemergt — Deploy-Reihenfolge
+  siehe `weitermachen.md` (Firebase-Schritte VOR dem Merge auf master!).
+- Prozess: `.claude/pruefen.txt` (Done-Gate), Prozess-Stufe "Produkt" in
+  CLAUDE.md, echtes README statt Vite-Vorlage (V11-V13).
+- verbesserungen.md als dauerhaftes Befund-Register eingefuehrt.
+
 ## [1.1.0] — 2026-07-07
 
 Sicherheits- und Robustheits-Release (alle Punkte des /improve-Audits ausser Multi-Set).

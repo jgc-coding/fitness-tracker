@@ -1,25 +1,33 @@
-# Weitermachen — Stand 2026-07-07
+# Weitermachen — Stand 2026-08-16
 
 ## Stand
-- v1.1.0 fertig auf Branch `claude/sad-saha-69e479` (8 Commits, NICHT gemerged/deployed).
-- Umgesetzt: /improve-Punkte 1-10 + 12 (Sicherheit: E-Mail-Login + Rules-Vorlage,
-  Tombstones, Retry-Queue, Backup-Import, CSV-BOM, History-Filter, Drift-Waechter,
-  Doku, toter Code, Modal-Back, SW-Fokus-Fix, UI-Polish). Punkt 11 (Multi-Set) offen.
-- Regressionstest am Production-Build gruen (Login-Flow, Dexie-v2-Migration,
-  Backup-Import E2E, History, Single-App); build:all + check:drift + audit gruen.
+- **v1.2.0 (Gym-UX-Release) fertig auf Branch `claude/fitness-tracker-gym-ux-fb030f`** —
+  enthaelt per Merge auch das komplette v1.1.0 (Sicherheits-Release vom 07.07.).
+  NICHT auf master, NICHT deployt.
+- Umgesetzt: V2-V7, V9-V13 + I2/I3/I4 aus `verbesserungen.md` (Details/CHANGELOG dort).
+  Entschieden: 1 Satz je Uebung bleibt (CLAUDE.md, Architektur-Hinweise).
+- Regressionstest: check:drift + build:all gruen; Kernfunktionen live in der
+  Single-Variante durchgespielt (Liste in verbesserungen.md).
 
 ## Offen / naechste Schritte (Reihenfolge wichtig!)
 1. Gabriel: Firebase Console Schritte 1-3 aus `docs/firebase-absicherung.md`
    (E-Mail/Passwort-Provider an, gemeinsames Konto anlegen, Registrierung sperren).
-2. Merge auf master + Deploy (/deploy) + Git-Tag `v1.1.0`.
-3. Beide Handys: App laden, Einstellungen -> Cloud-Sync -> anmelden.
+2. Branch `claude/fitness-tracker-gym-ux-fb030f` auf master mergen — der Push
+   loest das Deployment automatisch aus (/deploy bzw. deploy.yml). Tag `v1.2.0`.
+3. Beide Handys: App laden, Einstellungen → Cloud-Sync → anmelden.
 4. Gabriel: Rules scharf schalten + Anonym-Provider aus (Schritte 5-6 der Anleitung).
-5. Punkt 11 entscheiden: Sets-Feld aus Planung entfernen ODER Multi-Set-Tracking.
+5. Am Handy einmal pruefen: Quick-Log-Knopf in der Sperrbildschirm-Notification
+   (traegt Satz ohne App-Oeffnen ein — Verhalten ist nur am Geraet final testbar).
 
 ## Stolperfallen (aktuell)
 - ERST einloggen (Schritt 3), DANN Rules scharf (Schritt 4) — sonst pausiert Sync.
-- Geteilte Dateien immer in src/ UND single/src/ aendern (`npm run check:drift`).
-- Deploy-Nachricht an Lisa & Gab: "Nach dem Update einmalig anmelden, sonst kein
-  Sync (Daten bleiben lokal erhalten)". Kein Datenverlust: Dexie v2 ist additiv.
+- Geteilte Dateien immer in src/ UND single/src/ aendern (`npm run check:drift`);
+  TrackingView/HistoryView/notifications/sw-custom sind dokumentierte Ausnahmen
+  und muessen von Hand parallel gepflegt werden.
+- Der alte Branch `claude/sad-saha-69e479` ist jetzt vollstaendig im Arbeits-Branch
+  enthalten — nach dem master-Merge kann er weg (nicht vorher loeschen).
 - Preview-Tool: Tab rendert nicht (rAF eingefroren) — Transitions/Screenshots dort
-  nicht beurteilbar, Logik ueber Vue-State/history testen.
+  nicht beurteilbar, Logik ueber Seitenstruktur/IndexedDB testen.
+- Deploy-Nachricht an Lisa & Gab: "Nach dem Update einmalig anmelden, sonst kein
+  Sync (Daten bleiben lokal erhalten)". Kein Datenverlust: Schema-Aenderungen sind
+  additiv (workoutLog.exercises, exercise.lastUsedAt — alte Daten bleiben lesbar).

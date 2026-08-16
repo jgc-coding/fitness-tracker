@@ -1,5 +1,7 @@
 # Keto Hybrid Fitness Tracker
 
+**Prozess-Stufe: Produkt** (taeglich in Benutzung — Versionierung, CHANGELOG, Regressionscheck und Done-Gate gelten voll)
+
 ## Projektbeschreibung
 PWA (Progressive Web App) zum Tracken, Planen und Auswerten von Kraftsport-Training fuer ein Paar (Lisa & Gab). Beide trainieren denselben Plan mit individuellen Gewichten/Wiederholungen. Offline-first auf Android, Daten lokal in IndexedDB. Deployed auf GitHub Pages.
 
@@ -61,7 +63,7 @@ src/
 public/
   logo.svg               Keto Hybrid Logo
   icons/                 PWA-Icons (192px, 512px)
-  sw-custom.js           notificationclick-Handler (wird in den SW injiziert)
+  sw-custom.js           notificationclick-Handler + Quick-Log (schreibt Saetze in IndexedDB)
 scripts/
   check-drift.mjs        Waechter: geteilte Dateien src/ <-> single/src/ identisch
 docs/
@@ -112,8 +114,20 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
 - **Exercise Picker (Planung):** Sammelt Uebungen lokal, speichert batch beim Schliessen
 - **Base-Path:** `/fitness-tracker/` in Vite, Router und PWA-Manifest
 - **Default-User:** Lisa (user1), Gab (user2)
-- **Default-Sets:** 2 pro Uebung bei Planerstellung (im Tracking wird derzeit nur
-  Satz 1 erfasst — bekannte Produkt-Entscheidung, offen als Punkt 11 des Audits)
+- **Ein Satz je Uebung ist Absicht** (Entscheidung Gabriel 2026-08-16): getrackt wird
+  genau ein Referenzwert (Gewicht x Wdh) pro Uebung und Nutzer; das Sets-Feld der
+  Planung ist reine Notiz. Kein Multi-Set-Tracking bauen.
+- **Workout-Abweichungen liegen am Log:** Tausch/Quick-Add schreiben die aktuelle
+  Uebungsliste als `exercises`-Override an den `workoutLog` (persistWorkoutExercises);
+  Resume nutzt das Override, sonst die Plan-Liste. Individuelle Trainings liegen
+  ebenfalls in `db.workoutLogs` (isCustom) und ueberleben Reloads.
+- **Zuletzt benutzt:** `saveSet` stempelt `lastUsedAt` an die Uebung; Tausch-/Add-/
+  Custom-Listen sortieren danach, die Tausch-Liste gruppiert zusaetzlich
+  "gleiche Muskelgruppe zuerst".
+- **Quick-Log aus der Notification:** Die App legt je Nutzer eine Warteschlange
+  fertiger setLog-Datensaetze in `notification.data` (buildNotificationQuickLog);
+  der Service Worker (`public/sw-custom.js`) schreibt sie bei Knopfdruck direkt in
+  IndexedDB (Haupt-App zusaetzlich in die syncQueue) — funktioniert ohne offene App.
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check

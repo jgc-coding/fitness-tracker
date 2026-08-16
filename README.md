@@ -1,5 +1,31 @@
-# Vue 3 + Vite
+# Keto Hybrid Fitness Tracker
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer zwei Personen
+(Lisa & Gab). Offline-first (IndexedDB), optionaler Cloud-Sync zwischen den
+Geraeten ueber Firebase (gemeinsames Konto), deployed auf GitHub Pages.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+Dazu gehoert **FitTrack Single** (`single/`): eine unabhaengige Einzelnutzer-
+Variante ohne Cloud-Sync, die unter `/fitness-tracker/single/` mit ausgeliefert
+wird.
+
+## Funktionen
+- Trainingsplaene mit Trainingstagen (woechentlich oder Woche A/B), Deload-Hinweis
+- Workout-Tracking mit Gewichts-/Wiederholungsraedern, Vorbelegung mit den
+  letzten Werten, "Gewicht steigern"-Merker
+- Uebung mitten im Workout tauschen (nur heute oder dauerhaft im Plan) oder
+  spontan hinzufuegen; individuelles Training ohne Plan
+- Sperrbildschirm-Benachrichtigung mit Quick-Log-Knopf (Satz eintragen ohne
+  die App zu oeffnen)
+- History als horizontales Spreadsheet je Muskelgruppe, CSV-Export, JSON-Backup
+
+## Entwicklung
+```bash
+npm install
+npm run dev            # Haupt-App auf http://localhost:5173/fitness-tracker/
+npm run dev:single     # Single-Variante
+npm run check:drift    # Waechter: src/ und single/src/ muessen synchron sein
+npm run build:all      # beide Apps bauen (wird im Deploy genutzt)
+```
+
+Details zu Architektur und Konventionen: `CLAUDE.md`. Firebase-Absicherung:
+`docs/firebase-absicherung.md`. Aenderungshistorie: `CHANGELOG.md`.
