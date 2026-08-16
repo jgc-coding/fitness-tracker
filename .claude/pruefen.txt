@@ -1,0 +1,3 @@
+# Schnellpruefung fuer das Done-Gate (eine Zeile = ein Befehl, # = Kommentar)
+npm run check:drift
+npm run build
