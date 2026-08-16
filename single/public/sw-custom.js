@@ -1,6 +1,6 @@
 /*
  * Custom service-worker logic, injected into the Workbox-generated service
- * worker via `workbox.importScripts` in vite.config.js.
+ * worker via `workbox.importScripts` in vite.single.config.js.
  *
  * Purpose: when the user taps the persistent "workout active" notification,
  * focus an already-open app window (or open a new one) WITHOUT closing the
@@ -14,7 +14,11 @@ self.addEventListener('notificationclick', (event) => {
   // notification should persist until the workout is finished. The app clears
   // it explicitly via dismissWorkoutNotification(). (Some Android versions may
   // still auto-dismiss on tap — that's a platform limitation we can't override.)
-  const APP_URL = '/fitness-tracker/single/'
+
+  // Match strictly against this SW's scope (https://host/fitness-tracker/single/)
+  // instead of a hardcoded substring, so only real Single-app windows match.
+  const APP_SCOPE = self.registration.scope
+  const isOwnClient = (url) => url.startsWith(APP_SCOPE)
 
   event.waitUntil(
     (async () => {
@@ -25,13 +29,13 @@ self.addEventListener('notificationclick', (event) => {
 
       // Prefer focusing an existing app window over opening a duplicate.
       for (const client of windowClients) {
-        if (client.url.includes('/fitness-tracker/single') && 'focus' in client) {
+        if (isOwnClient(client.url) && 'focus' in client) {
           return client.focus()
         }
       }
 
       if (self.clients.openWindow) {
-        return self.clients.openWindow(APP_URL)
+        return self.clients.openWindow(APP_SCOPE)
       }
     })()
   )

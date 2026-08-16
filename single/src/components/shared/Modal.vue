@@ -3,6 +3,7 @@
     <Transition name="modal">
       <div v-if="modelValue" class="modal-overlay" @click.self="close">
         <div class="modal-content" :class="{ 'modal-full': fullHeight }">
+          <div class="modal-grabber" aria-hidden="true"></div>
           <div class="modal-header">
             <h2 class="modal-title">{{ title }}</h2>
             <button class="modal-close" @click="close">
@@ -21,6 +22,8 @@
 </template>
 
 <script setup>
+import { watch, onUnmounted, nextTick } from 'vue'
+
 const props = defineProps({
   modelValue: Boolean,
   title: { type: String, default: '' },
@@ -32,6 +35,44 @@ const emit = defineEmits(['update:modelValue'])
 function close() {
   emit('update:modelValue', false)
 }
+
+// Android-Zurueck (bzw. Browser-Back) soll ein offenes Modal schliessen statt
+// die Seite/App zu verlassen: Beim Oeffnen wird ein History-Eintrag mit
+// GLEICHER URL gepusht (der Router navigiert dadurch nicht). Back entfernt
+// ihn -> popstate -> Modal zu. Schliessen ueber die UI geht selbst einen
+// History-Schritt zurueck, damit kein Geister-Eintrag uebrig bleibt.
+let pushedState = false
+
+function onPopState() {
+  pushedState = false
+  window.removeEventListener('popstate', onPopState)
+  emit('update:modelValue', false)
+}
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      history.pushState({ modal: true }, '')
+      pushedState = true
+      window.addEventListener('popstate', onPopState)
+    } else if (pushedState) {
+      pushedState = false
+      window.removeEventListener('popstate', onPopState)
+      // Erst Vues DOM-Update (Modal schliessen) abschliessen lassen, dann den
+      // History-Eintrag entfernen — ein synchrones back() hier wuerde mitten
+      // im Update-Zyklus eine Router-Reaktion ausloesen.
+      nextTick(() => history.back())
+    }
+  }
+)
+
+// View-Wechsel waehrend offenem Modal: nur den Listener abbauen. Ein
+// history.back() hier wuerde mit der laufenden Router-Navigation kollidieren;
+// der verbleibende Eintrag kostet schlimmstenfalls einen zusaetzlichen Back.
+onUnmounted(() => {
+  window.removeEventListener('popstate', onPopState)
+})
 </script>
 
 <style scoped>
@@ -53,6 +94,16 @@ function close() {
   max-height: 85vh;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  margin: var(--space-sm) auto 0;
+  flex-shrink: 0;
 }
 
 .modal-content.modal-full {

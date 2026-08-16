@@ -78,11 +78,27 @@ const navItems = [
   font-weight: var(--font-weight-medium);
 }
 
+.nav-item.active .nav-label {
+  font-weight: var(--font-weight-semibold);
+}
+
 .nav-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 44px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  transition: background-color 0.2s ease;
+}
+
+.nav-icon :deep(svg) {
+  width: 22px;
+  height: 22px;
+}
+
+/* Dezente Pill hinter dem aktiven Icon (Material-You-Anmutung) */
+.nav-item.active .nav-icon {
+  background: var(--color-accent-soft);
 }
 </style>
