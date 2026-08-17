@@ -16,10 +16,11 @@
    muss weiter „Aktiv" zeigen (beweist: Rules-Scharfschaltung stoert den Sync nicht).
 2. Am Handy pruefen: Quick-Log-Knopf in der Sperrbildschirm-Notification
    (traegt Satz ohne App-Oeffnen ein — nur am Geraet final testbar).
-3. Aufraeumen (optional, nur mit Gabriels Ok): 10 anonyme Alt-Nutzer in der
-   Firebase-Konsole loeschen (sind seit Anonym-Deaktivierung wirkungslos);
-   Branches `claude/sad-saha-69e479`, `claude/fitness-tracker-gym-ux-fb030f`
-   und `claude/optimistic-blackburn-4a854f` loeschen (alle in master enthalten).
+3. ERLEDIGT 2026-08-17 (mit Gabriels Ok): 9 anonyme Alt-Nutzer in der Konsole
+   geloescht (nur das E-Mail-Konto bleibt), lokale Branches sad-saha /
+   fitness-tracker-gym-ux / optimistic-blackburn geloescht (waren gemergt).
+   Uebrig: Remote-Branch `origin/claude/fittrack-single-standalone-ixm5sp`
+   (gemergt via PR #1) — kann bei Gelegenheit mit weg.
 
 ## Firebase-Absicherung — ERLEDIGT 2026-08-17 (alle 6 Schritte)
 E-Mail/Passwort-Provider aktiv (ohne E-Mail-Link) · gemeinsames Konto
