@@ -10,21 +10,23 @@
 - Umgesetzt: V2-V7, V9-V13 + I2/I3/I4 (Details in `verbesserungen.md`/CHANGELOG).
   Entschieden: 1 Satz je Uebung bleibt (CLAUDE.md).
 
-## Offen / naechste Schritte (Reihenfolge wichtig!)
-1. Beide Handys: App oeffnen + neu laden (Update zieht automatisch),
-   Einstellungen → Cloud-Sync → mit dem gemeinsamen Konto anmelden.
-   Status muss „Aktiv" zeigen. Bis dahin: Banner „Cloud-Sync pausiert" ist normal,
-   Daten bleiben lokal erhalten.
-2. WENN BEIDE Handys „Aktiv" zeigen: Claude macht Schritte 5+6 der Anleitung in
-   der Console (Firestore-Rules mit Konto-E-Mail einspielen + Publish,
-   Anonym-Provider deaktivieren). NICHT vorher — sonst pausiert der Sync.
-3. Kurz-Check (Schritt 7): Test-Gewicht auf einem Handy → erscheint auf dem anderen.
-4. Am Handy pruefen: Quick-Log-Knopf in der Sperrbildschirm-Notification
+## Offen / naechste Schritte
+1. Kurz-Check (Schritt 7 der Anleitung): Test-Gewicht auf einem Handy eintragen →
+   muss nach Sekunden auf dem anderen erscheinen; Einstellungen → Cloud-Sync
+   muss weiter „Aktiv" zeigen (beweist: Rules-Scharfschaltung stoert den Sync nicht).
+2. Am Handy pruefen: Quick-Log-Knopf in der Sperrbildschirm-Notification
    (traegt Satz ohne App-Oeffnen ein — nur am Geraet final testbar).
-5. Aufraeumen (erst nach 2+3): anonyme Alt-Nutzer in der Firebase-Konsole loeschen
-   (optional); Branches `claude/sad-saha-69e479`, `claude/fitness-tracker-gym-ux-fb030f`
-   und `claude/optimistic-blackburn-4a854f` loeschen (alle in master enthalten) —
-   nur mit Gabriels Ok.
+3. Aufraeumen (optional, nur mit Gabriels Ok): 10 anonyme Alt-Nutzer in der
+   Firebase-Konsole loeschen (sind seit Anonym-Deaktivierung wirkungslos);
+   Branches `claude/sad-saha-69e479`, `claude/fitness-tracker-gym-ux-fb030f`
+   und `claude/optimistic-blackburn-4a854f` loeschen (alle in master enthalten).
+
+## Firebase-Absicherung — ERLEDIGT 2026-08-17 (alle 6 Schritte)
+E-Mail/Passwort-Provider aktiv (ohne E-Mail-Link) · gemeinsames Konto
+chimento.gabriel@gmail.com (Passwort nur bei Gabriel/Passwort-Manager) ·
+Selbst-Registrierung gesperrt · v1.2.0 deployt · beide Handys angemeldet ·
+Firestore-Rules scharf (nur das Konto, Vorlage = firestore.rules) ·
+Anonym-Provider deaktiviert. Rollback: Rules-Versionshistorie in der Console.
 
 ## Stolperfallen (aktuell)
 - Rules erst scharf schalten, wenn BEIDE Handys angemeldet sind (Reihenfolge!).
