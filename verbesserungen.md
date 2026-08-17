@@ -1,6 +1,6 @@
 # Verbesserungen
-Stand: 2026-08-16 (Runde 1, Fokus: Gym-UX — Umsetzung als v1.2.0 auf Branch
-`claude/fitness-tracker-gym-ux-fb030f`, inkl. Merge des v1.1.0-Branches)
+Stand: 2026-08-17 (Runde 1, Fokus: Gym-UX — als v1.2.0 umgesetzt, gemergt,
+deployt und abgesichert; nur V8/I1/I5 sind zurueckgestellt)
 
 Vorgeschichte: Die /improve-Runde vom 2026-07-07 (Punkte 1-12) ist in
 `weitermachen.md` dokumentiert und mit v1.1.0 umgesetzt. Punkt 11 ist entschieden:
@@ -15,17 +15,10 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
 5. **Plan-Workout-Resume nach Reload** — erwartet: aktiver Tag + Saetze wieder da · zuletzt: laeuft (2026-08-16, live)
 6. **History-Spreadsheet** — erwartet: Muskelgruppen, neueste Spalte direkt sichtbar, spontane Uebungen dabei · zuletzt: laeuft (2026-08-16, live)
 7. **Katalog** (Suche/Filter/eigene Uebung/Seed) — zuletzt: laeuft (2026-08-16, live)
-8. **Dual-User + Cloud-Sync** — zuletzt: nicht pruefbar interaktiv (Echtdaten); Code-Stand v1.1.0 mit Login-Pflicht, Tombstones, Retry-Queue
+8. **Dual-User + Cloud-Sync** — zuletzt: laut Gabriel zeigen beide Handys „Aktiv" (2026-08-17, nach Login); Datenfluss-Test Handy→Handy steht noch aus (`meine-todos.md`). Von Claude nicht interaktiv pruefbar (Echtdaten)
 9. **Export CSV/JSON + Notifications inkl. Quick-Log** — zuletzt: nicht pruefbar (Download/Sperrbildschirm nur am echten Geraet)
 
 ## Offen
-- [ ] **V1** (A) v1.1.0+v1.2.0 deployen — WARTET AUF GABRIEL (Firebase-Schritte)
-      Gefahr: Solange nicht deployt ist, laeuft im Netz weiter der Stand mit
-      anonymem Vollzugriff auf alle Daten.
-      Stand: Der v1.1.0-Branch ist in den Arbeits-Branch gemergt und v1.2.0 oben-
-      drauf gebaut — es fehlt nur noch die Kette aus `weitermachen.md`:
-      Firebase-Console-Schritte 1-3 (Gabriel) → Merge auf master (= Auto-Deploy)
-      → Tag v1.2.0 → beide Handys anmelden → Rules scharf. · Risiko: hoch
 - [ ] **V8** (C) Direkteingabe im Gewichts-Rad — zurueckgestellt 2026-08-16 (Gabriel)
       Tipp auf den Wert oeffnet Ziffernblock; Rad bleibt fuer Feinjustage.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
@@ -45,6 +38,9 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
 (noch nichts — V8/I1/I5 sind zurueckgestellt, nicht abgelehnt)
 
 ## Erledigt
+- **V1** (A) Release + Absicherung — erledigt 2026-08-17: master gemergt, v1.2.0
+  deployt und getaggt, alle 6 Firebase-Schritte durch (Login-Pflicht, Rules nur
+  fuers gemeinsame Konto, Anonym-Anbieter aus). Der offene Vollzugriff ist zu.
 - **V2** Uebungs-Tausch/Quick-Add am Workout-Log persistiert — erledigt in v1.2.0
 - **V3** Individuelles Training reload-fest (db.workoutLogs) — erledigt in v1.2.0
 - **V4** 0-kg-Vorschlag (`??` statt `||`) — erledigt in v1.2.0

@@ -1,40 +1,44 @@
 # Weitermachen — Stand 2026-08-17
 
 ## Stand
-- **v1.2.0 ist LIVE** (GitHub Pages, Tag `v1.2.0`, master b9b1375): Gym-UX-Release
-  inkl. komplettem v1.1.0-Sicherheits-Release. Deploy-Lauf gruen (erster Versuch
-  scheiterte an GitHub-503, Rerun ok); Live-Manifeste beider Apps verifiziert.
-- Firebase Console erledigt (2026-08-17, Schritte 1-3 der Anleitung):
-  E-Mail/Passwort-Provider aktiv, gemeinsames Konto angelegt (chimento.gabriel@...),
-  Selbst-Registrierung gesperrt. Anonym-Provider ist NOCH aktiv (bis Schritt 6).
-- Umgesetzt: V2-V7, V9-V13 + I2/I3/I4 (Details in `verbesserungen.md`/CHANGELOG).
-  Entschieden: 1 Satz je Uebung bleibt (CLAUDE.md).
+- **v1.2.0 ist LIVE** (GitHub Pages, Tag `v1.2.0`, master): Gym-UX-Release inkl.
+  komplettem v1.1.0-Sicherheits-Release. Deploy gruen (erster Lauf scheiterte an
+  einer GitHub-Stoerung/503, Rerun ok); Live-Manifeste beider Apps verifiziert.
+- **Firebase-Absicherung komplett** (alle 6 Schritte aus `docs/firebase-absicherung.md`):
+  E-Mail/Passwort-Login aktiv (ohne E-Mail-Link), gemeinsames Konto angelegt,
+  Selbst-Registrierung gesperrt, beide Handys angemeldet, Firestore-Rules scharf
+  (nur das eine Konto), Anonym-Anbieter deaktiviert. Der frueher offene Vollzugriff
+  auf alle Trainingsdaten ist damit zu. Rollback: Rules-Versionshistorie in der Console.
+- Umgesetzt: V2-V7, V9-V13 + I2/I3/I4 (Details in `verbesserungen.md`/`CHANGELOG.md`).
+  Zurueckgestellt von Gabriel: V8, I1, I5.
+- Aufgeraeumt: 9 anonyme Alt-Nutzer in der Console geloescht (nur das E-Mail-Konto
+  bleibt), drei gemergte lokale Branches geloescht.
 
-## Offen / naechste Schritte
-1. Kurz-Check (Schritt 7 der Anleitung): Test-Gewicht auf einem Handy eintragen →
-   muss nach Sekunden auf dem anderen erscheinen; Einstellungen → Cloud-Sync
-   muss weiter „Aktiv" zeigen (beweist: Rules-Scharfschaltung stoert den Sync nicht).
-2. Am Handy pruefen: Quick-Log-Knopf in der Sperrbildschirm-Notification
-   (traegt Satz ohne App-Oeffnen ein — nur am Geraet final testbar).
-3. ERLEDIGT 2026-08-17 (mit Gabriels Ok): 9 anonyme Alt-Nutzer in der Konsole
-   geloescht (nur das E-Mail-Konto bleibt), lokale Branches sad-saha /
-   fitness-tracker-gym-ux / optimistic-blackburn geloescht (waren gemergt).
-   Uebrig: Remote-Branch `origin/claude/fittrack-single-standalone-ixm5sp`
-   (gemergt via PR #1) — kann bei Gelegenheit mit weg.
+## Offen
+- Keine unfertige Code-Baustelle. Zurueckgestellte Punkte stehen als **V8** (Direkt-
+  eingabe im Gewichts-Rad), **I1** (Bildschirm-wach + Pausen-Timer) und **I5**
+  (dunkles Design) in `verbesserungen.md` — nur auf Gabriels Zuruf anfassen.
 
-## Firebase-Absicherung — ERLEDIGT 2026-08-17 (alle 6 Schritte)
-E-Mail/Passwort-Provider aktiv (ohne E-Mail-Link) · gemeinsames Konto
-chimento.gabriel@gmail.com (Passwort nur bei Gabriel/Passwort-Manager) ·
-Selbst-Registrierung gesperrt · v1.2.0 deployt · beide Handys angemeldet ·
-Firestore-Rules scharf (nur das Konto, Vorlage = firestore.rules) ·
-Anonym-Provider deaktiviert. Rollback: Rules-Versionshistorie in der Console.
+## Naechste Schritte (Claude)
+1. **Wartet auf Freigabe:** zwei verwaiste Worktrees entfernen — sie enthalten
+   veraltete Kopien von `CLAUDE.md`/`weitermachen.md` (Stand VOR dem Release) und
+   koennen eine dort gestartete Sitzung in die Irre fuehren:
+   `git worktree remove ".claude/worktrees/optimistic-blackburn-4a854f"` und
+   `git worktree remove ".claude/worktrees/sad-saha-69e479"`
+2. **Wartet auf Freigabe:** gemergten Remote-Branch loeschen (nur alter Stand,
+   Inhalt via PR #1 in master):
+   `git push origin --delete claude/fittrack-single-standalone-ixm5sp`
+3. Nach Gabriels Handy-Tests (siehe `meine-todos.md`): meldet er Probleme beim
+   Sync oder beim Quick-Log-Knopf, zuerst Firestore-Rules und Notification-Payload
+   pruefen — beides ist v1.2.0-neu und nur am Geraet final testbar.
 
 ## Stolperfallen (aktuell)
-- Rules erst scharf schalten, wenn BEIDE Handys angemeldet sind (Reihenfolge!).
-- Geteilte Dateien immer in src/ UND single/src/ aendern (`npm run check:drift`);
-  TrackingView/HistoryView/notifications/sw-custom sind dokumentierte Ausnahmen
-  und muessen von Hand parallel gepflegt werden.
-- Preview-Tool: Tab rendert nicht (rAF eingefroren) — Logik ueber
-  Seitenstruktur/IndexedDB testen; fuer die Firebase-Console stattdessen
-  Claude-in-Chrome nutzen (funktioniert, Screenshots ok).
+- Diese Sitzung lief in einem **Worktree**, der Release aber auf master im Haupt-
+  Checkout `C:\Projekte\Fitness Tracker`. Kuenftig direkt dort arbeiten, sonst
+  zeigen `weitermachen.md`/`CLAUDE.md` einen alten Stand (siehe Schritt 1).
+- Geteilte Dateien immer in `src/` UND `single/src/` aendern (`npm run check:drift`);
+  TrackingView/HistoryView/notifications/sw-custom sind dokumentierte Ausnahmen und
+  muessen von Hand parallel gepflegt werden.
+- Preview-Tool rendert in dieser Umgebung nicht (rAF eingefroren): Logik ueber
+  Seitenstruktur/IndexedDB pruefen, Firebase-Console ueber Claude-in-Chrome.
 - JSON-Backups beider Handys existieren (vor dem Update erstellt, 2026-08-17).
