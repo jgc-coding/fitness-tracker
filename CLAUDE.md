@@ -80,6 +80,8 @@ npm run build     # Produktions-Build nach /dist
 npm run preview   # Build lokal testen (Port 4173)
 
 # FitTrack Single (unabhaengige Einzelnutzer-Variante, siehe unten)
+# ACHTUNG: nutzt denselben Default-Port 5173 wie `npm run dev`. Laeuft beides
+# parallel, antwortet still die Haupt-App -> `npm run dev:single -- --port 5175 --strictPort`
 npm run dev:single     # Dev-Server der Single-Variante
 npm run build:single   # Build nach /dist/single
 npm run check:drift    # Prueft, ob src/ und single/src/ synchron sind
@@ -110,6 +112,9 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
 - **Loeschen = Tombstone:** `pushDelete` schreibt zuerst einen Merker in `deletions`
   (lokal, offline-faehig), dann Cloud. Reconcile ueberspringt tombstoned Records —
   sonst laedt ein Offline-Geraet Geloeschtes wieder hoch ("Wiederauferstehung").
+- **Vue-Proxys nie direkt in Dexie schreiben:** reaktive Objekte/Arrays (aus `ref`/
+  `reactive`, z.B. `day.exercises`) sprengen `put`/`update` mit `DataCloneError`.
+  Vor jedem Schreibvorgang flach kopieren (`list.map(e => ({ ...e }))`).
 - **Gewichtsschritte:** 1.25kg fuer Barbell/Machine-Weight, 1kg fuer alle anderen
 - **Exercise Picker (Planung):** Sammelt Uebungen lokal, speichert batch beim Schliessen
 - **Base-Path:** `/fitness-tracker/` in Vite, Router und PWA-Manifest
@@ -137,3 +142,11 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
 - Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth). Config in
   `src/db/firebase.js` (der API-Key ist bei Firebase kein Geheimnis — der Schutz
   liegt in den Firestore-Rules + gesperrter Registrierung, siehe docs/).
+- **Dieses Repo ist OEFFENTLICH.** Keine personenbezogenen Daten in Repo-Dateien —
+  auch nicht in Doku wie `weitermachen.md`. Die Konto-E-Mail bleibt als Platzhalter
+  `FITNESS-KONTO@BEISPIEL.DE` in `firestore.rules`; die echte Adresse existiert nur
+  in der Firebase Console (und in Claudes lokalem Memory).
+- **Console-Arbeit** laeuft ueber Claude-in-Chrome (Preview-Tool rendert nicht):
+  Der Rules-Editor ist CodeMirror 5 (`document.querySelector('.CodeMirror')
+  .CodeMirror.setValue(...)`); der Anonym-Anbieter-Dialog ist hoeher als das Fenster
+  und nicht scrollbar — Speichern dort per Skript-Klick ausloesen.

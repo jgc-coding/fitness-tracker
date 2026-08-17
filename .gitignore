@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Claude-Code-Worktrees: vollstaendige Code-Kopien im Repo-Ordner. Git schliesst
+# sie schon selbst aus (.git/info/exclude), aber Werkzeuge wie Lint/Suche nicht.
+.claude/worktrees/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
