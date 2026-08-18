@@ -11,8 +11,11 @@
   auf alle Trainingsdaten ist damit zu. Rollback: Rules-Versionshistorie in der Console.
 - Umgesetzt: V2-V7, V9-V13 + I2/I3/I4 (Details in `verbesserungen.md`/`CHANGELOG.md`).
   Zurueckgestellt von Gabriel: V8, I1, I5.
-- Aufgeraeumt: 9 anonyme Alt-Nutzer in der Console geloescht (nur das E-Mail-Konto
-  bleibt), drei gemergte lokale Branches geloescht.
+- **Aufgeraeumt (2026-08-17):** 9 anonyme Alt-Nutzer in der Console geloescht (nur das
+  E-Mail-Konto bleibt), drei gemergte lokale Branches geloescht, beide Worktrees
+  aufgeloest, Remote-Branch `claude/fittrack-single-standalone-ixm5sp` geloescht
+  (Stand war 22b4714 — bei Bedarf wiederherstellbar per
+  `git push origin 22b4714:refs/heads/<name>`). Repo hat jetzt nur noch `master`.
 
 ## Offen
 - Keine unfertige Code-Baustelle. Zurueckgestellte Punkte stehen als **V8** (Direkt-
@@ -20,22 +23,19 @@
   (dunkles Design) in `verbesserungen.md` — nur auf Gabriels Zuruf anfassen.
 
 ## Naechste Schritte (Claude)
-1. **Wartet auf Freigabe:** zwei verwaiste Worktrees entfernen — sie enthalten
-   veraltete Kopien von `CLAUDE.md`/`weitermachen.md` (Stand VOR dem Release) und
-   koennen eine dort gestartete Sitzung in die Irre fuehren:
-   `git worktree remove ".claude/worktrees/optimistic-blackburn-4a854f"` und
-   `git worktree remove ".claude/worktrees/sad-saha-69e479"`
-2. **Wartet auf Freigabe:** gemergten Remote-Branch loeschen (nur alter Stand,
-   Inhalt via PR #1 in master):
-   `git push origin --delete claude/fittrack-single-standalone-ixm5sp`
-3. Nach Gabriels Handy-Tests (siehe `meine-todos.md`): meldet er Probleme beim
-   Sync oder beim Quick-Log-Knopf, zuerst Firestore-Rules und Notification-Payload
+1. Nach Gabriels Handy-Tests (siehe `meine-todos.md`): meldet er Probleme beim Sync
+   oder beim Quick-Log-Knopf, zuerst Firestore-Rules und Notification-Payload
    pruefen — beides ist v1.2.0-neu und nur am Geraet final testbar.
+2. Kosmetik, falls noch vorhanden: leerer Ordner
+   `.claude\worktrees\sad-saha-69e479` (nur die Huelle, Inhalt und Git-Registrierung
+   sind weg — er war das Arbeitsverzeichnis der Sitzung und liess sich deshalb nicht
+   loeschen). Einfach `rmdir` bzw. mit dem naechsten Aufraeumen entfernen.
 
 ## Stolperfallen (aktuell)
-- Diese Sitzung lief in einem **Worktree**, der Release aber auf master im Haupt-
-  Checkout `C:\Projekte\Fitness Tracker`. Kuenftig direkt dort arbeiten, sonst
-  zeigen `weitermachen.md`/`CLAUDE.md` einen alten Stand (siehe Schritt 1).
+- **Im Haupt-Checkout `C:\Projekte\Fitness Tracker` arbeiten**, nicht in einem
+  Worktree: Die letzte Sitzung lief in einem Worktree, und der Sessionstart-Hook
+  hat dort eine veraltete `weitermachen.md` geladen ("v1.2.0 nicht deployt") —
+  genau die Falle, die das Aufraeumen beseitigt hat.
 - Geteilte Dateien immer in `src/` UND `single/src/` aendern (`npm run check:drift`);
   TrackingView/HistoryView/notifications/sw-custom sind dokumentierte Ausnahmen und
   muessen von Hand parallel gepflegt werden.

@@ -1,9 +1,6 @@
 # Meine To-dos
 Stand: 2026-08-17
 
-- [ ] **[blockiert Claude]** Freigabe zum Aufraeumen geben (seit 2026-08-17)
-      Zwei alte Worktrees + ein gemergter Remote-Branch sollen weg — Kommandos stehen
-      in `weitermachen.md`, Claude macht es auf ein kurzes "ja".
 - [ ] Sync-Kurz-Check auf beiden Handys (seit 2026-08-17)
       Test-Gewicht auf einem Handy eintragen, muss beim anderen in der History
       auftauchen; Cloud-Sync muss weiter "Aktiv" zeigen. Beweist, dass die scharfen
