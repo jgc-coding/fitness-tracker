@@ -221,14 +221,17 @@
       </template>
     </Modal>
 
-    <!-- Quick Add Exercise Modal -->
+    <!-- Quick Add Exercise Modal — passende Muskelgruppen zuerst -->
     <Modal v-model="showQuickAdd" title="Uebung hinzufuegen" fullHeight>
       <input v-model="quickAddSearch" type="text" placeholder="Uebung suchen..." class="search-input" />
       <div class="swap-list">
-        <button v-for="ex in filteredQuickAddExercises" :key="ex.id" class="swap-item" @click="quickAddExercise(ex)">
-          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
-          <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
-        </button>
+        <template v-for="section in quickAddSections" :key="section.label">
+          <div v-if="section.items.length && section.label" class="swap-section-label">{{ section.label }}</div>
+          <button v-for="ex in section.items" :key="ex.id" class="swap-item" @click="quickAddExercise(ex)">
+            <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+            <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
+          </button>
+        </template>
       </div>
     </Modal>
 
@@ -361,9 +364,31 @@ const swapSections = computed(() => {
   ]
 })
 
-const filteredQuickAddExercises = computed(() =>
-  [...searchFilter(exercises.value, quickAddSearch.value)].sort(byLastUsedThenName)
-)
+// Muskelgruppen, die im laufenden Workout vorkommen — daraus ergibt sich, was
+// "passt" (Pull-Tag: Ruecken/Arme). Reihenfolge aus MUSCLE_GROUPS statt aus dem
+// Workout, damit die Ueberschrift bei gleichem Tag immer gleich aussieht.
+const workoutMuscleGroups = computed(() => {
+  const ids = new Set()
+  for (const ex of workoutExercises.value) {
+    const group = getExerciseById(ex.exerciseId)?.muscleGroup
+    if (group) ids.add(group)
+  }
+  return MUSCLE_GROUPS.filter(m => ids.has(m.id)).map(m => m.id)
+})
+
+// Hinzufuegen-Liste in zwei Abschnitten wie die Tausch-Liste: erst die
+// Uebungen, die zum heutigen Workout passen, darunter alle uebrigen.
+const quickAddSections = computed(() => {
+  const list = searchFilter(exercises.value, quickAddSearch.value)
+  const groups = workoutMuscleGroups.value
+  if (groups.length === 0) return [{ label: '', items: [...list].sort(byLastUsedThenName) }]
+  const fitting = list.filter(e => groups.includes(e.muscleGroup)).sort(byLastUsedThenName)
+  const others = list.filter(e => !groups.includes(e.muscleGroup)).sort(byLastUsedThenName)
+  return [
+    { label: `Passend zum Workout (${groups.map(getMuscleLabel).join(', ')})`, items: fitting },
+    { label: 'Andere Muskelgruppen', items: others }
+  ]
+})
 
 const filteredCustomExercises = computed(() =>
   [...searchFilter(exercises.value, customSearch.value)].sort(byLastUsedThenName)
@@ -479,7 +504,8 @@ async function loadRecommendations() {
 function openExerciseInput(index) {
   activeExerciseIndex.value = index
   const ex = workoutExercises.value[index]
-  pickerUserId.value = authStore.users[0].id
+  // Standard-Nutzer aus den Einstellungen ist vorausgewaehlt (pro Geraet)
+  pickerUserId.value = authStore.defaultUserId
 
   // Pre-fill with saved value or recommendation
   const saved = workoutStore.getSetsForExercise(ex.exerciseId, pickerUserId.value).find(s => s.setNumber === 1)
@@ -546,17 +572,39 @@ async function enableNotifications() {
   }
 }
 
-// Daten fuer die Log-Knoepfe in der Sperrbildschirm-Notification: je Nutzer die
+// Daten fuer die Knoepfe in der Sperrbildschirm-Notification: je Nutzer die
 // Warteschlange der noch offenen Uebungen samt fertigem setLog-Datensatz.
 // Der Service Worker schreibt beim Knopfdruck den ersten Eintrag in IndexedDB —
 // auch bei geschlossener App (siehe public/sw-custom.js).
+//
+// Android zeigt nur ZWEI Knoepfe. Platz 2 gehoert fest "Workout beenden",
+// Platz 1 dem Quick-Log des Standard-Nutzers (hat der alles eingetragen,
+// rueckt der andere Nutzer nach). Dieselbe Regel steckt im Service Worker,
+// der die Notification nach jedem Knopfdruck neu aufbaut.
+function buildNotificationActions(userOrder, queues, userNames) {
+  const actions = []
+  for (const userId of userOrder) {
+    const queue = queues[userId] || []
+    if (queue.length > 0) {
+      actions.push({ action: `log-${userId}`, title: `${userNames[userId]} OK: ${queue[0].label}` })
+      break
+    }
+  }
+  actions.push({ action: 'finish-workout', title: 'Workout beenden' })
+  return actions
+}
+
 function buildNotificationQuickLog() {
   const aw = workoutStore.activeWorkout
   if (!aw) return { actions: [], data: null }
   const queues = {}
   const userNames = {}
-  const actions = []
-  for (const user of authStore.users) {
+  // Standard-Nutzer zuerst: er bekommt den einen Quick-Log-Knopf
+  const orderedUsers = [
+    ...authStore.users.filter(u => u.id === authStore.defaultUserId),
+    ...authStore.users.filter(u => u.id !== authStore.defaultUserId)
+  ]
+  for (const user of orderedUsers) {
     userNames[user.id] = user.name
     const queue = []
     for (const ex of workoutExercises.value) {
@@ -582,16 +630,17 @@ function buildNotificationQuickLog() {
       })
     }
     queues[user.id] = queue
-    if (queue.length > 0) {
-      actions.push({ action: `log-${user.id}`, title: `${user.name} OK: ${queue[0].label}` })
-    }
   }
+  const userOrder = orderedUsers.map(u => u.id)
   return {
-    actions,
+    actions: buildNotificationActions(userOrder, queues, userNames),
     data: {
       kind: 'workout-quicklog',
       dbName: db.name,
+      // Der Service Worker braucht die Log-Id, um "beenden" schreiben zu koennen
+      workoutLogId: aw.id,
       title: currentDay.value?.title || 'Workout',
+      userOrder,
       userNames,
       queues
     }
@@ -613,6 +662,15 @@ function updateNotification() {
 
 // Vom Sperrbildschirm geloggte Saetze (Service Worker) in Ansicht und Cloud holen
 async function onSwMessage(e) {
+  // Ueber den Notification-Knopf beendet: der Service Worker hat completedAt
+  // schon geschrieben — hier nur noch die offene Ansicht zuruecksetzen.
+  if (e.data?.type === 'workout-finished') {
+    workoutStore.clearActiveWorkout()
+    clearWorkoutView()
+    dismissWorkoutNotification()
+    flushQueue()
+    return
+  }
   if (e.data?.type !== 'quicklog-saved') return
   await workoutStore.loadSets()
   updateNotification()
@@ -729,10 +787,14 @@ async function startCustom() {
   updateNotification()
 }
 
-async function finishWorkout() {
-  await workoutStore.finishWorkout()
+function clearWorkoutView() {
   workoutExercises.value = []
   currentDay.value = null
+}
+
+async function finishWorkout() {
+  await workoutStore.finishWorkout()
+  clearWorkoutView()
   dismissWorkoutNotification()
 }
 

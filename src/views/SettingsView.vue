@@ -22,6 +22,27 @@
             />
           </label>
         </div>
+
+        <!-- Standard-Nutzer: Vorauswahl beim Eintragen und in der History -->
+        <div v-if="authStore.users.length > 1" class="default-user">
+          <span class="user-label-id">Standard-Nutzer</span>
+          <p class="settings-desc">
+            Wer beim Eintragen der Gewichte und in der History zuerst
+            ausgewaehlt ist. Die Einstellung gilt nur auf diesem Geraet.
+          </p>
+          <div class="user-toggle">
+            <button
+              v-for="user in authStore.users"
+              :key="user.id"
+              class="toggle-btn"
+              :class="{ active: authStore.defaultUserId === user.id }"
+              :style="{ '--user-color': user.color }"
+              @click="authStore.setDefaultUser(user.id)"
+            >
+              {{ user.name }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Seed exercises -->
@@ -537,6 +558,39 @@ onMounted(() => authStore.loadUserNames())
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.default-user {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-md);
+}
+
+.default-user .settings-desc {
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.user-toggle {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-white);
+  color: var(--color-text-light);
+  transition: all 0.15s;
+}
+
+.toggle-btn.active {
+  border-color: var(--user-color, var(--color-accent));
+  color: var(--user-color, var(--color-accent));
+  background: var(--color-white);
 }
 
 .form-input {

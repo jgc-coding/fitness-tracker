@@ -154,6 +154,8 @@ onMounted(async () => {
   try {
     await loadExercises()
     await authStore.loadUserNames()
+    // Standard-Nutzer aus den Einstellungen ist vorausgewaehlt (pro Geraet)
+    selectedUser.value = authStore.defaultUserId
     await loadData()
   } catch (e) {
     console.error('Error initializing history view:', e)

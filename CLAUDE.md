@@ -133,6 +133,16 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
   fertiger setLog-Datensaetze in `notification.data` (buildNotificationQuickLog);
   der Service Worker (`public/sw-custom.js`) schreibt sie bei Knopfdruck direkt in
   IndexedDB (Haupt-App zusaetzlich in die syncQueue) — funktioniert ohne offene App.
+- **Nur ZWEI Notification-Knoepfe (Android-Limit):** Platz 1 das Quick-Log des
+  Standard-Nutzers (leere Warteschlange -> naechster Nutzer rueckt nach),
+  Platz 2 fest "Workout beenden" (setzt completedAt, `data.workoutLogId`).
+  Die Regel steht doppelt — `buildNotificationActions` in der TrackingView und
+  `showCompactNotification` im Service Worker; beide muessen gleich bleiben.
+  Nach dem Beenden meldet der SW `workout-finished` an offene Fenster.
+- **Standard-Nutzer ist GERAETE-lokal** (`localStorage`, Schluessel mit DB-Namen,
+  siehe `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History und beim
+  Notification-Knopf. Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und
+  beide Handys wuerden sich den Wert gegenseitig ueberschreiben.
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
