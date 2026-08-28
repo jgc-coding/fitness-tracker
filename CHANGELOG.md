@@ -3,6 +3,34 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.3.0] — 2026-08-28
+
+Drei Wuensche aus dem Training (Gabriel).
+
+### Features
+- **Standard-Nutzer in den Einstellungen:** Unter "Benutzer" laesst sich
+  festlegen, wer beim Eintragen der Gewichte und beim Oeffnen der History
+  vorausgewaehlt ist. Die Einstellung gilt bewusst nur auf dem jeweiligen
+  Geraet (localStorage statt Cloud) — sonst wuerden sich beide Handys den
+  Wert gegenseitig ueberschreiben.
+- **"Workout beenden" in der Benachrichtigung:** Das Training laesst sich vom
+  Sperrbildschirm aus abschliessen, auch bei geschlossener App (der Service
+  Worker setzt completedAt direkt in der Datenbank, Sync holt es nach). Da
+  Android nur zwei Knoepfe zeigt, bleibt Platz 1 dem Quick-Log des
+  Standard-Nutzers (hat der alles eingetragen, rueckt der andere nach),
+  Platz 2 gehoert fest dem Beenden.
+- **Passende Uebungen zuerst beim Hinzufuegen:** Die Liste hinter
+  "+ Uebung hinzufuegen" ist wie die Tausch-Liste zweigeteilt — erst die
+  Muskelgruppen des laufenden Workouts (Pull-Tag: Ruecken, Arme), darunter
+  alle uebrigen.
+
+### Fixes
+- **Kein leeres "aktives" Workout mehr:** Wurde das Training ausserhalb der
+  Tracking-Ansicht beendet (Notification-Knopf, waehrend die App auf einem
+  anderen Tab stand), zeigte die Ansicht danach ein aktives Workout ohne
+  Uebungen. Der Speicherstand wird jetzt geleert, wenn in der Datenbank kein
+  offenes Training mehr liegt.
+
 ## [1.2.0] — 2026-08-16
 
 Gym-UX-Release (Befunde V2-V13 + Ideen I2-I4 der /improve-Runde "Gym-UX").

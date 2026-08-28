@@ -2,7 +2,7 @@
  * Custom service-worker logic, injected into the Workbox-generated service
  * worker via `workbox.importScripts` in vite.single.config.js.
  *
- * Zwei Aufgaben:
+ * Drei Aufgaben:
  * 1) Tap auf die Workout-Notification fokussiert/oeffnet die App, ohne die
  *    Notification zu schliessen (sie bleibt fuer die Session auf dem
  *    Sperrbildschirm).
@@ -10,6 +10,11 @@
  *    vorbereiteten Satz (notification.data.queues) direkt in IndexedDB —
  *    funktioniert auch bei geschlossener App. Die App baut die Daten bei
  *    jedem Notification-Update neu (TrackingView.buildNotificationQuickLog).
+ * 3) Knopf "Workout beenden": setzt completedAt am Workout-Log und schliesst
+ *    die Notification — ebenfalls ohne offene App.
+ *
+ * Android zeigt nur ZWEI Knoepfe: Platz 1 das Quick-Log (Standard-Nutzer
+ * zuerst, siehe data.userOrder), Platz 2 fest "Workout beenden".
  */
 /* eslint-disable no-restricted-globals */
 /* global self, clients, indexedDB */
@@ -19,15 +24,20 @@ const NOTIFICATION_TAG = 'workout-active'
 
 self.addEventListener('notificationclick', (event) => {
   const data = event.notification && event.notification.data
-  if (
-    event.action &&
-    event.action.indexOf('log-') === 0 &&
-    data &&
-    data.kind === 'workout-quicklog'
-  ) {
+  const isWorkoutData = data && data.kind === 'workout-quicklog'
+
+  if (event.action && event.action.indexOf('log-') === 0 && isWorkoutData) {
     // Intentionally do NOT close the notification: handleQuickLog re-shows it
     // (same tag) with the updated queue.
     event.waitUntil(handleQuickLog(event.action.slice(4), data))
+    return
+  }
+
+  if (event.action === 'finish-workout' && isWorkoutData) {
+    // Hier schon schliessen: das Workout ist vorbei. Scheitert das Schreiben,
+    // zeigt handleFinishWorkout die Notification mit Fehlerzeile neu.
+    event.notification.close()
+    event.waitUntil(handleFinishWorkout(data))
     return
   }
 
@@ -77,31 +87,53 @@ async function handleQuickLog(userId, data) {
   }
 
   // Offene App-Fenster laden die Saetze nach und bauen die volle Notification
-  const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-  for (const client of windows) {
-    if (isOwnClient(client.url)) {
-      client.postMessage({ type: 'quicklog-saved', userId })
-    }
-  }
+  await notifyClients({ type: 'quicklog-saved', userId })
 
   await showCompactNotification(data)
+}
+
+// --- Workout aus der Notification heraus beenden ---------------------------
+
+async function handleFinishWorkout(data) {
+  try {
+    await markWorkoutFinished(data.dbName, data.workoutLogId)
+  } catch (err) {
+    // Nicht still scheitern: Notification mit Hinweis zurueckholen
+    data.error = 'Beenden fehlgeschlagen - bitte in der App beenden.'
+    await showCompactNotification(data)
+    return
+  }
+  await notifyClients({ type: 'workout-finished' })
+}
+
+async function notifyClients(message) {
+  const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+  for (const client of windows) {
+    if (isOwnClient(client.url)) client.postMessage(message)
+  }
 }
 
 // Kompakte Bestaetigung: die naechste offene Uebung (oder fertig).
 // Eine offene App ueberschreibt sie sofort wieder mit der vollen Liste.
 async function showCompactNotification(data) {
+  const order = data.userOrder || Object.keys(data.queues || {})
   const lines = []
   const actions = []
-  for (const userId of Object.keys(data.queues || {})) {
+  for (const userId of order) {
     const name = (data.userNames && data.userNames[userId]) || userId
-    const q = data.queues[userId]
+    const q = (data.queues && data.queues[userId]) || []
     if (q.length > 0) {
       lines.push(name + ': als Naechstes ' + q[0].label)
-      actions.push({ action: 'log-' + userId, title: name + ' OK: ' + q[0].label })
+      // Nur EIN Quick-Log-Knopf — Platz 2 gehoert "Workout beenden".
+      // Gleiche Regel wie TrackingView.buildNotificationActions.
+      if (actions.length === 0) {
+        actions.push({ action: 'log-' + userId, title: name + ' OK: ' + q[0].label })
+      }
     } else {
       lines.push(name + ': alles eingetragen')
     }
   }
+  actions.push({ action: 'finish-workout', title: 'Workout beenden' })
   if (data.error) lines.unshift(data.error)
 
   const finalActions = actions.slice(0, 2)
@@ -154,6 +186,31 @@ function txDone(tx) {
     tx.onerror = () => reject(tx.error)
     tx.onabort = () => reject(tx.error || new Error('Transaktion abgebrochen'))
   })
+}
+
+async function markWorkoutFinished(dbName, workoutLogId) {
+  if (!workoutLogId) throw new Error('Keine Workout-Id in der Notification')
+  const conn = await openDb(dbName)
+  try {
+    // Anders als in der Haupt-App KEIN syncQueue-Eintrag: FitTrack Single hat
+    // keinen Cloud-Sync, der Eintrag wuerde fuer immer liegen bleiben.
+    const tx = conn.transaction('workoutLogs', 'readwrite')
+    const store = tx.objectStore('workoutLogs')
+    const log = await reqAsPromise(store.get(workoutLogId))
+    if (!log) throw new Error('Workout-Log nicht gefunden')
+
+    // Schon beendet (App war schneller): nichts ueberschreiben.
+    if (!log.completedAt) {
+      const now = new Date().toISOString()
+      log.completedAt = now
+      log.updatedAt = now
+      store.put(log)
+    }
+
+    await txDone(tx)
+  } finally {
+    conn.close()
+  }
 }
 
 async function writeSetLog(dbName, set) {

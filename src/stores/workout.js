@@ -198,6 +198,14 @@ export const useWorkoutStore = defineStore('workout', () => {
     currentSets.value = []
   }
 
+  // Das Workout wurde ausserhalb der App beendet (Knopf in der Notification;
+  // der Service Worker hat completedAt bereits geschrieben) — hier bleibt nur,
+  // den Speicherstand zu leeren, ohne erneut in die DB zu schreiben.
+  function clearActiveWorkout() {
+    activeWorkout.value = null
+    currentSets.value = []
+  }
+
   async function resumeTodaysWorkout() {
     const today = getToday()
     const logs = await db.workoutLogs.where({ date: today }).toArray()
@@ -211,6 +219,10 @@ export const useWorkoutStore = defineStore('workout', () => {
       await loadSets()
       return true
     }
+    // Kein offenes Workout mehr in der DB — dann darf auch keins im Speicher
+    // stehen bleiben. Sonst zeigt die Ansicht nach einem "Beenden" aus der
+    // Notification (Tab-Wechsel, App war offen) ein leeres aktives Workout.
+    clearActiveWorkout()
     return false
   }
 
@@ -231,6 +243,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     saveSet,
     toggleIncreaseNextTime,
     finishWorkout,
+    clearActiveWorkout,
     resumeTodaysWorkout,
     getSetsForExercise
   }
