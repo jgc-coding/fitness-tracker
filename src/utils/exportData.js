@@ -73,7 +73,7 @@ export async function exportToCSV(userId = null) {
 
 export async function exportToJSON(userId = null) {
   const data = {
-    exportVersion: 2,
+    exportVersion: 3,
     appVersion: __APP_VERSION__,
     exportedAt: new Date().toISOString(),
     exercises: await db.exercises.toArray(),
@@ -83,6 +83,8 @@ export async function exportToJSON(userId = null) {
     setLogs: userId
       ? (await db.setLogs.toArray()).filter(s => s.userId === userId)
       : await db.setLogs.toArray(),
+    runPlans: await db.runPlans.toArray(),
+    runSessions: await db.runSessions.toArray(),
     meta: await db.meta.toArray(),
     deletions: await db.deletions.toArray()
   }
@@ -98,6 +100,8 @@ const IMPORT_TABLES = [
   { name: 'trainingDays', keyField: 'id' },
   { name: 'workoutLogs', keyField: 'id' },
   { name: 'setLogs', keyField: 'id' },
+  { name: 'runPlans', keyField: 'id' },
+  { name: 'runSessions', keyField: 'id' },
   { name: 'meta', keyField: 'key' },
   { name: 'deletions', keyField: 'id' }
 ]
@@ -174,7 +178,7 @@ export async function importFromJSON(jsonText) {
   }
 
   // Let open views reload their reactive state from Dexie.
-  for (const collection of ['exercises', 'plans', 'trainingDays', 'workoutLogs', 'setLogs']) {
+  for (const collection of ['exercises', 'plans', 'trainingDays', 'workoutLogs', 'setLogs', 'runPlans', 'runSessions']) {
     window.dispatchEvent(
       new CustomEvent('fitness-sync-changed', { detail: { collection } })
     )
@@ -183,7 +187,8 @@ export async function importFromJSON(jsonText) {
   return { imported, skipped }
 }
 
-function downloadFile(content, filename, mimeType) {
+// Wird auch vom Laufplaner genutzt (Status-Export als JSON-Datei).
+export function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

@@ -33,8 +33,10 @@ src/
     auth.js              Benutzernamen, User-Verwaltung
     plans.js             Trainingsplaene, Trainingstage, CRUD
     workout.js           Aktives Workout, Set-Logging, Gewicht-Steigern-Flag
-  db/dexie.js            Dexie-Schema v2: exercises, plans, trainingDays, workoutLogs,
-                         setLogs, syncQueue (Push-Retry), meta, deletions (Tombstones)
+    running.js           Laufplaene, Laeufe, Import/Merge, Status-Export
+  db/dexie.js            Dexie-Schema v3: exercises, plans, trainingDays, workoutLogs,
+                         setLogs, syncQueue (Push-Retry), meta, deletions (Tombstones),
+                         runPlans + runSessions (Laufplaner)
   db/firebase.js         Firebase-Init (lazy import; nur Haupt-App)
   services/
     syncService.js       Cloud-Sync: E-Mail-Login, Firestore-Listener, Reconcile,
@@ -48,15 +50,20 @@ src/
     HistoryView.vue      Horizontales Spreadsheet, gruppiert nach Muskelgruppe
     CatalogView.vue      Uebungskatalog mit Suche und Filtern
     SettingsView.vue     Benutzernamen, Seeds, Backup (Export/Import), Cloud-Login, Info
+    RunningView.vue      Reiter "Laufen": Unterreiter Woche / Jahr / Plan
   components/
     layout/              BottomNav (5 Tabs), TopBar (mit Sync-Status-Punkt)
     shared/              Modal (Android-Back schliesst!), EmptyState, WheelPicker
+    running/             RunWeekView, RunYearView, RunPlanView, RunSessionSheet,
+                         RunSessionChip (nur vom Laufplaner genutzt)
   utils/
     constants.js         MUSCLE_GROUPS, EQUIPMENT_TYPES, USERS, PLAN_TYPES
     dateHelpers.js       Datumsfunktionen, KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
     notifications.js     Service Worker Notifications fuer Sperrbildschirm
     exportData.js        CSV-Export (mit UTF-8-BOM), JSON-Backup + Import (merge-only)
+    runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
+    runPlanMerge.js      Merge-Regeln fuer den Laufplan-Import (reine Funktion)
   styles/
     variables.css        CSS Custom Properties (Farben, Abstande, Fonts)
     global.css           Reset, Basisstile, Utility-Klassen
@@ -66,8 +73,13 @@ public/
   sw-custom.js           notificationclick-Handler + Quick-Log (schreibt Saetze in IndexedDB)
 scripts/
   check-drift.mjs        Waechter: geteilte Dateien src/ <-> single/src/ identisch
+  laufplan-pruefen.mjs   Prueft eine Laufplan-Datei vor dem Import (Exit 1 bei Fehler)
+  laufplan-merge-test.mjs  Vertragstest der Merge-Regeln (64 Faelle, ohne Browser)
 docs/
   firebase-absicherung.md  Console-Anleitung (Konto, Registrierung sperren, Rules)
+  laufplan-format.md       Dateiformat-Vertrag zwischen Claude und App
+  laufplan-beispiel.json   Gueltige Beispieldatei (erfundene Daten)
+  laufplaner-plan.md       Bauplan des Laufplaners (Paket 1 umgesetzt, Paket 2 offen)
 firestore.rules          Vorlage der Firestore-Regeln (Einspielen manuell via Console)
 .github/workflows/
   deploy.yml             CI/CD: Build + Deploy auf GitHub Pages (Branch: master)
@@ -139,6 +151,21 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
   Die Regel steht doppelt — `buildNotificationActions` in der TrackingView und
   `showCompactNotification` im Service Worker; beide muessen gleich bleiben.
   Nach dem Beenden meldet der SW `workout-finished` an offene Fenster.
+- **Laufplaner: Claude plant, die App zeigt und haelt fest.** Plaene entstehen
+  NICHT in der App, sondern als JSON-Datei von Claude (Vertrag:
+  `docs/laufplan-format.md`). Der Import prueft erst vollstaendig, zeigt eine
+  Vorschau und schreibt dann in EINER Dexie-Transaktion; Tombstones und
+  Cloud-Push laufen danach (db.deletions ist nicht Teil der Transaktion).
+- **Merge-Regel des Laufplans:** Kennungen (`id`) sind die Klammer zwischen
+  Claude und App. Erledigte und ausgelassene Laeufe gewinnen immer lokal, noch
+  geplante uebernimmt die Datei, und geloescht wird nur, was geplant UND in der
+  Zukunft ist. Aendert sich nichts, wird auch nichts geschrieben (der eigene
+  Status-Export ergibt beim Re-Import "keine Aenderung"). Die Regeln stehen
+  ausformuliert in `docs/laufplaner-plan.md` 5.4 und sind mit
+  `scripts/laufplan-merge-test.mjs` abgesichert — bei Aenderungen dort zuerst
+  den Test erweitern.
+- **Ein Satz je Lauf, ein Haken:** Kein Lauf-Tracking in der App. Der Haken darf
+  ohne Ist-Werte gesetzt werden; in der Wochenbilanz zaehlt dann der Planwert.
 - **Standard-Nutzer ist GERAETE-lokal** (`localStorage`, Schluessel mit DB-Namen,
   siehe `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History und beim
   Notification-Knopf. Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und

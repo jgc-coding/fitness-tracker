@@ -1,3 +1,5 @@
 # Schnellpruefung fuer das Done-Gate (eine Zeile = ein Befehl, # = Kommentar)
 npm run check:drift
+node ./scripts/laufplan-pruefen.mjs ./docs/laufplan-beispiel.json
+node ./scripts/laufplan-merge-test.mjs
 npm run build

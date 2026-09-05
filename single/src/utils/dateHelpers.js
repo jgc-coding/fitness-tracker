@@ -39,6 +39,56 @@ export function getToday() {
   return `${y}-${m}-${day}`
 }
 
+// ---------------------------------------------------------------------------
+// Rechnen mit Kalendertagen ('YYYY-MM-DD'), wie sie der Laufplaner benutzt.
+// Alle Funktionen rechnen ueber UTC-Mitternacht: dadurch verschiebt die
+// Sommerzeit-Umstellung keinen Tag (eine Woche hat dann 167 oder 169 Stunden,
+// aber immer sieben Kalendertage).
+// ---------------------------------------------------------------------------
+
+function toUtcDate(dateStr) {
+  const [y, m, d] = String(dateStr).split('-').map(Number)
+  return new Date(Date.UTC(y, (m || 1) - 1, d || 1))
+}
+
+function fromUtcDate(dt) {
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`
+}
+
+export function addDaysToDate(dateStr, days) {
+  const dt = toUtcDate(dateStr)
+  dt.setUTCDate(dt.getUTCDate() + days)
+  return fromUtcDate(dt)
+}
+
+/** Montag der Woche, in der dieser Tag liegt. */
+export function mondayOf(dateStr) {
+  const shift = (toUtcDate(dateStr).getUTCDay() + 6) % 7
+  return addDaysToDate(dateStr, -shift)
+}
+
+/** Abstand in Kalendertagen (b - a), negativ wenn b vor a liegt. */
+export function daysBetweenDates(a, b) {
+  return Math.round((toUtcDate(b) - toUtcDate(a)) / 86400000)
+}
+
+/** '2030-01-07' -> 'Mo' */
+export function weekdayShort(dateStr) {
+  return ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][toUtcDate(dateStr).getUTCDay()]
+}
+
+/** '2030-01-07' -> '07.01.' */
+export function formatDayShort(dateStr) {
+  const [, m, d] = String(dateStr).split('-')
+  return `${d}.${m}.`
+}
+
+/** Kalenderwoche eines Tages-Strings (ohne Zeitzonen-Umweg). */
+export function isoWeekOfDate(dateStr) {
+  const [y, m, d] = String(dateStr).split('-').map(Number)
+  return getISOWeekNumber(new Date(y, (m || 1) - 1, d || 1))
+}
+
 export function isDeloadWeek(deloadStartDate, deloadIntervalWeeks) {
   if (!deloadStartDate || !deloadIntervalWeeks) return false
   // Compute the diff in calendar days via UTC midnights to avoid DST drift.

@@ -19,6 +19,17 @@ db.version(2).stores({
   deletions: 'id, collection, deletedAt'
 })
 
+// v3 (additiv, verlustfrei): Laufplaner. Phasen und Wochenziele liegen IM
+// Plan-Datensatz (eine Firestore-Doc, ca. 5 KB fuer ein Jahr), die einzelnen
+// Laeufe dagegen als eigene Datensaetze — nur so greift beim Cloud-Sync
+// "die spaetere Aenderung gewinnt" je Lauf statt je Plan.
+// public/sw-custom.js oeffnet die Datenbank ohne Versionsnummer und ist von
+// dieser Erweiterung nicht betroffen.
+db.version(3).stores({
+  runPlans: 'id, userId, isActive',
+  runSessions: 'id, planId, userId, date, [userId+date], externalId'
+})
+
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
 }

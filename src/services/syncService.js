@@ -16,6 +16,8 @@ const SYNCED = [
   { name: 'trainingDays', keyField: 'id' },
   { name: 'workoutLogs', keyField: 'id' },
   { name: 'setLogs', keyField: 'id' },
+  { name: 'runPlans', keyField: 'id' },
+  { name: 'runSessions', keyField: 'id' },
   { name: 'meta', keyField: 'key' }
 ]
 
