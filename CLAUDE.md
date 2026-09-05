@@ -106,6 +106,10 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
 - **WICHTIG — Doppel-Wartung:** `single/src/` ist eine Kopie von `src/`. Jede Aenderung an
   einer geteilten Datei MUSS in beide Kopien (`cp src/X single/src/X`). `npm run check:drift`
   erzwingt das vor jedem Build; bewusste Ausnahmen stehen in `scripts/check-drift.mjs`.
+  Ist `check:drift` rot, obwohl `git status` sauber ist, liegt es an Zeilenenden: Auf
+  diesem Rechner steht `core.autocrlf=true`, einzelne Dateien im Arbeitsbaum haben
+  dann CRLF, waehrend Git beide Kopien identisch fuehrt. Heilung: betroffene Datei
+  loeschen und mit `git checkout -- single/src/` neu holen (der Vergleich ist bytegenau).
 - **Speicherort:** `single/` (eigene `index.html` + Kopie von `src/`), Build-Config `vite.single.config.js`
 - **Unabhaengig:** Kein Firebase, kein Cloud-Sync. Eigene IndexedDB-Datenbank `FitnessTrackerSingle`
   (Haupt-App nutzt `FitnessTracker`) — auch im selben Browser keine gemeinsamen Daten.
