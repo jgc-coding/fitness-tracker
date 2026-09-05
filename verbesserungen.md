@@ -24,6 +24,10 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
 
 ## Ideen
+- **I6** (Erweiterung) Laufplaner: Jahresplan aus Claude in der App, Laeufe automatisch von Garmin —
+      freigegeben 2026-09-05 (Gabriel), noch nicht begonnen. Kompletter Bauplan mit
+      Datenmodell, Dateiformat, Merge-Regeln und Akzeptanzkriterien: `docs/laufplaner-plan.md`.
+      Paket 1 (v1.4.0, Reiter "Laufen") zuerst, Paket 2 (v1.5.0, intervals.icu) danach. · Aufwand: L + M
 - **I1** (Erweiterung) Trainingsmodus: Bildschirm-Wachhalten + Pausen-Timer — zurueckgestellt 2026-08-16 (Gabriel) · Aufwand: M
       Nutzen: Handy bleibt zwischen Saetzen an, ein Blick + ein Tap; Timer meldet den
       naechsten Satz. · Bedarf: kein wakeLock/Timer im Repo · Abgrenzung: kein Audio-Coaching.

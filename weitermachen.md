@@ -23,6 +23,11 @@
   (dunkles Design) in `verbesserungen.md` — nur auf Gabriels Zuruf anfassen.
 
 ## Naechste Schritte (Claude)
+0. **Naechstes Feature: Laufplaner (I6).** Kompletter, freigegebener Bauplan in
+   `docs/laufplaner-plan.md` (2026-09-05): Paket 1 = Reiter "Laufen" mit
+   Import/Export des Claude-Jahresplans (v1.4.0), Paket 2 = Garmin ueber
+   intervals.icu (v1.5.0). Vor dem Start Abschnitt 5.1 lesen, Schritt 0 ist der
+   Rueckkehrpunkt-Commit.
 1. Nach Gabriels Handy-Tests (siehe `meine-todos.md`): meldet er Probleme beim Sync
    oder beim Quick-Log-Knopf, zuerst Firestore-Rules und Notification-Payload
    pruefen — beides ist v1.2.0-neu und nur am Geraet final testbar.
