@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Persoenliche Daten (Laufplaene, Garmin-Exporte, API-Schluessel fuer
+# intervals.icu). Das Repo ist OEFFENTLICH — nichts davon darf committet werden.
+privat/
+
 # Claude-Code-Worktrees: vollstaendige Code-Kopien im Repo-Ordner. Git schliesst
 # sie schon selbst aus (.git/info/exclude), aber Werkzeuge wie Lint/Suche nicht.
 .claude/worktrees/

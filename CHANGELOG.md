@@ -3,6 +3,47 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.4.0] — 2026-09-05
+
+Laufplaner, Paket 1 (Bauplan: `docs/laufplaner-plan.md`). Claude erstellt den
+Jahresplan, die App zeigt ihn an und fuehrt Buch. Kraft-Training bleibt
+unveraendert.
+
+### Features
+- **Neuer Reiter "Laufen"** mit drei Unterreitern: **Woche** (sieben Tage, beide
+  Nutzer nebeneinander, Wochenziel als Balken), **Jahr** (Zielkarte mit
+  Countdown, Phasen und Wochenzielen mit Erfuellungsgrad) und **Plan**
+  (Import, Status-Export, Plan loeschen).
+- **Jahresplan aus Claude importieren:** JSON-Datei waehlen oder einfuegen. Die
+  Datei wird zuerst vollstaendig geprueft, danach zeigt die App eine Vorschau
+  ("2 Plaene neu · 17 Laeufe neu"); geschrieben wird erst nach Bestaetigung.
+  Bei einem einzigen Fehler wird nichts importiert, die Meldung nennt die
+  Stelle in der Datei (`plans[0].sessions[3].date: kein gueltiges Datum`).
+- **Stand zurueck an Claude:** Kopieren, Herunterladen oder Teilen — dasselbe
+  Format, angereichert um Haken, Ist-Werte und Verschiebungen.
+- **Laeufe pflegen:** Antippen oeffnet die Detailansicht mit Erledigt (km,
+  Minuten, Puls, Notiz — mit Planwerten vorbelegt), Ausgelassen, Verschieben
+  (14 Tages-Chips oder Datumsfeld), Tauschen mit einem anderen Lauf derselben
+  Woche und Zurueck auf geplant.
+- **Merge statt Ueberschreiben:** Ein erneuter Import behaelt Erledigtes und
+  Ausgelassenes, uebernimmt neue Vorgaben fuer noch geplante Laeufe und
+  entfernt nur geplante Laeufe in der Zukunft, die Claude gestrichen hat.
+  Der eigene Status-Export ergibt beim Re-Import "keine Aenderung".
+- **FitTrack Single** bekommt denselben Reiter mit einem Nutzer.
+
+### Technisch
+- Dexie-Schema **v3** (additiv): neue Tabellen `runPlans` und `runSessions`.
+  Bestehende Daten bleiben unangetastet (Upgrade v2 -> v3 im Browser geprueft).
+- Beide Tabellen haengen am Cloud-Sync und am JSON-Backup (Export-Version 3).
+- Format-Vertrag: `docs/laufplan-format.md` + `docs/laufplan-beispiel.json`.
+- Pruefmodul `src/utils/runPlanSchema.js` und Merge-Logik
+  `src/utils/runPlanMerge.js` sind reine Funktionen und werden von App und
+  Skripten gemeinsam genutzt: `scripts/laufplan-pruefen.mjs` prueft eine Datei
+  vor dem Import, `scripts/laufplan-merge-test.mjs` sichert die Merge-Regeln
+  mit 64 Faellen ab.
+- Sechster Tab in der Navigation; unter 340 px Breite blenden sich die
+  Beschriftungen aus.
+
 ## [1.3.0] — 2026-08-28
 
 Drei Wuensche aus dem Training (Gabriel).
