@@ -4,14 +4,35 @@
     {
       "name": "Vite Dev Server",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "--host"],
+      "runtimeArgs": [
+        "vite",
+        "--host"
+      ],
       "port": 5173
     },
     {
       "name": "Vite Preview (Production Build)",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "preview", "--host"],
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--host"
+      ],
       "port": 4173
+    },
+    {
+      "name": "Vite Dev Server (Single)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--config",
+        "vite.single.config.js",
+        "--host",
+        "--port",
+        "5175",
+        "--strictPort"
+      ],
+      "port": 5175
     }
   ]
 }

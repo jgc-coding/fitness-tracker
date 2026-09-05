@@ -23,6 +23,15 @@ db.version(2).stores({
   deletions: 'id, collection, deletedAt'
 })
 
+// v3 (additiv, verlustfrei): Laufplaner. Phasen und Wochenziele liegen IM
+// Plan-Datensatz, die einzelnen Laeufe als eigene Datensaetze — dieselbe
+// Struktur wie in der Haupt-App, damit eine Laufplan-Datei in beiden Apps
+// funktioniert. Ohne Cloud-Sync ist hier nur der lokale Teil aktiv.
+db.version(3).stores({
+  runPlans: 'id, userId, isActive',
+  runSessions: 'id, planId, userId, date, [userId+date], externalId'
+})
+
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
 }
