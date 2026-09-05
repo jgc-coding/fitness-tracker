@@ -1,44 +1,46 @@
-# Weitermachen — Stand 2026-08-17
+# Weitermachen — Stand 2026-08-28
 
 ## Stand
-- **v1.2.0 ist LIVE** (GitHub Pages, Tag `v1.2.0`, master): Gym-UX-Release inkl.
-  komplettem v1.1.0-Sicherheits-Release. Deploy gruen (erster Lauf scheiterte an
-  einer GitHub-Stoerung/503, Rerun ok); Live-Manifeste beider Apps verifiziert.
-- **Firebase-Absicherung komplett** (alle 6 Schritte aus `docs/firebase-absicherung.md`):
-  E-Mail/Passwort-Login aktiv (ohne E-Mail-Link), gemeinsames Konto angelegt,
-  Selbst-Registrierung gesperrt, beide Handys angemeldet, Firestore-Rules scharf
-  (nur das eine Konto), Anonym-Anbieter deaktiviert. Der frueher offene Vollzugriff
-  auf alle Trainingsdaten ist damit zu. Rollback: Rules-Versionshistorie in der Console.
-- Umgesetzt: V2-V7, V9-V13 + I2/I3/I4 (Details in `verbesserungen.md`/`CHANGELOG.md`).
-  Zurueckgestellt von Gabriel: V8, I1, I5.
-- **Aufgeraeumt (2026-08-17):** 9 anonyme Alt-Nutzer in der Console geloescht (nur das
-  E-Mail-Konto bleibt), drei gemergte lokale Branches geloescht, beide Worktrees
-  aufgeloest, Remote-Branch `claude/fittrack-single-standalone-ixm5sp` geloescht
-  (Stand war 22b4714 — bei Bedarf wiederherstellbar per
-  `git push origin 22b4714:refs/heads/<name>`). Repo hat jetzt nur noch `master`.
+- **v1.3.0 ist LIVE** (GitHub Pages, Tag `v1.3.0`, master): Standard-Nutzer in
+  den Einstellungen (geraete-lokal per localStorage, nicht gesynct), "Workout
+  beenden" als Knopf in der Sperrbildschirm-Notification, passende Muskel-
+  gruppen zuerst beim Uebung-Hinzufuegen. Deploy gruen, live-Bundles per curl
+  verifiziert (Haupt-App + FitTrack Single).
+- Nebenbei behoben: leeres "aktives" Workout, wenn ausserhalb der
+  Tracking-Ansicht beendet wurde (`resumeTodaysWorkout` raeumt jetzt auf,
+  wenn kein offenes Training mehr in der DB liegt).
+- Firebase-Absicherung unveraendert komplett (Stand 17.08., alle 6 Schritte
+  aus `docs/firebase-absicherung.md` weiterhin aktiv).
 
 ## Offen
-- Keine unfertige Code-Baustelle. Zurueckgestellte Punkte stehen als **V8** (Direkt-
-  eingabe im Gewichts-Rad), **I1** (Bildschirm-wach + Pausen-Timer) und **I5**
-  (dunkles Design) in `verbesserungen.md` — nur auf Gabriels Zuruf anfassen.
+- Keine unfertige Code-Baustelle. Zurueckgestellte Punkte weiterhin **V8**
+  (Direkteingabe im Gewichts-Rad), **I1** (Wake-Lock/Timer), **I5** (Dark
+  Mode) in `verbesserungen.md` — nur auf Gabriels Zuruf anfassen.
+- Der echte Knopfdruck auf "Workout beenden" am Android-Sperrbildschirm ist
+  ungetestet — im Browser laesst sich eine Notification-Action nicht
+  ausloesen. Beide Haelften (Service-Worker-Schreibvorgang, App-Reaktion)
+  sind einzeln verifiziert. Siehe `meine-todos.md`.
 
 ## Naechste Schritte (Claude)
-1. Nach Gabriels Handy-Tests (siehe `meine-todos.md`): meldet er Probleme beim Sync
-   oder beim Quick-Log-Knopf, zuerst Firestore-Rules und Notification-Payload
-   pruefen — beides ist v1.2.0-neu und nur am Geraet final testbar.
-2. Kosmetik, falls noch vorhanden: leerer Ordner
-   `.claude\worktrees\sad-saha-69e479` (nur die Huelle, Inhalt und Git-Registrierung
-   sind weg — er war das Arbeitsverzeichnis der Sitzung und liess sich deshalb nicht
-   loeschen). Einfach `rmdir` bzw. mit dem naechsten Aufraeumen entfernen.
+1. Meldet Gabriel nach dem Handy-Test (siehe `meine-todos.md`) ein Problem mit
+   "Workout beenden" oder dem Quick-Log-Knopf: zuerst `public/sw-custom.js`
+   (bzw. `single/public/sw-custom.js`) und die Notification-Payload in
+   `TrackingView.vue` (`buildNotificationQuickLog`/`buildNotificationActions`)
+   pruefen — beides ist v1.3.0-neu.
 
 ## Stolperfallen (aktuell)
 - **Im Haupt-Checkout `C:\Projekte\Fitness Tracker` arbeiten**, nicht in einem
-  Worktree: Die letzte Sitzung lief in einem Worktree, und der Sessionstart-Hook
-  hat dort eine veraltete `weitermachen.md` geladen ("v1.2.0 nicht deployt") —
-  genau die Falle, die das Aufraeumen beseitigt hat.
+  Worktree: Ein Worktree kann eine veraltete `weitermachen.md` in den Kontext
+  laden (siehe Session vom 17.08.).
 - Geteilte Dateien immer in `src/` UND `single/src/` aendern (`npm run check:drift`);
   TrackingView/HistoryView/notifications/sw-custom sind dokumentierte Ausnahmen und
   muessen von Hand parallel gepflegt werden.
-- Preview-Tool rendert in dieser Umgebung nicht (rAF eingefroren): Logik ueber
-  Seitenstruktur/IndexedDB pruefen, Firebase-Console ueber Claude-in-Chrome.
-- JSON-Backups beider Handys existieren (vor dem Update erstellt, 2026-08-17).
+- Preview-Tool: Screenshot schlaegt fehl, wenn die Browser-Pane nicht sichtbar
+  ist ("pane not displayed") — Struktur-/Wert-Pruefung per `read_page`,
+  `get_page_text`, `javascript_tool` funktioniert zuverlaessig und reicht fuer
+  Logik-Checks (so diese Session durchgefuehrt).
+- Session-Worktree `.claude\worktrees\workout-settings-ui-improvements-157885`
+  + Branch `claude/workout-settings-ui-improvements-157885` sind ueberfluessig
+  (Branch = master, identischer Commit 01f3dfa). Noch nicht entfernt (war das
+  Arbeitsverzeichnis dieser Sitzung) — Kommandos stehen im Chat-Abschluss-
+  bericht vom 28.08., vor dem Ausfuehren wie immer bei Gabriel nachfragen.
