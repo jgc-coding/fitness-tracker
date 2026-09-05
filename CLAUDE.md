@@ -80,6 +80,7 @@ docs/
   laufplan-format.md       Dateiformat-Vertrag zwischen Claude und App
   laufplan-beispiel.json   Gueltige Beispieldatei (erfundene Daten)
   laufplaner-plan.md       Bauplan des Laufplaners (Paket 1 umgesetzt, Paket 2 offen)
+  garmin-anbindung.md      Einrichtung intervals.icu (macht Gabriel selbst)
 firestore.rules          Vorlage der Firestore-Regeln (Einspielen manuell via Console)
 .github/workflows/
   deploy.yml             CI/CD: Build + Deploy auf GitHub Pages (Branch: master)

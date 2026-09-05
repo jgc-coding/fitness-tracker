@@ -25,6 +25,12 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
 
 ## Ideen
+- **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S
+      Nutzen: Paket 1 kennt nur Laeufe aus dem Claude-Plan; ein spontaner Lauf
+      laesst sich bis Paket 2 nirgends festhalten. Abgrenzung: ein Knopf in der
+      Wochenansicht, der einen Lauf mit `unplanned: true` anlegt — mit Paket 2
+      kommt derselbe Lauf ohnehin automatisch von der Uhr, deshalb erst danach
+      entscheiden, ob es den Knopf noch braucht.
 - **I6b** (Erweiterung) Laufplaner Paket 2: Laeufe automatisch von Garmin ueber
       intervals.icu — offen, Bauplan in `docs/laufplaner-plan.md` Abschnitt 6.
       Voraussetzung ist Gabriels Einrichtung (Konto bei intervals.icu, Garmin
