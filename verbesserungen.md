@@ -17,6 +17,7 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
 7. **Katalog** (Suche/Filter/eigene Uebung/Seed) — zuletzt: laeuft (2026-08-16, live)
 8. **Dual-User + Cloud-Sync** — zuletzt: laut Gabriel zeigen beide Handys „Aktiv" (2026-08-17, nach Login); Datenfluss-Test Handy→Handy steht noch aus (`meine-todos.md`). Von Claude nicht interaktiv pruefbar (Echtdaten)
 9. **Export CSV/JSON + Notifications inkl. Quick-Log** — zuletzt: nicht pruefbar (Download/Sperrbildschirm nur am echten Geraet)
+10. **Laufplaner** (Plan importieren, Woche/Jahr, Erledigt/Verschieben/Tauschen, Status-Export) — zuletzt: laeuft (2026-09-05, im Browser gegen IndexedDB geprueft, beide Varianten)
 
 ## Offen
 - [ ] **V8** (C) Direkteingabe im Gewichts-Rad — zurueckgestellt 2026-08-16 (Gabriel)
@@ -24,10 +25,11 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
 
 ## Ideen
-- **I6** (Erweiterung) Laufplaner: Jahresplan aus Claude in der App, Laeufe automatisch von Garmin —
-      freigegeben 2026-09-05 (Gabriel), noch nicht begonnen. Kompletter Bauplan mit
-      Datenmodell, Dateiformat, Merge-Regeln und Akzeptanzkriterien: `docs/laufplaner-plan.md`.
-      Paket 1 (v1.4.0, Reiter "Laufen") zuerst, Paket 2 (v1.5.0, intervals.icu) danach. · Aufwand: L + M
+- **I6b** (Erweiterung) Laufplaner Paket 2: Laeufe automatisch von Garmin ueber
+      intervals.icu — offen, Bauplan in `docs/laufplaner-plan.md` Abschnitt 6.
+      Voraussetzung ist Gabriels Einrichtung (Konto bei intervals.icu, Garmin
+      verbinden, API-Schluessel) — ohne echte Antwort der Schnittstelle nicht
+      sinnvoll baubar. · Aufwand: M
 - **I1** (Erweiterung) Trainingsmodus: Bildschirm-Wachhalten + Pausen-Timer — zurueckgestellt 2026-08-16 (Gabriel) · Aufwand: M
       Nutzen: Handy bleibt zwischen Saetzen an, ein Blick + ein Tap; Timer meldet den
       naechsten Satz. · Bedarf: kein wakeLock/Timer im Repo · Abgrenzung: kein Audio-Coaching.
@@ -42,6 +44,9 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
 (noch nichts — V8/I1/I5 sind zurueckgestellt, nicht abgelehnt)
 
 ## Erledigt
+- **I6a** (Erweiterung) Laufplaner Paket 1 — erledigt in v1.4.0: Reiter "Laufen"
+  (Woche/Jahr/Plan), Import und Status-Export des Claude-Jahresplans, Merge nach
+  Kennung, Dexie v3, Sync und Backup erweitert, 64 Vertragsfaelle gruen.
 - **V1** (A) Release + Absicherung — erledigt 2026-08-17: master gemergt, v1.2.0
   deployt und getaggt, alle 6 Firebase-Schritte durch (Login-Pflicht, Rules nur
   fuers gemeinsame Konto, Anonym-Anbieter aus). Der offene Vollzugriff ist zu.

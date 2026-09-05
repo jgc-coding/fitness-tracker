@@ -1,0 +1,311 @@
+{
+  "format": "fittrack-laufplan",
+  "formatVersion": 1,
+  "exportedAt": "2030-01-05T10:00:00.000Z",
+  "plans": [
+    {
+      "id": "beispiel-plan-a",
+      "userId": "user2",
+      "name": "Beispiel: Backyard Ultra",
+      "isActive": true,
+      "planVersion": 1,
+      "goal": {
+        "type": "backyard",
+        "label": "Beispiel-Rennen",
+        "date": "2030-06-01",
+        "target": "12 Runden"
+      },
+      "phases": [
+        {
+          "id": "p1",
+          "name": "Grundlage",
+          "from": "2030-01-07",
+          "to": "2030-02-03",
+          "focus": "lockerer Umfang, Laufgewohnheit aufbauen"
+        },
+        {
+          "id": "p2",
+          "name": "Belastbarkeit",
+          "from": "2030-02-04",
+          "to": "2030-02-17",
+          "focus": "Back-to-back-Laeufe, Gehanteile ueben"
+        }
+      ],
+      "weeks": [
+        { "start": "2030-01-07", "phaseId": "p1", "targetKm": 30, "targetMinutes": 200, "note": "Einstieg" },
+        { "start": "2030-01-14", "phaseId": "p1", "targetKm": 33, "targetMinutes": 230, "note": "" },
+        { "start": "2030-01-21", "phaseId": "p1", "targetKm": 22, "targetMinutes": 210, "note": "Entlastungswoche" },
+        { "start": "2030-01-28", "phaseId": "p1", "targetKm": 36, "targetMinutes": 290, "note": "erste Runden-Simulation" },
+        { "start": "2030-02-04", "phaseId": "p2", "targetKm": 40, "targetMinutes": 300, "note": "erstes Back-to-back" }
+      ],
+      "sessions": [
+        {
+          "id": "beispiel-plan-a-2030-01-08-a",
+          "date": "2030-01-08",
+          "type": "easy",
+          "title": "Locker",
+          "description": "Ruhiges Tempo, Unterhaltung muss moeglich sein.",
+          "planned": { "km": 8, "minutes": 50, "loops": null },
+          "status": "done",
+          "actual": { "km": 8.2, "minutes": 52, "avgHr": 138, "note": "hat gut getan" },
+          "source": "manual"
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-10-a",
+          "date": "2030-01-10",
+          "type": "tempo",
+          "title": "Steigerungen",
+          "description": "Nach dem Einlaufen 6 x 20 Sekunden zuegig, dazwischen locker gehen.",
+          "planned": { "km": 7, "minutes": 45, "loops": null },
+          "status": "skipped",
+          "actual": null,
+          "source": "manual"
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-12-a",
+          "date": "2030-01-12",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "Alle 60 Minuten etwas essen ueben.",
+          "planned": { "km": 15, "minutes": 105, "loops": null },
+          "status": "planned",
+          "actual": null,
+          "originalDate": "2030-01-11"
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-15-a",
+          "date": "2030-01-15",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 9, "minutes": 55, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-16-a",
+          "date": "2030-01-16",
+          "type": "strength",
+          "title": "Kraft: Beine und Rumpf",
+          "description": "Im Gym, kein Lauf.",
+          "planned": { "km": null, "minutes": null, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-18-a",
+          "date": "2030-01-18",
+          "type": "hills",
+          "title": "Huegel",
+          "description": "8 x kurzer Anstieg, locker zurueck traben.",
+          "planned": { "km": 8, "minutes": 55, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-19-a",
+          "date": "2030-01-19",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "",
+          "planned": { "km": 16, "minutes": 120, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-22-a",
+          "date": "2030-01-22",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 8, "minutes": 50, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-25-a",
+          "date": "2030-01-25",
+          "type": "walk",
+          "title": "Gehen",
+          "description": "Zuegig gehen, Gehtempo fuer die Runden finden.",
+          "planned": { "km": null, "minutes": 60, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-26-a",
+          "date": "2030-01-26",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "Kurz halten, es ist Entlastungswoche.",
+          "planned": { "km": 14, "minutes": 100, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-29-a",
+          "date": "2030-01-29",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 9, "minutes": 55, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-01-31-a",
+          "date": "2030-01-31",
+          "type": "tempo",
+          "title": "Kurze Huegel",
+          "description": "10 x 30 Sekunden bergauf zuegig, gehend zurueck.",
+          "planned": { "km": 7, "minutes": 50, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-02-02-a",
+          "date": "2030-02-02",
+          "type": "loops",
+          "title": "Runden-Simulation",
+          "description": "Start zur vollen Stunde, 6,7 km je Runde, jede Stunde essen.",
+          "planned": { "km": 20, "minutes": 185, "loops": 3 }
+        },
+        {
+          "id": "beispiel-plan-a-2030-02-05-a",
+          "date": "2030-02-05",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 9, "minutes": 55, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-02-09-a",
+          "date": "2030-02-09",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "Ruhig starten, letzte Stunde gleichmaessig halten.",
+          "planned": { "km": 20, "minutes": 145, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-a-2030-02-10-a",
+          "date": "2030-02-10",
+          "type": "backtoback",
+          "title": "Zweiter langer Lauf",
+          "description": "Auf muede Beine, bewusst langsam, Gehpausen erlaubt.",
+          "planned": { "km": 11, "minutes": 100, "loops": null }
+        }
+      ]
+    },
+    {
+      "id": "beispiel-plan-b",
+      "userId": "user1",
+      "name": "Beispiel: Halbmarathon",
+      "isActive": true,
+      "planVersion": 1,
+      "goal": {
+        "type": "halfmarathon",
+        "label": "Beispiel-Halbmarathon",
+        "date": "2030-05-05",
+        "target": "unter 2 Stunden"
+      },
+      "phases": [
+        {
+          "id": "b1",
+          "name": "Grundlage",
+          "from": "2030-01-07",
+          "to": "2030-02-17",
+          "focus": "drei Laeufe pro Woche, alles locker"
+        }
+      ],
+      "weeks": [
+        { "start": "2030-01-07", "phaseId": "b1", "targetKm": 22, "targetMinutes": 140, "note": "" },
+        { "start": "2030-01-14", "phaseId": "b1", "targetKm": 25, "targetMinutes": 165, "note": "" },
+        { "start": "2030-01-21", "phaseId": "b1", "targetKm": 20, "targetMinutes": 135, "note": "Entlastungswoche" },
+        { "start": "2030-01-28", "phaseId": "b1", "targetKm": 27, "targetMinutes": 180, "note": "" }
+      ],
+      "sessions": [
+        {
+          "id": "beispiel-plan-b-2030-01-09-a",
+          "date": "2030-01-09",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 6, "minutes": 40, "loops": null },
+          "status": "done",
+          "actual": { "km": 6.1, "minutes": 39, "avgHr": 145, "note": "" },
+          "source": "manual"
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-11-a",
+          "date": "2030-01-11",
+          "type": "tempo",
+          "title": "Tempo",
+          "description": "3 x 8 Minuten zuegig, dazwischen 3 Minuten Trab.",
+          "planned": { "km": 6, "minutes": 40, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-13-a",
+          "date": "2030-01-13",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "",
+          "planned": { "km": 10, "minutes": 70, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-15-a",
+          "date": "2030-01-15",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 7, "minutes": 45, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-17-a",
+          "date": "2030-01-17",
+          "type": "hills",
+          "title": "Huegel",
+          "description": "6 x kurzer Anstieg.",
+          "planned": { "km": 6, "minutes": 40, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-20-a",
+          "date": "2030-01-20",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "",
+          "planned": { "km": 12, "minutes": 80, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-22-a",
+          "date": "2030-01-22",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 6, "minutes": 40, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-24-a",
+          "date": "2030-01-24",
+          "type": "tempo",
+          "title": "Tempo",
+          "description": "2 x 8 Minuten zuegig.",
+          "planned": { "km": 6, "minutes": 40, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-27-a",
+          "date": "2030-01-27",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "Kurz halten, es ist Entlastungswoche.",
+          "planned": { "km": 8, "minutes": 55, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-29-a",
+          "date": "2030-01-29",
+          "type": "easy",
+          "title": "Locker",
+          "description": "",
+          "planned": { "km": 7, "minutes": 45, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-01-31-a",
+          "date": "2030-01-31",
+          "type": "hills",
+          "title": "Huegel",
+          "description": "8 x kurzer Anstieg.",
+          "planned": { "km": 6, "minutes": 40, "loops": null }
+        },
+        {
+          "id": "beispiel-plan-b-2030-02-03-a",
+          "date": "2030-02-03",
+          "type": "long",
+          "title": "Langer Lauf",
+          "description": "",
+          "planned": { "km": 14, "minutes": 95, "loops": null }
+        }
+      ]
+    }
+  ]
+}
