@@ -383,6 +383,9 @@ export const useRunningStore = defineStore('running', () => {
         minutes: s.planned?.minutes ?? null,
         loops: s.planned?.loops ?? null
       },
+      // Leer bleibt null, nie ein leeres Array — sonst waere die Rueckreise
+      // der Datei gegen einen Lauf ohne Vorgabe eine Scheinaenderung.
+      targets: s.targets?.length ? s.targets.map(t => ({ ...t })) : null,
       status: s.status,
       actual: s.actual || null,
       feedback: s.feedback || null,

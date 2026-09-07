@@ -132,6 +132,9 @@ ist meistens ein echter Rechenfehler im Plan.
   "title": "Langer Lauf",
   "description": "locker, alle 60 min essen ueben",
   "planned": { "km": 22, "minutes": 150, "loops": null },
+  "targets": [
+    { "label": "Grundtempo", "hrFrom": 128, "hrTo": 140, "paceFrom": "7:10", "paceTo": "7:40" }
+  ],
   "status": "planned",
   "actual": null,
   "feedback": null,
@@ -150,6 +153,7 @@ ist meistens ein echter Rechenfehler im Plan.
 | `title` | ja | Kurzer Titel, erscheint im Wochen-Chip. |
 | `description` | nein | Die Durchfuehrung in ein bis zwei Saetzen. |
 | `planned` | siehe unten | Vorgabe als `{ km, minutes, loops }`, jeweils Zahl oder `null`. |
+| `targets` | nein | Puls und Tempo, siehe unten. Liste oder `null`. |
 | `status` | nein | `planned` (Standard), `done` oder `skipped`. |
 | `actual` | nein | `{ km, minutes, avgHr, note }` oder `null`. |
 | `feedback` | nein | Rueckmeldung des Laeufers: `{ rpe, note, at }` oder `null`, siehe unten. |
@@ -164,6 +168,42 @@ Vorgabe erlaubt sind. Es duerfen auch mehrere Werte zugleich stehen, zum Beispie
 `{ "km": 20, "minutes": 185, "loops": 3 }` fuer drei Runden a 6,7 km.
 
 **Ruhetage sind keine Datensaetze.** Ein Tag ohne Lauf bleibt in der Datei leer.
+
+### Puls- und Tempovorgabe (`targets`)
+
+```json
+"targets": [
+  { "label": "Grundtempo", "hrFrom": 128, "hrTo": 138, "paceFrom": "7:15", "paceTo": "7:45" },
+  { "label": "Steigerungen", "hrFrom": null, "hrTo": null, "paceFrom": "4:30", "paceTo": "5:00" }
+]
+```
+
+Eine **Liste**, weil ein Tempolauf mehrere Tempi hat: locker traben, schnelle
+Stuecke, Endbeschleunigung. Ein lockerer Dauerlauf hat genau einen Eintrag.
+Hoechstens vier Eintraege je Lauf — mehr passt nicht mehr ins Lauf-Blatt und
+niemand behaelt es beim Laufen im Kopf.
+
+| Feld | Pflicht | Bedeutung |
+|------|---------|-----------|
+| `label` | nein | Name des Abschnitts, hoechstens 24 Zeichen. Fehlt er bei einem einzelnen Eintrag, zeigt die App „Ziel". |
+| `hrFrom` / `hrTo` | siehe unten | Pulsbereich in Schlaegen je Minute, ganze Zahlen von 60 bis 220. |
+| `paceFrom` / `paceTo` | siehe unten | Tempo je Kilometer als Text `"m:ss"`, zwischen `"2:00"` und `"20:00"`. |
+
+**`paceFrom` ist die schnellere Grenze.** Eine Pace ist eine Zeit: kleiner heisst
+schneller. `"7:15"` bis `"7:45"` ist richtig, umgekehrt wird die Datei abgelehnt.
+
+**Beide Grenzen oder keine.** Ein halber Bereich (`hrFrom` ohne `hrTo`) ist ein
+Fehler, kein stillschweigend ergaenzter Wert. Ein Eintrag darf den Puls oder das
+Tempo weglassen, aber nicht beides — eine Vorgabe ohne Zahlen ist keine Vorgabe.
+
+**Leer ist `null`, nie `[]`.** Ein leeres Array waere gegenueber einem aelteren
+Lauf ohne dieses Feld eine Scheinaenderung, und jeder Import wuerde Datensaetze
+anfassen, die sich gar nicht geaendert haben.
+
+Die Vorgabe gehoert dem **Plan**, nicht dem Laeufer. Bringt eine neue Datei fuer
+einen noch geplanten Lauf keine `targets` mit, ist die alte Vorgabe bewusst
+zurueckgenommen und verschwindet — anders als bei `feedback`, das nie verloren
+geht.
 
 ### Lauf-Arten
 
@@ -226,6 +266,9 @@ Test in `scripts/laufplan-merge-test.mjs`:
 8. **Rueckmeldungen gehen nie verloren.** Bringt die Datei fuer einen noch
    geplanten Lauf keine `feedback` mit, bleibt die vorhandene stehen. Bei
    erledigten Laeufen aendert ein Import ohnehin nichts (Regel 4).
+9. **Puls- und Tempovorgaben folgen der Datei.** Sie gehoeren dem Plan: was in
+   der Datei steht, gilt; was fehlt, ist zurueckgenommen. Genau umgekehrt zu
+   Regel 8, weil `targets` von Claude kommt und `feedback` vom Laeufer.
 
 Vor dem Schreiben zeigt die App eine Vorschau („3 Laeufe neu · 41 aktualisiert ·
 2 entfernt · 12 erledigte bleiben"). Findet die Pruefung auch nur einen Fehler,
@@ -241,5 +284,7 @@ wird **nichts** geschrieben.
 | `plans[0].sessions[7].date: kein gueltiges Datum` | Tippfehler oder ein Tag, den es nicht gibt (zum Beispiel 30. Februar). |
 | `plans[0].sessions[9].id: Kennung "..." kommt in der Datei mehrfach vor` | Zwei Laeufe teilen sich eine Kennung. |
 | `plans[0].sessions[2].planned: Lauf-Art "easy" braucht mindestens km, minutes oder loops` | Vorgabe fehlt. |
+| `plans[0].sessions[4].targets[0]: Tempobereich laeuft rueckwaerts` | `paceFrom` muss die schnellere (kleinere) Zeit sein. |
+| `plans[0].sessions[4].targets[0].paceFrom: muss ein Tempo "m:ss" ... sein` | Komma statt Doppelpunkt, oder Sekunden ueber 59. |
 | `plans[0].userId: unbekannter Nutzer` | Erlaubt sind nur `user1` und `user2`. |
 | `format: erwartet "fittrack-laufplan"` | Es ist eine andere Datei (zum Beispiel ein App-Backup). |

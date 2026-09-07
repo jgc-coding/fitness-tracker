@@ -28,7 +28,7 @@ const PLAN_CONTENT_FIELDS = ['userId', 'name', 'goal', 'phases', 'weeks']
 // dafuer, ob ein Schreibvorgang ueberhaupt noetig ist.
 const SESSION_FIELDS = [
   'id', 'planId', 'userId', 'date', 'type', 'title', 'description',
-  'planned', 'status', 'actual', 'feedback', 'source', 'externalId', 'originalDate', 'unplanned'
+  'planned', 'targets', 'status', 'actual', 'feedback', 'source', 'externalId', 'originalDate', 'unplanned'
 ]
 
 /** Vergleich ohne Ruecksicht auf die Reihenfolge der Objekt-Schluessel. */
@@ -160,6 +160,9 @@ export function computeImportDiff(localPlans, localSessions, file, today = getTo
         title: fileSession.title,
         description: fileSession.description,
         planned: fileSession.planned,
+        // Puls- und Tempovorgabe gehoert dem Plan, nicht dem Laeufer: bringt
+        // die Datei keine mit, ist sie bewusst weg (anders als bei feedback).
+        targets: fileSession.targets,
         status: fileSession.status,
         actual: fileSession.actual,
         // Die Rueckmeldung des Laeufers geht nie verloren: bringt die Datei

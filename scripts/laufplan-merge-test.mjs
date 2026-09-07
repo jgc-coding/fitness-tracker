@@ -6,7 +6,8 @@
  * Funktionen sind (src/utils/runPlanSchema.js, src/utils/runPlanMerge.js).
  * Jede Regel aus docs/laufplaner-plan.md Abschnitt 5.4 hat mindestens einen
  * Fall; dazu die drei Sonderfaelle (leere Datei, fremder Nutzer, zweimal
- * derselbe Import) und die Rueckmeldung nach dem Lauf (Faelle F1-F7).
+ * derselbe Import), die Rueckmeldung nach dem Lauf (Faelle F1-F7) und die
+ * Puls- und Tempovorgabe je Lauf (Faelle T1-T13).
  *
  * Aufruf (Windows PowerShell):  node .\scripts\laufplan-merge-test.mjs
  * Exit 0 = alles gruen, Exit 1 = mindestens ein Fall ist rot.
@@ -356,6 +357,89 @@ function diff(plans, sessions, file) {
   check('F7 Text statt Objekt wird abgelehnt', falscherTyp.ok === false)
 }
 
+// --- Puls- und Tempovorgabe (Faelle T1-T13) ---------------------------------
+{
+  const locker = { label: 'locker', hrFrom: 128, hrTo: 138, paceFrom: '7:15', paceTo: '7:45' }
+  const schnell = { label: 'Steigerungen', hrFrom: null, hrTo: null, paceFrom: '4:30', paceTo: '5:00' }
+
+  // T1: Vorgabe aus der Datei landet am geplanten Lauf.
+  {
+    const file = validFile([filePlan({ sessions: [fileSession({ targets: [locker] })] })])
+    const d = diff([localPlan()], [localSession()], file)
+    equal('T1 Vorgabe wird uebernommen', d.sessionsToPut[0]?.targets, [locker])
+  }
+
+  // T2: Kein Feld in Datei und Datensatz -> kein Schreibvorgang. Der Wert muss
+  // null sein, nicht [], sonst gilt jeder alte Lauf als geaendert.
+  {
+    const file = validFile([filePlan({ sessions: [fileSession()] })])
+    equal('T2 ohne Vorgabe wird nichts geschrieben', diff([localPlan()], [localSession()], file).sessionsToPut.length, 0)
+    equal('T2 leer ist null, nicht []', file.plans[0].sessions[0].targets, null)
+    const leereListe = validFile([filePlan({ sessions: [fileSession({ targets: [] })] })])
+    equal('T2 leere Liste wird zu null', leereListe.plans[0].sessions[0].targets, null)
+  }
+
+  // T3: Die Vorgabe gehoert dem Plan. Nimmt die Datei sie zurueck, ist sie weg.
+  {
+    const file = validFile([filePlan({ sessions: [fileSession()] })])
+    const d = diff([localPlan()], [localSession({ targets: [locker] })], file)
+    equal('T3 entfernte Vorgabe verschwindet', d.sessionsToPut[0]?.targets, null)
+  }
+
+  // T4: Erledigter Lauf bleibt unangetastet (Regel 4 gilt auch hier).
+  {
+    const file = validFile([filePlan({ sessions: [fileSession({ targets: [locker] })] })])
+    const lokal = localSession({ status: 'done', targets: null, actual: { km: 8.2, minutes: 52, avgHr: 133, note: '' } })
+    const d = diff([localPlan()], [lokal], file)
+    equal('T4 erledigter Lauf bekommt keine Vorgabe', d.sessionsToPut.length, 0)
+    equal('T4 als geschuetzt gezaehlt', d.summary.sessionsProtected, 1)
+  }
+
+  // T5: Dieselbe Datei zweimal -> beim zweiten Mal keine Aenderung.
+  {
+    const file = validFile([filePlan({ sessions: [fileSession({ targets: [locker, schnell] })] })])
+    const erst = diff([], [], file)
+    const zweit = diff(erst.plansToPut, erst.sessionsToPut, file)
+    check('T5 Zweitimport mit Vorgabe ist unveraendert', zweit.summary.unchanged === true)
+  }
+
+  // T6: Mehrere Abschnitte behalten ihre Reihenfolge.
+  {
+    const file = validFile([filePlan({ sessions: [fileSession({ type: 'tempo', targets: [locker, schnell] })] })])
+    const ziele = file.plans[0].sessions[0].targets
+    equal('T6 Reihenfolge bleibt', ziele.map(t => t.label), ['locker', 'Steigerungen'])
+    equal('T6 zweiter Abschnitt ohne Puls', [ziele[1].hrFrom, ziele[1].hrTo], [null, null])
+  }
+
+  // T7-T13: Was die Pruefung ablehnen muss.
+  const abgelehnt = [
+    ['T7 Tempobereich rueckwaerts', [{ paceFrom: '5:00', paceTo: '4:30' }], 'plans[0].sessions[0].targets[0]'],
+    ['T8 halber Pulsbereich', [{ hrFrom: 130, paceFrom: '7:00', paceTo: '7:30' }], 'plans[0].sessions[0].targets[0]'],
+    ['T9 Tempo im falschen Format', [{ paceFrom: '7,15', paceTo: '7:45' }], 'plans[0].sessions[0].targets[0].paceFrom'],
+    ['T10 leere Vorgabe', [{ label: 'nur ein Name' }], 'plans[0].sessions[0].targets[0]'],
+    ['T11 mehr als vier Vorgaben', [locker, locker, locker, locker, locker], 'plans[0].sessions[0].targets'],
+    ['T12 Puls ausserhalb der Grenzen', [{ hrFrom: 40, hrTo: 300 }], 'plans[0].sessions[0].targets[0].hrFrom'],
+    ['T13 Vorgabe ist kein Objekt', ['locker 7:15'], 'plans[0].sessions[0].targets[0]']
+  ]
+  for (const [name, targets, pfad] of abgelehnt) {
+    const result = validateRunPlanFile({
+      format: 'fittrack-laufplan',
+      formatVersion: 1,
+      plans: [filePlan({ sessions: [fileSession({ targets })] })]
+    })
+    check(`${name} wird abgelehnt`, result.ok === false)
+    check(`${name} nennt ${pfad}`, result.errors.some(e => e.startsWith(pfad + ':')), result.errors.join(' | '))
+  }
+
+  // Schreibweise wird vereinheitlicht: "07:05" und "7:05" sind dasselbe Tempo.
+  {
+    const file = validFile([filePlan({ sessions: [fileSession({ targets: [{ paceFrom: '07:05', paceTo: '07:35' }] })] })])
+    equal('Tempo wird normalisiert', file.plans[0].sessions[0].targets[0].paceFrom, '7:05')
+    const gleich = validFile([filePlan({ sessions: [fileSession({ targets: [{ paceFrom: '6:00', paceTo: '6:00' }] })] })])
+    check('gleiche Grenzen sind erlaubt', gleich.plans[0].sessions[0].targets[0].paceTo === '6:00')
+  }
+}
+
 // --- Sonderfall: leere Datei wird abgelehnt, nichts wird geloescht ----------
 {
   const result = validateRunPlanFile({ format: 'fittrack-laufplan', formatVersion: 1, plans: [] })
@@ -443,4 +527,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log(`[laufplan-merge-test] OK — ${passed} Faelle gruen (Pruefung + Merge-Regeln 1-7 + Rueckmeldung).`)
+console.log(`[laufplan-merge-test] OK — ${passed} Faelle gruen (Pruefung + Merge-Regeln 1-7 + Rueckmeldung + Vorgabe).`)

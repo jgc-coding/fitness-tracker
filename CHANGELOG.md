@@ -3,6 +3,47 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.7.0] — 2026-09-07
+
+Zwei Dinge: Laufplaene lassen sich jetzt direkt aus der Cloud lesen und dorthin
+schreiben, und jeder geplante Lauf traegt eine Puls- und Tempovorgabe, die aus
+der eigenen Laufhistorie abgeleitet ist. Kraft-Training bleibt unveraendert.
+
+### Features
+- **Puls- und Tempovorgabe je Lauf** (`targets` im Dateiformat): eine Liste von
+  Abschnitten, weil ein Tempolauf mehrere Tempi hat. Sichtbar im Lauf-Blatt als
+  eigene Zeilen unter der Vorgabe — Bezeichnung, Pulsspanne, Tempospanne.
+  Hoechstens vier Abschnitte je Lauf.
+- **Zugang zur Cloud vom PC** (`scripts/lauf-cloud.mjs`): `holen` schreibt den
+  Stand als normale Plandatei nach `privat\`, `schreiben` fuehrt eine Plandatei
+  mit der Cloud zusammen. Ohne `--jetzt` immer nur ein Trockenlauf; vor jedem
+  echten Schreibvorgang eine Sicherung. Anleitung: `docs/laufplan-cloud.md`.
+- **Puls-zu-Tempo-Modell** aus der Garmin-Historie
+  (`scripts/lib/pace-modell-kern.mjs`, Bericht mit `scripts/pace-modell.mjs`):
+  beruecksichtigt Gelaende und Dauer, gewichtet juengere Laeufe staerker,
+  sortiert Ausreisser aus und meldet sie namentlich.
+- **Vorgaben in einen Plan eintragen** (`scripts/laufplan-vorgaben.mjs`) nach
+  Regeln aus einem Profil unter `privat\`. Anleitung: `docs/laufplan-vorgaben.md`.
+
+### Absicherung
+- `scripts/pace-modell-test.mjs` (19 Faelle) prueft die Schaetzung gegen
+  erfundene Daten mit bekanntem Zusammenhang — laeuft im Done-Gate mit.
+- `scripts/laufplan-merge-test.mjs` von 86 auf 112 Faelle (T1 bis T13 fuer die
+  neue Vorgabe): leer bleibt `null` statt `[]`, erledigte Laeufe bleiben
+  unberuehrt, ein zweiter Import bleibt neutral, rueckwaerts laufende Bereiche
+  werden abgelehnt.
+
+### Entscheidungen
+- **Die Vorgabe gehoert dem Plan, die Rueckmeldung dem Laeufer.** Bringt eine
+  neue Datei keine `targets` mit, ist die alte zurueckgenommen — genau
+  umgekehrt zu `feedback`, das nie verloren geht.
+- **Ausserhalb der gemessenen Pulsspanne wird die Hochrechnung gedaempft**
+  (60 Prozent je Schlag). Eine verlaengerte Gerade ergaebe ein Schwellentempo,
+  das niemand laufen kann.
+- **Trainingswissen liegt in `privat\`, nicht im Repo.** Pulsbereiche sind
+  Gesundheitsdaten, das Repo ist oeffentlich.
+- `formatVersion` bleibt 1: alte Plandateien bleiben gueltig.
+
 ## [1.6.0] — 2026-09-07
 
 Rueckmeldung nach dem Lauf: Wie anstrengend war es, und was ist aufgefallen?

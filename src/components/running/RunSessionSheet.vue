@@ -15,6 +15,17 @@
       </div>
 
       <p v-if="plannedFull" class="sheet-planned">Vorgabe: {{ plannedFull }}</p>
+
+      <!-- Puls- und Tempovorgabe. Je Zeile ein Abschnitt des Laufs, weil ein
+           Tempolauf mehrere Tempi hat (Grundtempo, schnelle Stuecke, Trab). -->
+      <ul v-if="targetRows.length" class="sheet-targets">
+        <li v-for="(row, i) in targetRows" :key="i" class="target-row">
+          <span class="target-label">{{ row.label }}</span>
+          <span v-if="row.hr" class="target-hr">Puls {{ row.hr }}</span>
+          <span v-if="row.pace" class="target-pace">{{ row.pace }} /km</span>
+        </li>
+      </ul>
+
       <p v-if="session.description" class="sheet-description">{{ session.description }}</p>
       <p v-if="session.originalDate" class="sheet-hint">
         Verschoben — geplant war {{ formatDayShort(session.originalDate) }}
@@ -206,6 +217,22 @@ const statusLabel = computed(() => STATUS_LABELS[props.session?.status] || '')
 const plannedFull = computed(() => formatRunValueFull(props.session?.planned))
 const actualFull = computed(() => formatRunValueFull(props.session?.actual))
 
+/**
+ * Puls- und Tempovorgabe als fertige Zeilen. Fehlt bei einer einzigen Vorgabe
+ * die Bezeichnung, steht dort "Ziel" — eine namenlose Zeile saehe aus, als
+ * waere etwas verlorengegangen.
+ */
+const targetRows = computed(() => {
+  const list = props.session?.targets || []
+  return list.map((t, i) => ({
+    label: t.label || (list.length === 1 ? 'Ziel' : `Teil ${i + 1}`),
+    hr: t.hrFrom && t.hrTo ? `${t.hrFrom}–${t.hrTo}` : '',
+    pace: t.paceFrom && t.paceTo
+      ? (t.paceFrom === t.paceTo ? t.paceFrom : `${t.paceFrom}–${t.paceTo}`)
+      : ''
+  }))
+})
+
 const effortLabelOf = (rpe) => getEffortLabel(rpe)
 
 // Solange nichts gewaehlt ist, erklaert die Zeile die Skala; danach die Stufe.
@@ -370,6 +397,44 @@ function doReset() {
 .sheet-planned {
   margin-top: var(--space-md);
   font-weight: var(--font-weight-medium);
+}
+
+.sheet-targets {
+  list-style: none;
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.target-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding: 2px 0;
+  font-size: var(--font-size-sm);
+}
+
+.target-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--color-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.target-hr {
+  flex: 0 0 auto;
+  color: var(--color-text-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.target-pace {
+  flex: 0 0 auto;
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
 }
 
 .sheet-description,

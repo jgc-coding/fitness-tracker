@@ -44,6 +44,18 @@ export const RUN_STATUS = ['planned', 'done', 'skipped']
 export const RUN_SOURCES = ['plan', 'manual', 'intervals']
 
 /**
+ * Grenzen der Puls- und Tempovorgabe (`targets`). Bewusst weit gefasst: sie
+ * sollen Tippfehler abfangen (Puls 1400, Tempo "72:00"), nicht Trainingslehre
+ * betreiben. 2:00/km ist Weltrekordtempo, 20:00/km ist langsames Gehen.
+ */
+export const HR_MIN = 60
+export const HR_MAX = 220
+export const PACE_MIN_SECONDS = 120
+export const PACE_MAX_SECONDS = 1200
+export const TARGETS_MAX = 4
+export const TARGET_LABEL_MAX = 24
+
+/**
  * Rueckmeldung nach dem Lauf: wie anstrengend war es? Fuenf Stufen, weil mehr
  * mit einem Daumen auf dem Handy nicht mehr sicher zu treffen ist. Die Skala
  * ist subjektiv gemeint ("wie hat es sich angefuehlt"), nicht per Puls berechnet.
@@ -110,6 +122,107 @@ function optionalNumber(value) {
   if (value === null || value === undefined || value === '') return null
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return undefined
   return value
+}
+
+/**
+ * Tempo ("Pace") als Text "m:ss" je Kilometer in Sekunden. Derselbe Vertrag wie
+ * optionalNumber(): `null` heisst "nicht gesetzt", `undefined` heisst ungueltig.
+ */
+export function parsePace(value) {
+  if (value === null || value === undefined || value === '') return null
+  if (typeof value !== 'string' || !/^\d{1,2}:[0-5]\d$/.test(value)) return undefined
+  const [min, sec] = value.split(':').map(Number)
+  const total = min * 60 + sec
+  if (total < PACE_MIN_SECONDS || total > PACE_MAX_SECONDS) return undefined
+  return total
+}
+
+/** Sekunden je Kilometer als "m:ss". */
+export function formatPace(seconds) {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds)) return ''
+  const total = Math.max(0, Math.round(seconds))
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+}
+
+/**
+ * Puls- und Tempovorgabe eines Laufs. Eine Liste, weil ein Tempolauf mehrere
+ * Tempi hat (Grundtempo, schnelle Abschnitte, Trab dazwischen).
+ *
+ * Leer ist immer `null`, nie ein leeres Array: aeltere Datensaetze kennen das
+ * Feld gar nicht, und `null` gegen `[]` waere bei jedem Import eine
+ * Scheinaenderung. Dieselbe Regel wie bei `feedback`.
+ */
+function validateTargets(raw, S, err) {
+  if (raw === undefined || raw === null) return null
+  if (!Array.isArray(raw)) {
+    err(`${S}.targets`, 'muss eine Liste von { label, hrFrom, hrTo, paceFrom, paceTo } oder null sein')
+    return null
+  }
+  if (raw.length === 0) return null
+  if (raw.length > TARGETS_MAX) {
+    err(`${S}.targets`, `hoechstens ${TARGETS_MAX} Vorgaben je Lauf, gefunden ${raw.length}`)
+    return null
+  }
+
+  const out = []
+  raw.forEach((entry, i) => {
+    const T = `${S}.targets[${i}]`
+    if (!isPlainObject(entry)) {
+      err(T, 'muss ein Objekt sein')
+      return
+    }
+
+    let label = typeof entry.label === 'string' ? entry.label.trim() : ''
+    if (label.length > TARGET_LABEL_MAX) {
+      err(`${T}.label`, `hoechstens ${TARGET_LABEL_MAX} Zeichen, sonst passt es nicht ins Lauf-Blatt`)
+      label = label.slice(0, TARGET_LABEL_MAX)
+    }
+
+    const hr = { hrFrom: null, hrTo: null }
+    for (const key of ['hrFrom', 'hrTo']) {
+      const v = entry[key]
+      if (v === null || v === undefined || v === '') continue
+      if (!Number.isInteger(v) || v < HR_MIN || v > HR_MAX) {
+        err(`${T}.${key}`, `muss eine ganze Zahl von ${HR_MIN} bis ${HR_MAX} oder null sein`)
+      } else hr[key] = v
+    }
+    if ((hr.hrFrom === null) !== (hr.hrTo === null)) {
+      err(T, 'ein Pulsbereich braucht beide Grenzen (hrFrom und hrTo) oder keine')
+    } else if (hr.hrFrom !== null && hr.hrFrom > hr.hrTo) {
+      err(T, `Pulsbereich laeuft rueckwaerts (${hr.hrFrom} bis ${hr.hrTo})`)
+    }
+
+    const pace = { paceFrom: null, paceTo: null }
+    for (const key of ['paceFrom', 'paceTo']) {
+      const secs = parsePace(entry[key])
+      if (secs === undefined) {
+        err(
+          `${T}.${key}`,
+          `muss ein Tempo "m:ss" je Kilometer zwischen ${formatPace(PACE_MIN_SECONDS)} und ${formatPace(PACE_MAX_SECONDS)} oder null sein`
+        )
+      } else pace[key] = secs
+    }
+    if ((pace.paceFrom === null) !== (pace.paceTo === null)) {
+      err(T, 'ein Tempobereich braucht beide Grenzen (paceFrom und paceTo) oder keine')
+    } else if (pace.paceFrom !== null && pace.paceFrom > pace.paceTo) {
+      err(T, `Tempobereich laeuft rueckwaerts — paceFrom ist die SCHNELLERE Grenze (${entry.paceFrom} bis ${entry.paceTo})`)
+    }
+
+    if (hr.hrFrom === null && pace.paceFrom === null) {
+      err(T, 'leere Vorgabe: mindestens ein Pulsbereich oder ein Tempobereich muss drinstehen')
+      return
+    }
+
+    out.push({
+      label,
+      hrFrom: hr.hrFrom,
+      hrTo: hr.hrTo,
+      paceFrom: pace.paceFrom === null ? null : formatPace(pace.paceFrom),
+      paceTo: pace.paceTo === null ? null : formatPace(pace.paceTo)
+    })
+  })
+
+  return out.length ? out : null
 }
 
 /**
@@ -366,6 +479,8 @@ function validateSession(raw, S, err, sessionIds, rawPlan) {
     }
   }
 
+  const targets = validateTargets(raw.targets, S, err)
+
   let source = status === 'planned' ? 'plan' : 'manual'
   if (raw.source !== undefined && raw.source !== null) {
     if (!RUN_SOURCES.includes(raw.source)) {
@@ -395,6 +510,7 @@ function validateSession(raw, S, err, sessionIds, rawPlan) {
     title: isNonEmptyString(raw.title) ? raw.title.trim() : '',
     description: typeof raw.description === 'string' ? raw.description : '',
     planned,
+    targets,
     status,
     actual,
     feedback,

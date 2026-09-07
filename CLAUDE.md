@@ -76,14 +76,21 @@ public/
 scripts/
   check-drift.mjs        Waechter: geteilte Dateien src/ <-> single/src/ identisch
   laufplan-pruefen.mjs   Prueft eine Laufplan-Datei vor dem Import (Exit 1 bei Fehler)
-  laufplan-merge-test.mjs  Vertragstest der Merge-Regeln (64 Faelle, ohne Browser)
-  runmatch-test.mjs      Vertragstest der Garmin-Zuordnung (43 Faelle, ohne Browser)
+  laufplan-merge-test.mjs  Vertragstest der Merge-Regeln (112 Faelle, ohne Browser)
+  runmatch-test.mjs      Vertragstest der Garmin-Zuordnung (48 Faelle, ohne Browser)
+  pace-modell-test.mjs   Vertragstest des Puls-zu-Tempo-Modells (erfundene Daten)
   intervals-abruf.mjs    Laeufe von intervals.icu holen (fuer Anpass-Sitzungen)
+  lauf-cloud.mjs         Laufplaene direkt aus Firestore holen / dorthin schreiben
+  laufplan-vorgaben.mjs  Traegt Puls- und Tempovorgaben in eine Plandatei ein
+  pace-modell.mjs        Bericht zum Puls-zu-Tempo-Modell einer Person
+  lib/pace-modell-kern.mjs  Schaetzung Tempo ~ Puls + Gelaende + Dauer (nur Node)
 docs/
   firebase-absicherung.md  Console-Anleitung (Konto, Registrierung sperren, Rules)
   laufplan-format.md       Dateiformat-Vertrag zwischen Claude und App
   laufplan-beispiel.json   Gueltige Beispieldatei (erfundene Daten)
   laufplaner-plan.md       Bauplan des Laufplaners (Pakete 1 und 2)
+  laufplan-cloud.md        Cloud-Zugang vom PC (Zugangsdatei, holen/schreiben)
+  laufplan-vorgaben.md     Wie Puls- und Tempovorgaben entstehen (Profil, Modell)
   garmin-anbindung.md      Einrichtung intervals.icu (Konto und Schluessel: Gabriel selbst)
 firestore.rules          Vorlage der Firestore-Regeln (Einspielen manuell via Console)
 .github/workflows/
@@ -180,6 +187,19 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
   den Test erweitern.
 - **Ein Satz je Lauf, ein Haken:** Kein Lauf-Tracking in der App. Der Haken darf
   ohne Ist-Werte gesetzt werden; in der Wochenbilanz zaehlt dann der Planwert.
+- **Puls- und Tempovorgabe steht in `targets` und gehoert dem PLAN:** Liste aus
+  bis zu vier Abschnitten je Lauf (`{ label, hrFrom, hrTo, paceFrom, paceTo }`,
+  Tempo als Text "m:ss"), leer ist `null`. Bringt eine Datei fuer einen noch
+  geplanten Lauf keine mit, ist die alte zurueckgenommen — genau umgekehrt zu
+  `feedback`, das dem Laeufer gehoert und nie verloren geht. Die Zahlen kommen
+  aus der eigenen Historie, nicht aus einer Tabelle: `docs/laufplan-vorgaben.md`.
+  Ausserhalb des gemessenen Pulsbereichs wird die Hochrechnung gedaempft, sonst
+  entstuende ein Schwellentempo, das niemand laufen kann.
+- **Der PC kann direkt an die Cloud** (`scripts/lauf-cloud.mjs`, Anleitung in
+  `docs/laufplan-cloud.md`): dasselbe Konto und dieselben Regeln wie die App,
+  derselbe Merge wie beim Import. Ohne `--jetzt` immer nur ein Trockenlauf, vor
+  jedem Schreiben eine Sicherung, beim Loeschen ein Tombstone wie in der App.
+  Zugangsdaten NUR in `privat\firebase-konto.json`, nie im Chat.
 - **Rueckmeldung steht in `feedback`, nicht in `actual`:** `{ rpe 1-5, note, at }`
   je Lauf, beides freiwillig, leer = `null`. `actual.note` gehoert der Maschine
   (Zeitnotiz der Uhr, Grund fuers Auslassen), `feedback.note` dem Laeufer. Kein
