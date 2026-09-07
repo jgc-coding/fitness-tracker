@@ -118,6 +118,13 @@
           Teilen
         </button>
       </div>
+      <button class="btn btn-ghost btn-block feedback-btn" @click="copyFeedback">
+        Nur Rueckmeldungen kopieren
+      </button>
+      <p class="export-hint">
+        Kurzer Text der letzten acht Wochen mit Anstrengung und Notizen — passt in
+        eine Chat-Nachricht, ohne den ganzen Jahresplan.
+      </p>
       <p v-if="exportMessage" class="plan-message" :class="{ error: exportIsError }">
         {{ exportMessage }}
       </p>
@@ -358,6 +365,37 @@ async function copyStatus() {
     console.error('[FitTrack] [WARN] Kopieren nicht moeglich:', e)
     exportIsError.value = true
     exportMessage.value = 'Kopieren hat nicht geklappt. Nutze stattdessen "Herunterladen".'
+  }
+  clearExportMessage()
+}
+
+/**
+ * Kurzfassung der Rueckmeldungen — der schnelle Weg, wenn nur die letzten
+ * Wochen besprochen werden sollen. Der grosse Export enthaelt dasselbe.
+ */
+async function copyFeedback() {
+  exportIsError.value = false
+  const { text, count } = running.exportFeedbackText(USERS.map(u => u.id), {
+    nameOf: (id) => authStore.getUserName(id)
+  })
+  try {
+    await navigator.clipboard.writeText(text)
+    exportMessage.value = count > 0
+      ? `${count} ${count === 1 ? 'Rueckmeldung' : 'Rueckmeldungen'} kopiert — jetzt bei Claude einfuegen.`
+      : 'Kopiert — in den letzten acht Wochen gibt es allerdings noch keine Rueckmeldung.'
+  } catch (e) {
+    // Zwischenablage gesperrt (kommt in manchen Browsern vor): dann wenigstens
+    // als Datei ausgeben, statt den Text verschwinden zu lassen.
+    console.error('[FitTrack] [WARN] Kopieren nicht moeglich:', e)
+    try {
+      downloadFile(text, `laufplan-rueckmeldungen-${getToday()}.txt`, 'text/plain;charset=utf-8')
+      exportIsError.value = false
+      exportMessage.value = 'Kopieren war gesperrt — der Text wurde stattdessen als Datei gespeichert.'
+    } catch (e2) {
+      console.error('[FitTrack] [ERROR] Rueckmeldungen weder kopierbar noch speicherbar:', e2)
+      exportIsError.value = true
+      exportMessage.value = `Das hat nicht geklappt. Technische Ursache: ${e?.name || 'unbekannt'}`
+    }
   }
   clearExportMessage()
 }
@@ -651,6 +689,16 @@ function verbindungEntfernen(userId) {
 
 .export-actions .btn {
   flex: 1;
+}
+
+.feedback-btn {
+  margin-top: var(--space-sm);
+}
+
+.export-hint {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
 .plan-message {

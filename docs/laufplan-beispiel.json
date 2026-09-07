@@ -47,7 +47,8 @@
           "description": "Ruhiges Tempo, Unterhaltung muss moeglich sein.",
           "planned": { "km": 8, "minutes": 50, "loops": null },
           "status": "done",
-          "actual": { "km": 8.2, "minutes": 52, "avgHr": 138, "note": "hat gut getan" },
+          "actual": { "km": 8.2, "minutes": 52, "avgHr": 138, "note": "" },
+          "feedback": { "rpe": 2, "note": "hat gut getan, Beine locker", "at": "2030-01-08T18:20:00.000Z" },
           "source": "manual"
         },
         {
@@ -215,6 +216,7 @@
           "planned": { "km": 6, "minutes": 40, "loops": null },
           "status": "done",
           "actual": { "km": 6.1, "minutes": 39, "avgHr": 145, "note": "" },
+          "feedback": { "rpe": 4, "note": "Wind von vorn, schwerer als sonst", "at": "2030-01-09T19:05:00.000Z" },
           "source": "manual"
         },
         {

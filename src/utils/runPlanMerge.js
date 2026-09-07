@@ -28,7 +28,7 @@ const PLAN_CONTENT_FIELDS = ['userId', 'name', 'goal', 'phases', 'weeks']
 // dafuer, ob ein Schreibvorgang ueberhaupt noetig ist.
 const SESSION_FIELDS = [
   'id', 'planId', 'userId', 'date', 'type', 'title', 'description',
-  'planned', 'status', 'actual', 'source', 'externalId', 'originalDate', 'unplanned'
+  'planned', 'status', 'actual', 'feedback', 'source', 'externalId', 'originalDate', 'unplanned'
 ]
 
 /** Vergleich ohne Ruecksicht auf die Reihenfolge der Objekt-Schluessel. */
@@ -162,6 +162,9 @@ export function computeImportDiff(localPlans, localSessions, file, today = getTo
         planned: fileSession.planned,
         status: fileSession.status,
         actual: fileSession.actual,
+        // Die Rueckmeldung des Laeufers geht nie verloren: bringt die Datei
+        // keine mit, bleibt die lokale stehen (wie bei externalId).
+        feedback: fileSession.feedback || local.feedback || null,
         source: fileSession.source,
         // Kennung von intervals.icu nie verlieren, wenn die Datei keine mitbringt.
         externalId: fileSession.externalId || local.externalId || null,

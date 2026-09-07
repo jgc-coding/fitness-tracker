@@ -3,6 +3,39 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.6.0] — 2026-09-07
+
+Rueckmeldung nach dem Lauf: Wie anstrengend war es, und was ist aufgefallen?
+Beides ist freiwillig und reist mit dem Status-Export zurueck zu Claude, damit
+der Plan daran angepasst werden kann. Kraft-Training bleibt unveraendert.
+
+### Features
+- **Anstrengung 1 bis 5** je Lauf (1 = sehr locker bis 5 = maximal), als fuenf
+  Knoepfe im Lauf-Blatt. Nochmal auf dieselbe Stufe tippen loescht sie wieder.
+- **Notiz in eigenen Worten** neben der Stufe, zum Beispiel „letzte 5 km schwer,
+  Magen war ok".
+- **Zwei Wege dorthin:** beim Abhaken direkt im Formular „Erledigt", und bei
+  bereits abgehakten Laeufen ueber den Knopf „Wie war es?" — der Normalfall,
+  seit die Uhr den Haken selbst setzt.
+- **„Nur Rueckmeldungen kopieren"** unter Laufen -> Plan: kurzer Text der
+  letzten acht Wochen mit Plan- und Ist-Werten, Stufe und Notiz. Passt in eine
+  Chat-Nachricht, im Gegensatz zum vollstaendigen Jahresplan.
+
+### Regeln (per Test abgesichert)
+- Die Rueckmeldung ist Teil des Dateiformats (`feedback: { rpe, note, at }`,
+  siehe `docs/laufplan-format.md`) und geht mit dem Status-Export an Claude.
+- **Ein Import loescht sie nie.** Bringt eine Plandatei fuer einen noch
+  geplanten Lauf keine eigene Rueckmeldung mit, bleibt die vorhandene stehen;
+  erledigte Laeufe fasst ein Import ohnehin nicht an.
+- **Der Garmin-Abgleich fasst sie nicht an** — er traegt Zahlen nach, das
+  Gefuehl kennt nur der Laeufer.
+- Sind Stufe und Notiz leer, wird nichts gespeichert. So bleibt die Rueckreise
+  Export -> Import ein „keine Aenderung" statt einer Scheinaenderung.
+- Die technische Notiz der Uhr (z.B. „Gesamtzeit 12:00 h") und der Grund fuer
+  einen ausgelassenen Lauf bleiben getrennt davon in `actual.note`.
+- Testumfang: `laufplan-merge-test.mjs` 86 Faelle (vorher 64),
+  `runmatch-test.mjs` 48 Faelle (vorher 43).
+
 ## [1.5.0] — 2026-09-07
 
 Laufplaner, Paket 2 (Bauplan: `docs/laufplaner-plan.md` Abschnitt 6): Laeufe von
