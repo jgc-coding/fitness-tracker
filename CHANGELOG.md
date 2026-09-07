@@ -3,6 +3,55 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.5.0] — 2026-09-07
+
+Laufplaner, Paket 2 (Bauplan: `docs/laufplaner-plan.md` Abschnitt 6): Laeufe von
+der Garmin-Uhr landen ueber intervals.icu automatisch im Plan. Der Laufplaner
+selbst und das Kraft-Training bleiben unveraendert.
+
+### Features
+- **Verbindung intervals.icu** unter Laufen -> Plan: Athleten-Id und Schluessel
+  eintragen, "Verbinden und testen". Der Zugang liegt nur auf dem Geraet, an dem
+  er eingetragen wurde (localStorage) — nicht in der Cloud, nicht im Backup.
+  Jeder traegt seinen eigenen Zugang ein; die Ist-Werte wandern anschliessend
+  ueber den normalen Sync auf das andere Handy.
+- **Automatischer Abgleich** beim Oeffnen des Reiters "Laufen", hoechstens alle
+  15 Minuten, dazu der Knopf "Jetzt abgleichen". Abgefragt wird ab dem letzten
+  Abgleich minus drei Tage (Garmin liefert manchmal verspaetet), hoechstens
+  30 Tage zurueck.
+- **Zuordnung ohne Zutun:** Ein Lauf von der Uhr sucht sich den geplanten Lauf
+  desselben Tages und traegt Strecke, Zeit und Puls ein. Bei mehreren
+  Kandidaten gewinnt der mit der kleinsten Abweichung zum Planwert.
+- **Ungeplante Laeufe gehen nicht verloren:** Was zu keinem Plan-Eintrag passt,
+  erscheint als eigener Lauf mit dem Namen der Aktivitaet.
+- **Abruf-Skript fuer den PC:** `node .\scripts\intervals-abruf.mjs --user user2
+  --von 2026-09-01 --bis 2026-09-30` schreibt die Laeufe nach `privat\` und
+  druckt eine Tabelle — Grundlage fuer Anpass-Sitzungen mit Claude.
+
+### Regeln (per Test abgesichert)
+- Die App **loescht nie etwas und entfernt nie einen Haken.** Ein von Hand
+  gesetzter Haken bekommt die Ist-Werte nur nachgetragen, eine von Hand
+  geschriebene Notiz bleibt stehen.
+- Dieselbe Aktivitaet kommt **nie zweimal** herein (Kennung `athleteId:id`).
+- Gehen und Wandern zaehlen nur fuer ein geplantes Geh-Training, Kraft-Eintraege
+  sind nie Ziel einer Zuordnung.
+- **Runden-Laeufe rechnen mit der Gesamtzeit**, alle anderen mit der Zeit in
+  Bewegung; der jeweils andere Wert steht in der Notiz. Beim Backyard 2026 sind
+  das 12:00 h gegen 9:24 h — der Unterschied ist zu gross, um ihn zu verlieren.
+- 43 Node-Testfaelle sichern diese Regeln ab: `node .\scripts\runmatch-test.mjs`.
+
+### Technik
+- Neu: `src/utils/intervalsApi.js` (Abruf und Umrechnung, laeuft in Browser und
+  Node) und `src/utils/runMatch.js` (reine Zuordnungsfunktion).
+- Feldnamen an einer echten Antwort geprueft (07.09.2026), nicht geraten:
+  `distance` in Metern, `moving_time`/`elapsed_time` in Sekunden,
+  `start_date_local` ohne Zeitzone, `id` als Text mit i-Praefix.
+- Der Zugriff aus dem Browser von `jgc-coding.github.io` wurde vor dem Bau
+  gegen die echte Adresse geprueft — kein eigener Server noetig.
+- Fehler zweistufig: ein Satz fuer den Menschen ("Schluessel oder Athleten-Id
+  stimmen nicht"), darunter die Diagnose-Zeile mit Fehler-ID, dieselbe ID im Log.
+- Anleitung fuer die Einrichtung: `docs/garmin-anbindung.md`.
+
 ## [1.4.0] — 2026-09-05
 
 Laufplaner, Paket 1 (Bauplan: `docs/laufplaner-plan.md`). Claude erstellt den

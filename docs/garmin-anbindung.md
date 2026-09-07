@@ -48,10 +48,8 @@ Jedes Handy traegt den Schluessel seines eigenen Besitzers ein. Die Ist-Werte
 wandern anschliessend ueber den normalen Cloud-Sync auf das andere Handy — der
 Schluessel selbst bleibt auf dem Geraet, an dem er eingetragen wurde.
 
-> Dieser Punkt kommt mit Paket 2 (Version 1.5.0) in die App. Die Schritte 1 bis 3
-> koennen unabhaengig davon schon jetzt erledigt werden — sie sind die
-> Voraussetzung dafuer, dass Paket 2 ueberhaupt gebaut und gegen echte Daten
-> geprueft werden kann.
+> Dieser Punkt ist ab Version 1.5.0 in der App. Ohne die Schritte 1 bis 3
+> bleibt die Karte leer — sie sind die Voraussetzung.
 
 ### 5. Nur fuer Claude-Sitzungen am PC (freiwillig)
 Damit Claude in einer Anpass-Sitzung die letzten Laeufe selbst ansehen kann,

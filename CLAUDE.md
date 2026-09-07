@@ -64,6 +64,8 @@ src/
     exportData.js        CSV-Export (mit UTF-8-BOM), JSON-Backup + Import (merge-only)
     runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
     runPlanMerge.js      Merge-Regeln fuer den Laufplan-Import (reine Funktion)
+    intervalsApi.js      Abruf und Umrechnung von intervals.icu (Browser + Node)
+    runMatch.js          Zuordnung Aktivitaet -> geplanter Lauf (reine Funktion)
   styles/
     variables.css        CSS Custom Properties (Farben, Abstande, Fonts)
     global.css           Reset, Basisstile, Utility-Klassen
@@ -75,12 +77,14 @@ scripts/
   check-drift.mjs        Waechter: geteilte Dateien src/ <-> single/src/ identisch
   laufplan-pruefen.mjs   Prueft eine Laufplan-Datei vor dem Import (Exit 1 bei Fehler)
   laufplan-merge-test.mjs  Vertragstest der Merge-Regeln (64 Faelle, ohne Browser)
+  runmatch-test.mjs      Vertragstest der Garmin-Zuordnung (43 Faelle, ohne Browser)
+  intervals-abruf.mjs    Laeufe von intervals.icu holen (fuer Anpass-Sitzungen)
 docs/
   firebase-absicherung.md  Console-Anleitung (Konto, Registrierung sperren, Rules)
   laufplan-format.md       Dateiformat-Vertrag zwischen Claude und App
   laufplan-beispiel.json   Gueltige Beispieldatei (erfundene Daten)
-  laufplaner-plan.md       Bauplan des Laufplaners (Paket 1 umgesetzt, Paket 2 offen)
-  garmin-anbindung.md      Einrichtung intervals.icu (macht Gabriel selbst)
+  laufplaner-plan.md       Bauplan des Laufplaners (Pakete 1 und 2)
+  garmin-anbindung.md      Einrichtung intervals.icu (Konto und Schluessel: Gabriel selbst)
 firestore.rules          Vorlage der Firestore-Regeln (Einspielen manuell via Console)
 .github/workflows/
   deploy.yml             CI/CD: Build + Deploy auf GitHub Pages (Branch: master)
@@ -171,6 +175,23 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
   den Test erweitern.
 - **Ein Satz je Lauf, ein Haken:** Kein Lauf-Tracking in der App. Der Haken darf
   ohne Ist-Werte gesetzt werden; in der Wochenbilanz zaehlt dann der Planwert.
+- **Garmin laeuft ueber intervals.icu, nicht direkt.** Die App holt fertige
+  Aktivitaeten aus dem Browser (`src/utils/intervalsApi.js`), ordnet sie dem
+  geplanten Lauf desselben Tages zu (`src/utils/runMatch.js`) und setzt Haken
+  samt Ist-Werten. Sie loescht nie etwas und entfernt nie einen Haken; ein von
+  Hand gesetzter Haken wird nur ergaenzt. Dieselbe Aktivitaet kommt nie zweimal
+  herein (`externalId` = `athleteId:id`). Die Regeln sind mit
+  `scripts/runmatch-test.mjs` abgesichert — bei Aenderungen dort zuerst den
+  Test erweitern.
+- **Schluessel fuer intervals.icu sind GERAETE-lokal** (`localStorage`, Muster
+  wie der Standard-Nutzer): nicht in `db.meta`, nicht in der Cloud, nicht im
+  Backup-Export. Die Athleten-Id steckt dagegen in jeder `externalId` und ist
+  damit Teil der gesyncten Daten — das ist gewollt, sie ist kein Geheimnis.
+- **Zeit bei Laeufen: Runden zaehlen anders.** Fuer Lauf-Typ `loops` gilt die
+  Gesamtzeit (`elapsed_time`), sonst die Zeit in Bewegung (`moving_time`); der
+  andere Wert landet als Notiz in `actual.note`. Beim Backyard 2026 sind das
+  12:00 h gegen 9:24 h. Das Dateiformat kennt nur EIN Minutenfeld — ein
+  zusaetzliches Feld in `actual` wuerde beim Status-Export still verloren gehen.
 - **Standard-Nutzer ist GERAETE-lokal** (`localStorage`, Schluessel mit DB-Namen,
   siehe `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History und beim
   Notification-Knopf. Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und
