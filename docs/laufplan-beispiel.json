@@ -32,11 +32,41 @@
         }
       ],
       "weeks": [
-        { "start": "2030-01-07", "phaseId": "p1", "targetKm": 30, "targetMinutes": 200, "note": "Einstieg" },
-        { "start": "2030-01-14", "phaseId": "p1", "targetKm": 33, "targetMinutes": 230, "note": "" },
-        { "start": "2030-01-21", "phaseId": "p1", "targetKm": 22, "targetMinutes": 210, "note": "Entlastungswoche" },
-        { "start": "2030-01-28", "phaseId": "p1", "targetKm": 36, "targetMinutes": 290, "note": "erste Runden-Simulation" },
-        { "start": "2030-02-04", "phaseId": "p2", "targetKm": 40, "targetMinutes": 300, "note": "erstes Back-to-back" }
+        {
+          "start": "2030-01-07",
+          "phaseId": "p1",
+          "targetKm": 30,
+          "targetMinutes": 200,
+          "note": "Einstieg"
+        },
+        {
+          "start": "2030-01-14",
+          "phaseId": "p1",
+          "targetKm": 33,
+          "targetMinutes": 230,
+          "note": ""
+        },
+        {
+          "start": "2030-01-21",
+          "phaseId": "p1",
+          "targetKm": 22,
+          "targetMinutes": 210,
+          "note": "Entlastungswoche"
+        },
+        {
+          "start": "2030-01-28",
+          "phaseId": "p1",
+          "targetKm": 36,
+          "targetMinutes": 290,
+          "note": "erste Runden-Simulation"
+        },
+        {
+          "start": "2030-02-04",
+          "phaseId": "p2",
+          "targetKm": 40,
+          "targetMinutes": 300,
+          "note": "erstes Back-to-back"
+        }
       ],
       "sessions": [
         {
@@ -45,11 +75,33 @@
           "type": "easy",
           "title": "Locker",
           "description": "Ruhiges Tempo, Unterhaltung muss moeglich sein.",
-          "planned": { "km": 8, "minutes": 50, "loops": null },
+          "planned": {
+            "km": 8,
+            "minutes": 50,
+            "loops": null
+          },
           "status": "done",
-          "actual": { "km": 8.2, "minutes": 52, "avgHr": 138, "note": "" },
-          "feedback": { "rpe": 2, "note": "hat gut getan, Beine locker", "at": "2030-01-08T18:20:00.000Z" },
-          "source": "manual"
+          "actual": {
+            "km": 8.2,
+            "minutes": 52,
+            "avgHr": 138,
+            "note": ""
+          },
+          "feedback": {
+            "rpe": 2,
+            "note": "hat gut getan, Beine locker",
+            "at": "2030-01-08T18:20:00.000Z"
+          },
+          "source": "manual",
+          "targets": [
+            {
+              "label": "Grundtempo",
+              "hrFrom": 126,
+              "hrTo": 138,
+              "paceFrom": "7:10",
+              "paceTo": "7:40"
+            }
+          ]
         },
         {
           "id": "beispiel-plan-a-2030-01-10-a",
@@ -57,10 +109,37 @@
           "type": "tempo",
           "title": "Steigerungen",
           "description": "Nach dem Einlaufen 6 x 20 Sekunden zuegig, dazwischen locker gehen.",
-          "planned": { "km": 7, "minutes": 45, "loops": null },
+          "planned": {
+            "km": 7,
+            "minutes": 45,
+            "loops": null
+          },
           "status": "skipped",
           "actual": null,
-          "source": "manual"
+          "source": "manual",
+          "targets": [
+            {
+              "label": "locker",
+              "hrFrom": 126,
+              "hrTo": 138,
+              "paceFrom": "7:10",
+              "paceTo": "7:40"
+            },
+            {
+              "label": "6 x 20 s zuegig",
+              "hrFrom": null,
+              "hrTo": null,
+              "paceFrom": "4:20",
+              "paceTo": "4:50"
+            },
+            {
+              "label": "Trab dazwischen",
+              "hrFrom": null,
+              "hrTo": null,
+              "paceFrom": "8:00",
+              "paceTo": "9:00"
+            }
+          ]
         },
         {
           "id": "beispiel-plan-a-2030-01-12-a",
@@ -68,10 +147,23 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "Alle 60 Minuten etwas essen ueben.",
-          "planned": { "km": 15, "minutes": 105, "loops": null },
+          "planned": {
+            "km": 15,
+            "minutes": 105,
+            "loops": null
+          },
           "status": "planned",
           "actual": null,
-          "originalDate": "2030-01-11"
+          "originalDate": "2030-01-11",
+          "targets": [
+            {
+              "label": "Grundtempo",
+              "hrFrom": 124,
+              "hrTo": 136,
+              "paceFrom": "7:20",
+              "paceTo": "7:55"
+            }
+          ]
         },
         {
           "id": "beispiel-plan-a-2030-01-15-a",
@@ -79,7 +171,11 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 9, "minutes": 55, "loops": null }
+          "planned": {
+            "km": 9,
+            "minutes": 55,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-01-16-a",
@@ -87,7 +183,11 @@
           "type": "strength",
           "title": "Kraft: Beine und Rumpf",
           "description": "Im Gym, kein Lauf.",
-          "planned": { "km": null, "minutes": null, "loops": null }
+          "planned": {
+            "km": null,
+            "minutes": null,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-01-18-a",
@@ -95,7 +195,27 @@
           "type": "hills",
           "title": "Huegel",
           "description": "8 x kurzer Anstieg, locker zurueck traben.",
-          "planned": { "km": 8, "minutes": 55, "loops": null }
+          "planned": {
+            "km": 8,
+            "minutes": 55,
+            "loops": null
+          },
+          "targets": [
+            {
+              "label": "Anlauf locker",
+              "hrFrom": 126,
+              "hrTo": 138,
+              "paceFrom": "7:10",
+              "paceTo": "7:40"
+            },
+            {
+              "label": "Huegel hoch",
+              "hrFrom": 150,
+              "hrTo": 165,
+              "paceFrom": null,
+              "paceTo": null
+            }
+          ]
         },
         {
           "id": "beispiel-plan-a-2030-01-19-a",
@@ -103,7 +223,11 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "",
-          "planned": { "km": 16, "minutes": 120, "loops": null }
+          "planned": {
+            "km": 16,
+            "minutes": 120,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-01-22-a",
@@ -111,7 +235,11 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 8, "minutes": 50, "loops": null }
+          "planned": {
+            "km": 8,
+            "minutes": 50,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-01-25-a",
@@ -119,7 +247,11 @@
           "type": "walk",
           "title": "Gehen",
           "description": "Zuegig gehen, Gehtempo fuer die Runden finden.",
-          "planned": { "km": null, "minutes": 60, "loops": null }
+          "planned": {
+            "km": null,
+            "minutes": 60,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-01-26-a",
@@ -127,7 +259,11 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "Kurz halten, es ist Entlastungswoche.",
-          "planned": { "km": 14, "minutes": 100, "loops": null }
+          "planned": {
+            "km": 14,
+            "minutes": 100,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-01-29-a",
@@ -135,7 +271,11 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 9, "minutes": 55, "loops": null }
+          "planned": {
+            "km": 9,
+            "minutes": 55,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-01-31-a",
@@ -143,7 +283,11 @@
           "type": "tempo",
           "title": "Kurze Huegel",
           "description": "10 x 30 Sekunden bergauf zuegig, gehend zurueck.",
-          "planned": { "km": 7, "minutes": 50, "loops": null }
+          "planned": {
+            "km": 7,
+            "minutes": 50,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-02-02-a",
@@ -151,7 +295,20 @@
           "type": "loops",
           "title": "Runden-Simulation",
           "description": "Start zur vollen Stunde, 6,7 km je Runde, jede Stunde essen.",
-          "planned": { "km": 20, "minutes": 185, "loops": 3 }
+          "planned": {
+            "km": 20,
+            "minutes": 185,
+            "loops": 3
+          },
+          "targets": [
+            {
+              "label": "Rundentempo",
+              "hrFrom": 122,
+              "hrTo": 134,
+              "paceFrom": "7:30",
+              "paceTo": "8:10"
+            }
+          ]
         },
         {
           "id": "beispiel-plan-a-2030-02-05-a",
@@ -159,7 +316,11 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 9, "minutes": 55, "loops": null }
+          "planned": {
+            "km": 9,
+            "minutes": 55,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-02-09-a",
@@ -167,7 +328,11 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "Ruhig starten, letzte Stunde gleichmaessig halten.",
-          "planned": { "km": 20, "minutes": 145, "loops": null }
+          "planned": {
+            "km": 20,
+            "minutes": 145,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-a-2030-02-10-a",
@@ -175,7 +340,11 @@
           "type": "backtoback",
           "title": "Zweiter langer Lauf",
           "description": "Auf muede Beine, bewusst langsam, Gehpausen erlaubt.",
-          "planned": { "km": 11, "minutes": 100, "loops": null }
+          "planned": {
+            "km": 11,
+            "minutes": 100,
+            "loops": null
+          }
         }
       ]
     },
@@ -201,10 +370,34 @@
         }
       ],
       "weeks": [
-        { "start": "2030-01-07", "phaseId": "b1", "targetKm": 22, "targetMinutes": 140, "note": "" },
-        { "start": "2030-01-14", "phaseId": "b1", "targetKm": 25, "targetMinutes": 165, "note": "" },
-        { "start": "2030-01-21", "phaseId": "b1", "targetKm": 20, "targetMinutes": 135, "note": "Entlastungswoche" },
-        { "start": "2030-01-28", "phaseId": "b1", "targetKm": 27, "targetMinutes": 180, "note": "" }
+        {
+          "start": "2030-01-07",
+          "phaseId": "b1",
+          "targetKm": 22,
+          "targetMinutes": 140,
+          "note": ""
+        },
+        {
+          "start": "2030-01-14",
+          "phaseId": "b1",
+          "targetKm": 25,
+          "targetMinutes": 165,
+          "note": ""
+        },
+        {
+          "start": "2030-01-21",
+          "phaseId": "b1",
+          "targetKm": 20,
+          "targetMinutes": 135,
+          "note": "Entlastungswoche"
+        },
+        {
+          "start": "2030-01-28",
+          "phaseId": "b1",
+          "targetKm": 27,
+          "targetMinutes": 180,
+          "note": ""
+        }
       ],
       "sessions": [
         {
@@ -213,10 +406,23 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 6, "minutes": 40, "loops": null },
+          "planned": {
+            "km": 6,
+            "minutes": 40,
+            "loops": null
+          },
           "status": "done",
-          "actual": { "km": 6.1, "minutes": 39, "avgHr": 145, "note": "" },
-          "feedback": { "rpe": 4, "note": "Wind von vorn, schwerer als sonst", "at": "2030-01-09T19:05:00.000Z" },
+          "actual": {
+            "km": 6.1,
+            "minutes": 39,
+            "avgHr": 145,
+            "note": ""
+          },
+          "feedback": {
+            "rpe": 4,
+            "note": "Wind von vorn, schwerer als sonst",
+            "at": "2030-01-09T19:05:00.000Z"
+          },
           "source": "manual"
         },
         {
@@ -225,7 +431,11 @@
           "type": "tempo",
           "title": "Tempo",
           "description": "3 x 8 Minuten zuegig, dazwischen 3 Minuten Trab.",
-          "planned": { "km": 6, "minutes": 40, "loops": null }
+          "planned": {
+            "km": 6,
+            "minutes": 40,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-13-a",
@@ -233,7 +443,11 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "",
-          "planned": { "km": 10, "minutes": 70, "loops": null }
+          "planned": {
+            "km": 10,
+            "minutes": 70,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-15-a",
@@ -241,7 +455,11 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 7, "minutes": 45, "loops": null }
+          "planned": {
+            "km": 7,
+            "minutes": 45,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-17-a",
@@ -249,7 +467,11 @@
           "type": "hills",
           "title": "Huegel",
           "description": "6 x kurzer Anstieg.",
-          "planned": { "km": 6, "minutes": 40, "loops": null }
+          "planned": {
+            "km": 6,
+            "minutes": 40,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-20-a",
@@ -257,7 +479,11 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "",
-          "planned": { "km": 12, "minutes": 80, "loops": null }
+          "planned": {
+            "km": 12,
+            "minutes": 80,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-22-a",
@@ -265,7 +491,11 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 6, "minutes": 40, "loops": null }
+          "planned": {
+            "km": 6,
+            "minutes": 40,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-24-a",
@@ -273,7 +503,11 @@
           "type": "tempo",
           "title": "Tempo",
           "description": "2 x 8 Minuten zuegig.",
-          "planned": { "km": 6, "minutes": 40, "loops": null }
+          "planned": {
+            "km": 6,
+            "minutes": 40,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-27-a",
@@ -281,7 +515,11 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "Kurz halten, es ist Entlastungswoche.",
-          "planned": { "km": 8, "minutes": 55, "loops": null }
+          "planned": {
+            "km": 8,
+            "minutes": 55,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-29-a",
@@ -289,7 +527,11 @@
           "type": "easy",
           "title": "Locker",
           "description": "",
-          "planned": { "km": 7, "minutes": 45, "loops": null }
+          "planned": {
+            "km": 7,
+            "minutes": 45,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-01-31-a",
@@ -297,7 +539,11 @@
           "type": "hills",
           "title": "Huegel",
           "description": "8 x kurzer Anstieg.",
-          "planned": { "km": 6, "minutes": 40, "loops": null }
+          "planned": {
+            "km": 6,
+            "minutes": 40,
+            "loops": null
+          }
         },
         {
           "id": "beispiel-plan-b-2030-02-03-a",
@@ -305,7 +551,11 @@
           "type": "long",
           "title": "Langer Lauf",
           "description": "",
-          "planned": { "km": 14, "minutes": 95, "loops": null }
+          "planned": {
+            "km": 14,
+            "minutes": 95,
+            "loops": null
+          }
         }
       ]
     }
