@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { db } from '../db/dexie.js'
+import { db, generateId } from '../db/dexie.js'
 import { getToday, mondayOf, addDaysToDate } from '../utils/dateHelpers.js'
+import { USERS } from '../utils/constants.js'
 import {
   FORMAT_NAME,
   FORMAT_VERSION,
@@ -9,6 +10,8 @@ import {
 } from '../utils/runPlanSchema.js'
 import { computeImportDiff } from '../utils/runPlanMerge.js'
 import { pushRecord, pushDelete, pushBulkDelete } from '../services/syncService.js'
+import { holeLaeufe, testeVerbindung } from '../utils/intervalsApi.js'
+import { ordneZu } from '../utils/runMatch.js'
 
 /**
  * Laufplaner: Plaene und einzelne Laeufe.
@@ -339,6 +342,149 @@ export const useRunningStore = defineStore('running', () => {
     }
   }
 
+  // --- Verbindung zu intervals.icu (Garmin) ----------------------------------
+
+  // Athleten-Id und Schluessel liegen NUR auf diesem Geraet (localStorage),
+  // genau wie der Standard-Nutzer in stores/auth.js. Bewusst NICHT in db.meta:
+  // diese Tabelle wird mit der Cloud abgeglichen, und der Schluessel des einen
+  // gehoert nicht auf das Handy des anderen. Auch nicht im Backup-Export.
+  const zugangKey = (userId) => `${db.name}:intervals:${userId}`
+  const abgleichKey = (userId) => `${db.name}:intervals:lastSync:${userId}`
+  const ABGLEICH_PAUSE_MS = 15 * 60 * 1000
+  const MAX_TAGE_ZURUECK = 30
+
+  /** userId -> true, sobald ein Zugang hinterlegt ist (fuer die Oberflaeche). */
+  const intervalsBereit = ref({})
+  /** userId -> Zeitpunkt des letzten Abgleichs als ISO-Text oder ''. */
+  const intervalsAbgleich = ref({})
+
+  function ladeZugang(userId) {
+    try {
+      const roh = localStorage.getItem(zugangKey(userId))
+      if (!roh) return null
+      const wert = JSON.parse(roh)
+      if (!wert?.athleteId || !wert?.apiKey) return null
+      return { athleteId: String(wert.athleteId), apiKey: String(wert.apiKey) }
+    } catch (e) {
+      // Privater Modus, gesperrter Speicher oder kaputter Eintrag: kein Zugang.
+      console.warn('[FitTrack] [WARN] intervals: Zugang nicht lesbar:', e?.message || e)
+      return null
+    }
+  }
+
+  function speichereZugang(userId, athleteId, apiKey) {
+    const wert = { athleteId: String(athleteId || '').trim(), apiKey: String(apiKey || '').trim() }
+    if (!wert.athleteId || !wert.apiKey) return false
+    try {
+      localStorage.setItem(zugangKey(userId), JSON.stringify(wert))
+      intervalsBereit.value = { ...intervalsBereit.value, [userId]: true }
+      return true
+    } catch (e) {
+      console.warn('[FitTrack] [WARN] intervals: Zugang nicht speicherbar:', e?.message || e)
+      return false
+    }
+  }
+
+  function entferneZugang(userId) {
+    try {
+      localStorage.removeItem(zugangKey(userId))
+      localStorage.removeItem(abgleichKey(userId))
+    } catch (e) {
+      console.warn('[FitTrack] [WARN] intervals: Zugang nicht loeschbar:', e?.message || e)
+    }
+    intervalsBereit.value = { ...intervalsBereit.value, [userId]: false }
+    intervalsAbgleich.value = { ...intervalsAbgleich.value, [userId]: '' }
+  }
+
+  /** Beim Start einmal nachsehen, wer auf diesem Geraet verbunden ist. */
+  function ladeIntervalsStatus() {
+    const bereit = {}
+    const stand = {}
+    for (const user of USERS) {
+      bereit[user.id] = ladeZugang(user.id) !== null
+      try {
+        stand[user.id] = localStorage.getItem(abgleichKey(user.id)) || ''
+      } catch {
+        stand[user.id] = ''
+      }
+    }
+    intervalsBereit.value = bereit
+    intervalsAbgleich.value = stand
+  }
+
+  function merkeAbgleich(userId) {
+    const jetzt = new Date().toISOString()
+    try {
+      localStorage.setItem(abgleichKey(userId), jetzt)
+    } catch {
+      // Nicht schlimm: dann wird beim naechsten Oeffnen einmal mehr abgefragt.
+    }
+    intervalsAbgleich.value = { ...intervalsAbgleich.value, [userId]: jetzt }
+  }
+
+  /**
+   * Zeitfenster fuer den Abruf: ab dem letzten Abgleich minus drei Tage
+   * (Garmin schiebt Aktivitaeten manchmal verspaetet weiter), hoechstens aber
+   * 30 Tage zurueck.
+   */
+  function abrufFenster(userId, heute) {
+    const grenze = addDaysToDate(heute, -MAX_TAGE_ZURUECK)
+    const letzter = intervalsAbgleich.value[userId] || ''
+    if (!letzter || letzter.length < 10) return { von: grenze, bis: heute }
+    const von = addDaysToDate(letzter.slice(0, 10), -3)
+    return { von: von < grenze ? grenze : von, bis: heute }
+  }
+
+  /** Verbindung pruefen, ohne etwas zu speichern oder zu schreiben. */
+  async function testeIntervals(athleteId, apiKey) {
+    return testeVerbindung({ athleteId, apiKey }, getToday())
+  }
+
+  /**
+   * Laeufe von der Uhr holen und eintragen.
+   * Loescht nie etwas und entfernt nie einen Haken (siehe runMatch.js).
+   * @returns {Promise<{ok: boolean, grund?: string, text?: string, summary?: object}>}
+   */
+  async function syncFromIntervals(userId, optionen = {}) {
+    const zugang = ladeZugang(userId)
+    if (!zugang) return { ok: false, grund: 'kein-zugang' }
+
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return { ok: false, grund: 'offline' }
+    }
+
+    if (!optionen.force) {
+      const letzter = intervalsAbgleich.value[userId] || ''
+      if (letzter && Date.now() - new Date(letzter).getTime() < ABGLEICH_PAUSE_MS) {
+        return { ok: false, grund: 'zu-frueh' }
+      }
+    }
+
+    const heute = getToday()
+    const { von, bis } = abrufFenster(userId, heute)
+    const { laeufe } = await holeLaeufe(zugang, von, bis)
+
+    const { patches, neue, summary, text } = ordneZu(laeufe, sessions.value, {
+      userId,
+      planId: activePlan(userId)?.id || null,
+      neueId: generateId
+    })
+
+    for (const patch of patches) {
+      await patchSession(patch.id, patch.updates)
+    }
+
+    if (neue.length > 0) {
+      const sauber = neue.map(s => toPlain(s))
+      await db.runSessions.bulkPut(sauber)
+      sessions.value = [...sessions.value, ...sauber]
+      for (const s of sauber) pushRecord('runSessions', s.id, s)
+    }
+
+    merkeAbgleich(userId)
+    return { ok: true, text, summary }
+  }
+
   // --- Loeschen --------------------------------------------------------------
 
   /** Plan samt seiner Laeufe entfernen (mit Tombstones fuer den Cloud-Sync). */
@@ -382,6 +528,13 @@ export const useRunningStore = defineStore('running', () => {
     applyImport,
     importPlanFile,
     exportStatus,
-    deletePlan
+    deletePlan,
+    intervalsBereit,
+    intervalsAbgleich,
+    ladeIntervalsStatus,
+    speichereZugang,
+    entferneZugang,
+    testeIntervals,
+    syncFromIntervals
   }
 })

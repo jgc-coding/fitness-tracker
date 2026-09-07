@@ -1,7 +1,7 @@
 # Laufplaner: Jahresplan aus Claude in der App, Laeufe automatisch von Garmin
 
 Stand: 2026-09-05 · Entscheidungen von Gabriel aus der Sitzung 2026-09-05 ·
-Status: freigegeben, Umsetzung noch nicht begonnen.
+Status: Paket 1 in v1.4.0 umgesetzt, Paket 2 in v1.5.0 (07.09.2026).
 Aufwand: Paket 1 = L, Paket 2 = M, Paket 3 = S (optional).
 
 Dieses Dokument ist der komplette Bauplan fuer eine spaetere Sitzung. Es setzt

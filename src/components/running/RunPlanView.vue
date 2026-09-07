@@ -122,11 +122,84 @@
         {{ exportMessage }}
       </p>
     </div>
+
+    <!-- Verbindung zu Garmin ueber intervals.icu -->
+    <div class="card plan-card">
+      <h2 class="card-title">Verbindung intervals.icu</h2>
+      <p class="card-desc">
+        Holt fertige Laeufe von der Uhr und setzt den Haken samt Ist-Werten
+        selbst. Athleten-Id und Schluessel bleiben auf diesem Geraet - jeder
+        traegt hier seinen eigenen Zugang ein.
+      </p>
+
+      <div v-for="karte in intervalsKarten" :key="karte.userId" class="intervals-user">
+        <div class="intervals-head">
+          <span class="plan-user" :style="{ color: karte.color }">{{ karte.name }}</span>
+          <span class="intervals-state" :class="{ on: karte.verbunden }">
+            {{ karte.verbunden ? 'verbunden' : 'nicht verbunden' }}
+          </span>
+        </div>
+
+        <template v-if="karte.verbunden">
+          <p class="intervals-sync">{{ karte.abgleichText }}</p>
+          <div class="form-actions">
+            <button
+              class="btn btn-secondary"
+              :disabled="busyUser === karte.userId"
+              @click="jetztAbgleichen(karte.userId)"
+            >
+              {{ busyUser === karte.userId ? 'Laeuft...' : 'Jetzt abgleichen' }}
+            </button>
+            <button class="btn btn-ghost" @click="verbindungEntfernen(karte.userId)">
+              Entfernen
+            </button>
+          </div>
+        </template>
+
+        <template v-else>
+          <input
+            v-model="eingabe[karte.userId].athleteId"
+            class="intervals-input"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Athleten-Id, z.B. i123456"
+          />
+          <input
+            v-model="eingabe[karte.userId].apiKey"
+            class="intervals-input"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="API-Schluessel"
+          />
+          <button
+            class="btn btn-primary btn-block"
+            :disabled="busyUser === karte.userId || !eingabeVollstaendig(karte.userId)"
+            @click="verbinden(karte.userId)"
+          >
+            {{ busyUser === karte.userId ? 'Wird geprueft...' : 'Verbinden und testen' }}
+          </button>
+        </template>
+
+        <p
+          v-if="intervalsMeldung[karte.userId]"
+          class="plan-message"
+          :class="{ error: intervalsIstFehler[karte.userId] }"
+        >
+          {{ intervalsMeldung[karte.userId] }}
+        </p>
+        <p v-if="intervalsDetail[karte.userId]" class="intervals-detail">
+          {{ intervalsDetail[karte.userId] }}
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRunningStore } from '../../stores/running.js'
 import { useAuthStore } from '../../stores/auth.js'
 import { USERS } from '../../utils/constants.js'
@@ -321,6 +394,87 @@ async function shareStatus() {
 function clearExportMessage() {
   setTimeout(() => { exportMessage.value = '' }, 6000)
 }
+// --- Verbindung zu intervals.icu ---------------------------------------------
+
+const eingabe = ref(Object.fromEntries(USERS.map(u => [u.id, { athleteId: '', apiKey: '' }])))
+const busyUser = ref(null)
+const intervalsMeldung = ref({})
+const intervalsIstFehler = ref({})
+const intervalsDetail = ref({})
+
+const intervalsKarten = computed(() =>
+  USERS.map(u => ({
+    userId: u.id,
+    name: u.name,
+    color: u.color,
+    verbunden: running.intervalsBereit[u.id] === true,
+    abgleichText: abgleichText(running.intervalsAbgleich[u.id])
+  }))
+)
+
+function abgleichText(iso) {
+  if (!iso) return 'Noch nicht abgeglichen.'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return 'Noch nicht abgeglichen.'
+  const zeit = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  return `Zuletzt abgeglichen: ${formatDate(iso.slice(0, 10))}, ${zeit} Uhr`
+}
+
+function eingabeVollstaendig(userId) {
+  const wert = eingabe.value[userId]
+  return Boolean(wert?.athleteId?.trim() && wert?.apiKey?.trim())
+}
+
+function melde(userId, text, istFehler = false, detail = '') {
+  intervalsMeldung.value = { ...intervalsMeldung.value, [userId]: text }
+  intervalsIstFehler.value = { ...intervalsIstFehler.value, [userId]: istFehler }
+  intervalsDetail.value = { ...intervalsDetail.value, [userId]: detail }
+}
+
+async function verbinden(userId) {
+  const athleteId = eingabe.value[userId].athleteId.trim()
+  const apiKey = eingabe.value[userId].apiKey.trim()
+  if (!athleteId || !apiKey) return
+
+  busyUser.value = userId
+  melde(userId, '')
+  try {
+    await running.testeIntervals(athleteId, apiKey)
+    if (!running.speichereZugang(userId, athleteId, apiKey)) {
+      melde(userId, 'Der Zugang liess sich auf diesem Geraet nicht speichern.', true)
+      return
+    }
+    eingabe.value[userId] = { athleteId: '', apiKey: '' }
+    melde(userId, 'Verbindung steht. Laeufe werden ab jetzt automatisch geholt.')
+    await jetztAbgleichen(userId)
+  } catch (e) {
+    console.warn(`[FitTrack] [WARN] intervals: Test fehlgeschlagen - ID ${e?.id || '?'}`)
+    melde(userId, e?.satz || 'Der Test ist fehlgeschlagen.', true, e?.zeile || '')
+  } finally {
+    busyUser.value = null
+  }
+}
+
+async function jetztAbgleichen(userId) {
+  busyUser.value = userId
+  try {
+    const ergebnis = await running.syncFromIntervals(userId, { force: true })
+    if (ergebnis.ok) melde(userId, ergebnis.text)
+    else if (ergebnis.grund === 'offline') melde(userId, 'Offline - der naechste Abgleich holt alles nach.', true)
+    else if (ergebnis.grund === 'kein-zugang') melde(userId, 'Fuer diesen Nutzer ist kein Zugang hinterlegt.', true)
+  } catch (e) {
+    console.warn(`[FitTrack] [WARN] intervals: Abgleich fehlgeschlagen - ID ${e?.id || '?'}`)
+    melde(userId, e?.satz || 'Der Abgleich ist fehlgeschlagen.', true, e?.zeile || '')
+  } finally {
+    busyUser.value = null
+  }
+}
+
+function verbindungEntfernen(userId) {
+  running.entferneZugang(userId)
+  melde(userId, 'Zugang entfernt. Bereits eingetragene Ist-Werte bleiben erhalten.')
+}
+
 </script>
 
 <style scoped>
@@ -507,5 +661,57 @@ function clearExportMessage() {
 
 .plan-message.error {
   color: var(--color-danger);
+}
+
+.intervals-user {
+  padding-top: var(--space-sm);
+  border-top: 1px solid rgba(155, 157, 165, 0.2);
+  margin-top: var(--space-sm);
+}
+
+.intervals-user:first-of-type {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.intervals-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.intervals-state {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+}
+
+.intervals-state.on {
+  color: var(--color-success, #2f7d4f);
+}
+
+.intervals-sync {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin-bottom: var(--space-xs);
+}
+
+.intervals-input {
+  width: 100%;
+  padding: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  border: 1px solid rgba(155, 157, 165, 0.35);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background: var(--color-white);
+  color: var(--color-text);
+}
+
+.intervals-detail {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-text-light);
+  margin-top: 2px;
 }
 </style>

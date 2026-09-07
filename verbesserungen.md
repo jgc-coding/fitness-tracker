@@ -31,11 +31,6 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
       Wochenansicht, der einen Lauf mit `unplanned: true` anlegt — mit Paket 2
       kommt derselbe Lauf ohnehin automatisch von der Uhr, deshalb erst danach
       entscheiden, ob es den Knopf noch braucht.
-- **I6b** (Erweiterung) Laufplaner Paket 2: Laeufe automatisch von Garmin ueber
-      intervals.icu — offen, Bauplan in `docs/laufplaner-plan.md` Abschnitt 6.
-      Voraussetzung ist Gabriels Einrichtung (Konto bei intervals.icu, Garmin
-      verbinden, API-Schluessel) — ohne echte Antwort der Schnittstelle nicht
-      sinnvoll baubar. · Aufwand: M
 - **I1** (Erweiterung) Trainingsmodus: Bildschirm-Wachhalten + Pausen-Timer — zurueckgestellt 2026-08-16 (Gabriel) · Aufwand: M
       Nutzen: Handy bleibt zwischen Saetzen an, ein Blick + ein Tap; Timer meldet den
       naechsten Satz. · Bedarf: kein wakeLock/Timer im Repo · Abgrenzung: kein Audio-Coaching.
@@ -50,6 +45,10 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
 (noch nichts — V8/I1/I5 sind zurueckgestellt, nicht abgelehnt)
 
 ## Erledigt
+- **I6b** (Erweiterung) Laufplaner Paket 2 — erledigt in v1.5.0: Verbindung zu
+  intervals.icu unter Laufen -> Plan, automatischer Abgleich beim Oeffnen und
+  auf Knopfdruck, Zuordnung mit Ist-Werten, ungeplante Laeufe bleiben erhalten,
+  Schluessel nur auf dem Geraet, 43 Vertragsfaelle gruen.
 - **I6a** (Erweiterung) Laufplaner Paket 1 — erledigt in v1.4.0: Reiter "Laufen"
   (Woche/Jahr/Plan), Import und Status-Export des Claude-Jahresplans, Merge nach
   Kennung, Dexie v3, Sync und Backup erweitert, 64 Vertragsfaelle gruen.
