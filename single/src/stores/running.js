@@ -1,11 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { db, generateId } from '../db/dexie.js'
-import { getToday, mondayOf, addDaysToDate } from '../utils/dateHelpers.js'
+import {
+  getToday,
+  mondayOf,
+  addDaysToDate,
+  formatDate,
+  formatDayShort,
+  weekdayShort
+} from '../utils/dateHelpers.js'
+import { formatRunValueFull } from '../utils/formatters.js'
 import { USERS } from '../utils/constants.js'
 import {
   FORMAT_NAME,
   FORMAT_VERSION,
+  getEffortLabel,
+  getRunType,
   validateRunPlanFile
 } from '../utils/runPlanSchema.js'
 import { computeImportDiff } from '../utils/runPlanMerge.js'
@@ -184,9 +194,11 @@ export const useRunningStore = defineStore('running', () => {
 
   /**
    * Haken setzen. `actual` darf leer sein — dann ist der Lauf einfach erledigt
-   * und zaehlt in der Wochenbilanz mit seinem Planwert.
+   * und zaehlt in der Wochenbilanz mit seinem Planwert. `feedback` ist die
+   * freiwillige Rueckmeldung; wird nichts uebergeben, bleibt eine vorhandene
+   * unangetastet.
    */
-  async function markDone(id, actual = null) {
+  async function markDone(id, actual = null, feedback = undefined) {
     let value = null
     if (actual) {
       const km = numberOrNull(actual.km)
@@ -197,7 +209,45 @@ export const useRunningStore = defineStore('running', () => {
         value = { km, minutes, avgHr, note }
       }
     }
-    return patchSession(id, { status: 'done', actual: value, source: 'manual' })
+    const updates = { status: 'done', actual: value, source: 'manual' }
+    if (feedback !== undefined) {
+      updates.feedback = normalizeFeedback(feedback, getSession(id)?.feedback || null)
+    }
+    return patchSession(id, updates)
+  }
+
+  /**
+   * Rueckmeldung nachtragen oder aendern — der Normalfall, seit die Uhr den
+   * Haken selbst setzt. Aendert sich nichts, wird auch nichts geschrieben.
+   */
+  async function saveFeedback(id, feedback) {
+    const current = getSession(id)
+    if (!current) {
+      console.warn('[FitTrack] [WARN] Lauf nicht gefunden:', id)
+      return null
+    }
+    const before = current.feedback || null
+    const next = normalizeFeedback(feedback, before)
+    const gleich = (before?.rpe ?? null) === (next?.rpe ?? null) && (before?.note || '') === (next?.note || '')
+    if (gleich) return current
+    return patchSession(id, { feedback: next })
+  }
+
+  /**
+   * Rueckmeldung in die Form bringen, die auch das Dateiformat kennt
+   * (docs/laufplan-format.md): Anstrengung 1-5 oder null, Notiz als Text.
+   * Ist beides leer, gibt es keine Rueckmeldung — ein leeres Objekt waere beim
+   * naechsten Import eine Scheinaenderung. Der Zeitstempel bleibt stehen,
+   * solange sich inhaltlich nichts aendert.
+   */
+  function normalizeFeedback(input, previous = null) {
+    if (!input) return null
+    const zahl = Number(input.rpe)
+    const rpe = Number.isInteger(zahl) && zahl >= 1 && zahl <= 5 ? zahl : null
+    const note = typeof input.note === 'string' ? input.note.trim() : ''
+    if (rpe === null && note === '') return null
+    const unveraendert = previous && (previous.rpe ?? null) === rpe && (previous.note || '') === note
+    return { rpe, note, at: unveraendert && previous.at ? previous.at : new Date().toISOString() }
   }
 
   async function markSkipped(id, note = '') {
@@ -335,11 +385,84 @@ export const useRunningStore = defineStore('running', () => {
       },
       status: s.status,
       actual: s.actual || null,
+      feedback: s.feedback || null,
       source: s.source || 'plan',
       originalDate: s.originalDate || null,
       externalId: s.externalId || null,
       unplanned: s.unplanned === true
     }
+  }
+
+  /**
+   * Kurzfassung der Rueckmeldungen als Text — zum Einfuegen in den Chat.
+   * Der grosse JSON-Export enthaelt dasselbe, aber mitsamt Jahresplan; fuer die
+   * Frage "wie liefen die letzten Wochen" reichen diese paar Zeilen.
+   *
+   * @param {string[]} userIds  wessen Laeufe
+   * @param {{tage?: number, heute?: string, nameOf?: function}} optionen
+   */
+  function exportFeedbackText(userIds, optionen = {}) {
+    const tage = Number(optionen.tage) > 0 ? Number(optionen.tage) : 56
+    const heute = optionen.heute || getToday()
+    const von = addDaysToDate(heute, -tage)
+    const nameOf = typeof optionen.nameOf === 'function' ? optionen.nameOf : (id => id)
+    const wanted = Array.isArray(userIds) ? userIds : [userIds]
+
+    const zeilen = [
+      'FitTrack Lauf-Rueckmeldungen',
+      `Stand ${formatDate(heute)} · Zeitraum ${formatDate(von)} bis ${formatDate(heute)}`
+    ]
+    let gesamt = 0
+
+    for (const userId of wanted) {
+      const meine = sessions.value
+        .filter(s => s.userId === userId && s.date >= von && s.date <= heute)
+        .sort((a, b) => (a.date === b.date ? a.id.localeCompare(b.id) : a.date.localeCompare(b.date)))
+      if (meine.length === 0) continue
+
+      const mitFeedback = meine.filter(s => s.feedback && (s.feedback.rpe || s.feedback.note))
+      const ohneFeedback = meine.filter(s => s.status === 'done' && !(s.feedback && (s.feedback.rpe || s.feedback.note)))
+      const plan = activePlan(userId)
+
+      zeilen.push('')
+      zeilen.push(`${nameOf(userId)}${plan ? ` — ${plan.name}` : ''}`)
+      if (mitFeedback.length === 0) {
+        zeilen.push('  Keine Rueckmeldung in diesem Zeitraum.')
+      }
+
+      for (const s of mitFeedback) {
+        gesamt += 1
+        // Die Lauf-Art nur dazuschreiben, wenn sie nicht ohnehin im Titel steht
+        // ("Langer Lauf (Langer Lauf)" liest sich albern).
+        const typ = getRunType(s.type).label
+        const kopf = typ.toLowerCase() === (s.title || '').trim().toLowerCase() ? s.title : `${s.title} (${typ})`
+        zeilen.push(`  ${weekdayShort(s.date)} ${formatDayShort(s.date)} · ${kopf}${s.status === 'skipped' ? ' · ausgelassen' : ''}`)
+
+        const werte = []
+        const geplant = formatRunValueFull(s.planned)
+        const gelaufen = formatRunValueFull(s.actual)
+        if (geplant) werte.push(`Plan ${geplant}`)
+        if (gelaufen) werte.push(`Ist ${gelaufen}`)
+        if (s.actual?.avgHr) werte.push(`Puls ${s.actual.avgHr}`)
+        if (werte.length > 0) zeilen.push(`    ${werte.join(' · ')}`)
+
+        if (s.feedback.rpe) {
+          const label = getEffortLabel(s.feedback.rpe)
+          zeilen.push(`    Anstrengung ${s.feedback.rpe}/5${label ? ` (${label})` : ''}`)
+        }
+        if (s.feedback.note) zeilen.push(`    Notiz: ${s.feedback.note}`)
+      }
+
+      if (ohneFeedback.length > 0) {
+        zeilen.push(`  Erledigt ohne Rueckmeldung: ${ohneFeedback.length}`)
+      }
+    }
+
+    if (gesamt === 0) {
+      zeilen.push('')
+      zeilen.push('Es gibt in diesem Zeitraum noch keine Rueckmeldungen.')
+    }
+    return { text: zeilen.join('\n'), count: gesamt }
   }
 
   // --- Verbindung zu intervals.icu (Garmin) ----------------------------------
@@ -523,11 +646,13 @@ export const useRunningStore = defineStore('running', () => {
     swapSessions,
     markDone,
     markSkipped,
+    saveFeedback,
     resetToPlanned,
     prepareImport,
     applyImport,
     importPlanFile,
     exportStatus,
+    exportFeedbackText,
     deletePlan,
     intervalsBereit,
     intervalsAbgleich,

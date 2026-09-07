@@ -180,6 +180,11 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
   den Test erweitern.
 - **Ein Satz je Lauf, ein Haken:** Kein Lauf-Tracking in der App. Der Haken darf
   ohne Ist-Werte gesetzt werden; in der Wochenbilanz zaehlt dann der Planwert.
+- **Rueckmeldung steht in `feedback`, nicht in `actual`:** `{ rpe 1-5, note, at }`
+  je Lauf, beides freiwillig, leer = `null`. `actual.note` gehoert der Maschine
+  (Zeitnotiz der Uhr, Grund fuers Auslassen), `feedback.note` dem Laeufer. Kein
+  Import und kein Garmin-Abgleich loescht sie (Faelle F1-F7 in
+  `laufplan-merge-test.mjs`).
 - **Garmin laeuft ueber intervals.icu, nicht direkt.** Die App holt fertige
   Aktivitaeten aus dem Browser (`src/utils/intervalsApi.js`), ordnet sie dem
   geplanten Lauf desselben Tages zu (`src/utils/runMatch.js`) und setzt Haken

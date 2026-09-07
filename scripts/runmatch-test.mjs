@@ -244,6 +244,28 @@ function abgleich(laeufe, sessions, optionen = {}) {
   check('Normalisierung: Unsinn ergibt null', normalisiere(null, ATHLET) === null)
 }
 
+// --- Rueckmeldung des Laeufers bleibt unberuehrt ------------------------------
+// Der Abgleich traegt Zahlen nach, er urteilt nicht ueber das Gefuehl. Eine
+// vorhandene Rueckmeldung darf er darum weder ueberschreiben noch loeschen.
+{
+  const vorhanden = session({
+    status: 'done',
+    source: 'manual',
+    feedback: { rpe: 5, note: 'war zaeh', at: '2030-01-20T07:00:00.000Z' }
+  })
+  const { patches, neue } = abgleich([lauf()], [vorhanden])
+  equal('Feedback: ein Lauf wird ergaenzt', patches.length, 1)
+  check(
+    'Feedback: der Abgleich fasst die Rueckmeldung nicht an',
+    !Object.prototype.hasOwnProperty.call(patches[0].updates, 'feedback'),
+    JSON.stringify(patches[0].updates)
+  )
+  const { patches: p2, neue: n2 } = abgleich([lauf({ externalId: `${ATHLET}:i2`, rohId: 'i2' })], [])
+  equal('Feedback: ungeplanter Lauf startet ohne Rueckmeldung', n2[0].feedback ?? null, null)
+  equal('Feedback: kein zweiter Patch', p2.length, 0)
+  equal('Feedback: kein zusaetzlicher Datensatz beim Treffer', neue.length, 0)
+}
+
 // --- Ergebnis ----------------------------------------------------------------
 if (failures.length > 0) {
   console.error(`\n[runmatch-test] ${failures.length} von ${failures.length + passed} Faellen rot:\n`)

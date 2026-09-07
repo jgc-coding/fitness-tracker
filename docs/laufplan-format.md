@@ -134,6 +134,7 @@ ist meistens ein echter Rechenfehler im Plan.
   "planned": { "km": 22, "minutes": 150, "loops": null },
   "status": "planned",
   "actual": null,
+  "feedback": null,
   "source": "plan",
   "originalDate": null,
   "externalId": null,
@@ -151,6 +152,7 @@ ist meistens ein echter Rechenfehler im Plan.
 | `planned` | siehe unten | Vorgabe als `{ km, minutes, loops }`, jeweils Zahl oder `null`. |
 | `status` | nein | `planned` (Standard), `done` oder `skipped`. |
 | `actual` | nein | `{ km, minutes, avgHr, note }` oder `null`. |
+| `feedback` | nein | Rueckmeldung des Laeufers: `{ rpe, note, at }` oder `null`, siehe unten. |
 | `source` | nein | Woher der Status kommt: `plan`, `manual` oder `intervals`. |
 | `originalDate` | nein | Urspruenglich geplanter Tag, wenn in der App verschoben. |
 | `externalId` | nein | Kennung der Garmin-Aktivitaet (`athletId:aktivitaetsId`). |
@@ -178,6 +180,29 @@ Vorgabe erlaubt sind. Es duerfen auch mehrere Werte zugleich stehen, zum Beispie
 | `race` | 🏁 | Wettkampf oder Testwettkampf (Planwert optional). |
 | `other` | ⚪ | Alles andere (Planwert optional). |
 
+### Rueckmeldung nach dem Lauf (`feedback`)
+
+```json
+"feedback": { "rpe": 4, "note": "letzte 5 km schwer, Magen war ok", "at": "2030-01-22T18:22:11.000Z" }
+```
+
+| Feld | Pflicht | Bedeutung |
+|------|---------|-----------|
+| `rpe` | nein | Anstrengung als ganze Zahl von 1 bis 5, oder `null`. |
+| `note` | nein | Ein Satz in eigenen Worten. |
+| `at` | nein | Wann die Rueckmeldung entstand (Zeitstempel, rein informativ). |
+
+Die Skala ist subjektiv gemeint, sie wird nicht aus dem Puls berechnet:
+1 = sehr locker, 2 = locker, 3 = mittel, 4 = hart, 5 = maximal.
+
+Beide Teile sind freiwillig. Sind Stufe und Notiz leer, steht `null` statt eines
+leeren Objekts — sonst waere jede Rueckreise der Datei eine Scheinaenderung.
+
+`actual.note` und `feedback.note` sind zwei verschiedene Dinge. In `actual.note`
+steht Technisches, das die App selbst eintraegt (zum Beispiel „Gesamtzeit
+12:00 h" beim Abgleich mit der Uhr) sowie der Grund fuer einen ausgelassenen
+Lauf. In `feedback.note` steht, was der Laeufer selbst geschrieben hat.
+
 ---
 
 ## 5. Was beim Import mit vorhandenen Daten passiert
@@ -198,6 +223,9 @@ Test in `scripts/laufplan-merge-test.mjs`:
 6. **Lokaler Lauf fehlt in der Datei:** Er wird nur geloescht, wenn er noch
    geplant ist **und** in der Zukunft liegt. Vergangenes bleibt stehen.
 7. **Laeufe von der Uhr** (`unplanned: true`) werden nie durch einen Import geloescht.
+8. **Rueckmeldungen gehen nie verloren.** Bringt die Datei fuer einen noch
+   geplanten Lauf keine `feedback` mit, bleibt die vorhandene stehen. Bei
+   erledigten Laeufen aendert ein Import ohnehin nichts (Regel 4).
 
 Vor dem Schreiben zeigt die App eine Vorschau („3 Laeufe neu · 41 aktualisiert ·
 2 entfernt · 12 erledigte bleiben"). Findet die Pruefung auch nur einen Fehler,

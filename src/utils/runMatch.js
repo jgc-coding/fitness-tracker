@@ -139,6 +139,8 @@ export function ordneZu(laeufe, sessions, optionen) {
         planned: { km: null, minutes: null, loops: null },
         status: 'done',
         actual: { km: lauf.km, minutes: minuten, avgHr: lauf.avgHr, note: notiz },
+        // Wie es sich angefuehlt hat, weiss nur der Laeufer selbst.
+        feedback: null,
         source: 'intervals',
         externalId: lauf.externalId,
         originalDate: null,

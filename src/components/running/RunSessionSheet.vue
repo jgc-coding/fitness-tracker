@@ -24,31 +24,63 @@
         <template v-if="session.actual?.avgHr"> · Puls {{ session.actual.avgHr }}</template>
       </p>
       <p v-if="session.actual?.note" class="sheet-note">„{{ session.actual.note }}"</p>
+      <p v-if="session.feedback?.rpe" class="sheet-effort">
+        Anstrengung {{ session.feedback.rpe }}/5 · {{ effortLabelOf(session.feedback.rpe) }}
+      </p>
+      <p v-if="session.feedback?.note" class="sheet-note">„{{ session.feedback.note }}"</p>
 
-      <!-- Erledigt: Werte eintragen -->
-      <div v-if="mode === 'done'" class="sheet-form">
-        <p class="form-title">Werte eintragen (alles freiwillig)</p>
-        <div class="form-grid">
-          <label class="form-field">
-            <span>Kilometer</span>
-            <input v-model="doneKm" type="number" inputmode="decimal" step="0.1" min="0" class="form-input" />
-          </label>
-          <label class="form-field">
-            <span>Minuten</span>
-            <input v-model="doneMinutes" type="number" inputmode="numeric" step="1" min="0" class="form-input" />
-          </label>
-          <label class="form-field">
-            <span>Puls</span>
-            <input v-model="doneHr" type="number" inputmode="numeric" step="1" min="0" class="form-input" />
-          </label>
+      <!-- Erledigt (mit Rueckmeldung) und spaeter nachgereichte Rueckmeldung -->
+      <div v-if="mode === 'done' || mode === 'feedback'" class="sheet-form">
+        <template v-if="mode === 'done'">
+          <p class="form-title">Werte eintragen (alles freiwillig)</p>
+          <div class="form-grid">
+            <label class="form-field">
+              <span>Kilometer</span>
+              <input v-model="doneKm" type="number" inputmode="decimal" step="0.1" min="0" class="form-input" />
+            </label>
+            <label class="form-field">
+              <span>Minuten</span>
+              <input v-model="doneMinutes" type="number" inputmode="numeric" step="1" min="0" class="form-input" />
+            </label>
+            <label class="form-field">
+              <span>Puls</span>
+              <input v-model="doneHr" type="number" inputmode="numeric" step="1" min="0" class="form-input" />
+            </label>
+          </div>
+        </template>
+
+        <p class="form-title">Wie anstrengend war es?</p>
+        <div class="effort-row">
+          <button
+            v-for="stufe in EFFORT_SCALE"
+            :key="stufe.value"
+            type="button"
+            class="effort-btn"
+            :class="{ active: feedbackRpe === stufe.value }"
+            :aria-pressed="feedbackRpe === stufe.value"
+            :aria-label="stufe.value + ' von 5, ' + stufe.label"
+            @click="toggleEffort(stufe.value)"
+          >
+            {{ stufe.value }}
+          </button>
         </div>
+        <p class="effort-hint">{{ effortHint }}</p>
+
         <label class="form-field">
           <span>Notiz</span>
-          <input v-model="doneNote" type="text" class="form-input" placeholder="z.B. schwere Beine" />
+          <input
+            v-model="feedbackNote"
+            type="text"
+            class="form-input"
+            placeholder="z.B. schwere Beine, Magen war ok"
+          />
         </label>
+
         <div class="form-actions">
           <button class="btn btn-secondary" @click="mode = null">Abbrechen</button>
-          <button class="btn btn-primary" @click="saveDone">Speichern</button>
+          <button class="btn btn-primary" @click="mode === 'done' ? saveDone() : saveFeedbackOnly()">
+            Speichern
+          </button>
         </div>
       </div>
 
@@ -115,6 +147,9 @@
         <button v-if="session.status !== 'done'" class="btn btn-primary btn-block" @click="openDone">
           Erledigt
         </button>
+        <button v-else class="btn btn-primary btn-block" @click="openFeedback">
+          {{ session.feedback ? 'Rueckmeldung aendern' : 'Wie war es?' }}
+        </button>
         <button v-if="session.status !== 'skipped'" class="btn btn-secondary btn-block" @click="mode = 'skip'">
           Ausgelassen
         </button>
@@ -138,7 +173,7 @@
 import { ref, computed, watch } from 'vue'
 import Modal from '../shared/Modal.vue'
 import { useRunningStore } from '../../stores/running.js'
-import { getRunType } from '../../utils/runPlanSchema.js'
+import { getRunType, getEffortLabel, RUN_EFFORT_SCALE } from '../../utils/runPlanSchema.js'
 import { formatRunValue, formatRunValueFull } from '../../utils/formatters.js'
 import { weekdayShort, formatDayShort, addDaysToDate } from '../../utils/dateHelpers.js'
 
@@ -157,17 +192,28 @@ const mode = ref(null)
 const doneKm = ref('')
 const doneMinutes = ref('')
 const doneHr = ref('')
-const doneNote = ref('')
+const feedbackRpe = ref(null)
+const feedbackNote = ref('')
 const skipNote = ref('')
 const moveDate = ref('')
 const errorMessage = ref('')
 
 const STATUS_LABELS = { planned: 'geplant', done: 'erledigt', skipped: 'ausgelassen' }
+const EFFORT_SCALE = RUN_EFFORT_SCALE
 
 const typeInfo = computed(() => getRunType(props.session?.type))
 const statusLabel = computed(() => STATUS_LABELS[props.session?.status] || '')
 const plannedFull = computed(() => formatRunValueFull(props.session?.planned))
 const actualFull = computed(() => formatRunValueFull(props.session?.actual))
+
+const effortLabelOf = (rpe) => getEffortLabel(rpe)
+
+// Solange nichts gewaehlt ist, erklaert die Zeile die Skala; danach die Stufe.
+const effortHint = computed(() => {
+  const stufe = EFFORT_SCALE.find(e => e.value === feedbackRpe.value)
+  if (stufe) return `${stufe.label} — ${stufe.hint}`
+  return '1 = sehr locker, 5 = maximal. Freiwillig.'
+})
 
 // Sieben Tage vor und nach dem aktuellen Tag.
 const moveDays = computed(() => {
@@ -200,8 +246,24 @@ function openDone() {
   doneKm.value = s.actual?.km ?? s.planned?.km ?? ''
   doneMinutes.value = s.actual?.minutes ?? s.planned?.minutes ?? ''
   doneHr.value = s.actual?.avgHr ?? ''
-  doneNote.value = s.actual?.note ?? ''
+  ladeFeedback()
   mode.value = 'done'
+}
+
+/** Rueckmeldung nachtragen — der Normalfall, wenn die Uhr den Haken gesetzt hat. */
+function openFeedback() {
+  ladeFeedback()
+  mode.value = 'feedback'
+}
+
+function ladeFeedback() {
+  feedbackRpe.value = props.session?.feedback?.rpe ?? null
+  feedbackNote.value = props.session?.feedback?.note ?? ''
+}
+
+/** Nochmal auf dieselbe Stufe tippen loescht sie — die Angabe ist freiwillig. */
+function toggleEffort(value) {
+  feedbackRpe.value = feedbackRpe.value === value ? null : value
 }
 
 function openMove() {
@@ -222,13 +284,23 @@ async function run(action) {
 
 function saveDone() {
   run(() =>
-    running.markDone(props.session.id, {
-      km: doneKm.value,
-      minutes: doneMinutes.value,
-      avgHr: doneHr.value,
-      note: doneNote.value
-    })
+    running.markDone(
+      props.session.id,
+      {
+        km: doneKm.value,
+        minutes: doneMinutes.value,
+        avgHr: doneHr.value,
+        // Die technische Notiz (z.B. "Gesamtzeit 12:00 h" von der Uhr) bleibt
+        // erhalten; der eigene Text gehoert zur Rueckmeldung.
+        note: props.session.actual?.note ?? ''
+      },
+      { rpe: feedbackRpe.value, note: feedbackNote.value }
+    )
   )
+}
+
+function saveFeedbackOnly() {
+  run(() => running.saveFeedback(props.session.id, { rpe: feedbackRpe.value, note: feedbackNote.value }))
 }
 
 function saveSkipped() {
@@ -369,6 +441,43 @@ function doReset() {
 .form-input:focus {
   outline: none;
   border-color: var(--color-accent);
+}
+
+/* Anstrengung 1-5: fuenf Flaechen, die sich mit dem Daumen sicher treffen lassen. */
+.effort-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-xs);
+}
+
+.effort-btn {
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.effort-btn.active {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
+.effort-hint {
+  min-height: 1.2em;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.sheet-effort {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-light);
 }
 
 .form-actions {

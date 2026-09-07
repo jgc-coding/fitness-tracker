@@ -6,7 +6,7 @@
  * Funktionen sind (src/utils/runPlanSchema.js, src/utils/runPlanMerge.js).
  * Jede Regel aus docs/laufplaner-plan.md Abschnitt 5.4 hat mindestens einen
  * Fall; dazu die drei Sonderfaelle (leere Datei, fremder Nutzer, zweimal
- * derselbe Import).
+ * derselbe Import) und die Rueckmeldung nach dem Lauf (Faelle F1-F7).
  *
  * Aufruf (Windows PowerShell):  node .\scripts\laufplan-merge-test.mjs
  * Exit 0 = alles gruen, Exit 1 = mindestens ein Fall ist rot.
@@ -234,6 +234,128 @@ function diff(plans, sessions, file) {
   equal('R7 ungeplanter Lauf bleibt', sessionIdsToDelete, [])
 }
 
+// --- Rueckmeldung (Anstrengung 1-5 und Notiz) --------------------------------
+// Das Feedback gehoert dem Laeufer, nicht dem Plan. Ein Import darf es nie
+// stillschweigend loeschen, und ein Export-Reimport darf keine Scheinaenderung
+// erzeugen (sonst zaehlt planVersion bei jedem Durchlauf hoch).
+{
+  // F1: Die Datei bringt eine Rueckmeldung mit -> sie wird uebernommen.
+  const file = validFile([filePlan({ sessions: [
+    fileSession({ id: 's-neu', date: '2030-01-28', feedback: { rpe: 4, note: '  Beine schwer  ', at: '2030-01-28T18:00:00.000Z' } })
+  ] })])
+  const { sessionsToPut } = diff([localPlan()], [], file)
+  equal('F1 Anstrengung uebernommen', sessionsToPut[0].feedback.rpe, 4)
+  equal('F1 Notiz getrimmt', sessionsToPut[0].feedback.note, 'Beine schwer')
+  equal('F1 Zeitpunkt bleibt', sessionsToPut[0].feedback.at, '2030-01-28T18:00:00.000Z')
+}
+
+{
+  // F2: Datei ohne Rueckmeldung darf eine lokale nicht loeschen — auch nicht
+  // bei einem Lauf, der wieder auf "geplant" steht.
+  const file = validFile([filePlan({ sessions: [fileSession({ id: 's1', title: 'Locker neu' })] })])
+  const local = localSession({ id: 's1', feedback: { rpe: 5, note: 'war zu viel', at: '2030-01-19T20:00:00.000Z' } })
+  const { sessionsToPut } = diff([localPlan()], [local], file)
+  equal('F2 Titel kommt aus der Datei', sessionsToPut[0].title, 'Locker neu')
+  equal('F2 Rueckmeldung bleibt erhalten', sessionsToPut[0].feedback.rpe, 5)
+  equal('F2 Notiz bleibt erhalten', sessionsToPut[0].feedback.note, 'war zu viel')
+}
+
+{
+  // F3: Bringt die Datei eine eigene Rueckmeldung mit, gewinnt sie beim noch
+  // geplanten Lauf — sonst koennte Claude eine Korrektur nie zurueckspielen.
+  const file = validFile([filePlan({ sessions: [
+    fileSession({ id: 's1', feedback: { rpe: 2, note: 'aus der Datei', at: null } })
+  ] })])
+  const local = localSession({ id: 's1', feedback: { rpe: 5, note: 'lokal', at: null } })
+  const { sessionsToPut } = diff([localPlan()], [local], file)
+  equal('F3 Datei gewinnt beim geplanten Lauf', sessionsToPut[0]?.feedback?.note, 'aus der Datei')
+}
+
+{
+  // F4: Erledigter Lauf mit Rueckmeldung — der Import fasst ihn gar nicht an.
+  const file = validFile([filePlan({ sessions: [
+    fileSession({ id: 's-done', feedback: { rpe: 1, note: 'Claude irrt', at: null } })
+  ] })])
+  const local = localSession({
+    id: 's-done',
+    status: 'done',
+    actual: { km: 8, minutes: 52, avgHr: 138, note: '' },
+    feedback: { rpe: 4, note: 'hart, aber ok', at: '2030-01-22T19:00:00.000Z' }
+  })
+  const { sessionsToPut, summary } = diff([localPlan()], [local], file)
+  equal('F4 erledigter Lauf wird nicht geschrieben', sessionsToPut.length, 0)
+  equal('F4 als geschuetzt gezaehlt', summary.sessionsProtected, 1)
+}
+
+{
+  // F5: Rueckreise. Der Stand geht als Datei zu Claude und kommt unveraendert
+  // zurueck -> "keine Aenderung".
+  const local = localSession({
+    id: 's1',
+    status: 'done',
+    feedback: { rpe: 3, note: 'solide', at: '2030-01-19T18:30:00.000Z' }
+  })
+  const exported = validFile([filePlan({ sessions: [
+    fileSession({
+      id: 's1',
+      status: 'done',
+      actual: null,
+      feedback: { rpe: 3, note: 'solide', at: '2030-01-19T18:30:00.000Z' }
+    })
+  ] })])
+  const zweite = diff([localPlan()], [local], exported)
+  check('F5 Rueckreise meldet keine Aenderung', zweite.summary.unchanged === true,
+    JSON.stringify(zweite.sessionsToPut))
+}
+
+{
+  // F6: Leere Rueckmeldung ist keine Rueckmeldung.
+  const leer = validateRunPlanFile({
+    format: 'fittrack-laufplan',
+    formatVersion: 1,
+    plans: [filePlan({ sessions: [fileSession({ feedback: { rpe: null, note: '   ', at: null } })] })]
+  })
+  check('F6 leeres Feedback ist gueltig', leer.ok === true, (leer.errors || []).join(' | '))
+  equal('F6 leeres Feedback wird zu null', leer.value.plans[0].sessions[0].feedback, null)
+
+  const ohne = validateRunPlanFile({
+    format: 'fittrack-laufplan',
+    formatVersion: 1,
+    plans: [filePlan({ sessions: [fileSession()] })]
+  })
+  equal('F6 fehlendes Feld ist null', ohne.value.plans[0].sessions[0].feedback, null)
+}
+
+{
+  // F7: Nur ganze Zahlen von 1 bis 5.
+  const kaputt = [
+    ['Null als Stufe', 0],
+    ['Sechs als Stufe', 6],
+    ['Kommazahl', 3.5],
+    ['Text statt Zahl', '4']
+  ]
+  for (const [name, wert] of kaputt) {
+    const result = validateRunPlanFile({
+      format: 'fittrack-laufplan',
+      formatVersion: 1,
+      plans: [filePlan({ sessions: [fileSession({ feedback: { rpe: wert } })] })]
+    })
+    check(`F7 ${name} wird abgelehnt`, result.ok === false)
+    check(
+      `F7 ${name} nennt den Pfad`,
+      (result.errors || []).some(e => e.startsWith('plans[0].sessions[0].feedback.rpe:')),
+      (result.errors || []).join(' | ')
+    )
+  }
+
+  const falscherTyp = validateRunPlanFile({
+    format: 'fittrack-laufplan',
+    formatVersion: 1,
+    plans: [filePlan({ sessions: [fileSession({ feedback: 'hart' })] })]
+  })
+  check('F7 Text statt Objekt wird abgelehnt', falscherTyp.ok === false)
+}
+
 // --- Sonderfall: leere Datei wird abgelehnt, nichts wird geloescht ----------
 {
   const result = validateRunPlanFile({ format: 'fittrack-laufplan', formatVersion: 1, plans: [] })
@@ -321,4 +443,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log(`[laufplan-merge-test] OK — ${passed} Faelle gruen (Pruefung + Merge-Regeln 1-7).`)
+console.log(`[laufplan-merge-test] OK — ${passed} Faelle gruen (Pruefung + Merge-Regeln 1-7 + Rueckmeldung).`)

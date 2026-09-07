@@ -43,6 +43,23 @@ export const RUN_GOAL_TYPES = [
 export const RUN_STATUS = ['planned', 'done', 'skipped']
 export const RUN_SOURCES = ['plan', 'manual', 'intervals']
 
+/**
+ * Rueckmeldung nach dem Lauf: wie anstrengend war es? Fuenf Stufen, weil mehr
+ * mit einem Daumen auf dem Handy nicht mehr sicher zu treffen ist. Die Skala
+ * ist subjektiv gemeint ("wie hat es sich angefuehlt"), nicht per Puls berechnet.
+ */
+export const RUN_EFFORT_SCALE = [
+  { value: 1, label: 'sehr locker', hint: 'koennte ewig so weiterlaufen' },
+  { value: 2, label: 'locker', hint: 'angenehm, Reden faellt leicht' },
+  { value: 3, label: 'mittel', hint: 'spuerbar, aber gut kontrolliert' },
+  { value: 4, label: 'hart', hint: 'Reden faellt schwer, hat gekostet' },
+  { value: 5, label: 'maximal', hint: 'alles gegeben, mehr ging nicht' }
+]
+
+export function getEffortLabel(rpe) {
+  return RUN_EFFORT_SCALE.find(e => e.value === rpe)?.label || ''
+}
+
 const TYPE_IDS = RUN_SESSION_TYPES.map(t => t.id)
 const GOAL_IDS = RUN_GOAL_TYPES.map(g => g.id)
 
@@ -328,6 +345,27 @@ function validateSession(raw, S, err, sessionIds, rawPlan) {
     }
   }
 
+  // Rueckmeldung nach dem Lauf. Beide Teile sind freiwillig: Anstrengung 1-5
+  // und/oder ein Satz. Ist beides leer, steht hier null — ein leeres Objekt
+  // waere beim naechsten Vergleich eine Scheinaenderung.
+  let feedback = null
+  if (raw.feedback !== undefined && raw.feedback !== null) {
+    if (!isPlainObject(raw.feedback)) {
+      err(`${S}.feedback`, 'muss ein Objekt { rpe, note, at } oder null sein')
+    } else {
+      let rpe = null
+      const rawRpe = raw.feedback.rpe
+      if (rawRpe === null || rawRpe === undefined || rawRpe === '') rpe = null
+      else if (!Number.isInteger(rawRpe) || rawRpe < 1 || rawRpe > 5) {
+        err(`${S}.feedback.rpe`, 'muss eine ganze Zahl von 1 bis 5 oder null sein')
+      } else rpe = rawRpe
+
+      const note = typeof raw.feedback.note === 'string' ? raw.feedback.note.trim() : ''
+      const at = typeof raw.feedback.at === 'string' && raw.feedback.at !== '' ? raw.feedback.at : null
+      if (rpe !== null || note !== '') feedback = { rpe, note, at }
+    }
+  }
+
   let source = status === 'planned' ? 'plan' : 'manual'
   if (raw.source !== undefined && raw.source !== null) {
     if (!RUN_SOURCES.includes(raw.source)) {
@@ -359,6 +397,7 @@ function validateSession(raw, S, err, sessionIds, rawPlan) {
     planned,
     status,
     actual,
+    feedback,
     source,
     externalId: typeof raw.externalId === 'string' && raw.externalId !== '' ? raw.externalId : null,
     originalDate,
