@@ -92,7 +92,7 @@ naechsten Start.
 | Meldung | Ursache |
 |---------|---------|
 | `Zugangsdatei fehlt` | `privat\firebase-konto.json` gibt es noch nicht, siehe Schritt 1. |
-| `Anmeldung fehlgeschlagen (INVALID_LOGIN_CREDENTIALS)` | E-Mail oder Passwort stimmt nicht. |
+| `Anmeldung fehlgeschlagen (INVALID_LOGIN_CREDENTIALS)` | E-Mail **oder** Passwort stimmt nicht. Welches von beiden, sagt Firebase absichtlich nicht — sonst koennte man von aussen durchprobieren, welche Adressen ein Konto haben. Die richtige Adresse steht in der App unter Settings → Cloud (solange ein Handy angemeldet ist) und in der Firebase Console unter Authentication → Users. |
 | `Anmeldung fehlgeschlagen (TOO_MANY_ATTEMPTS_TRY_LATER)` | Zu viele Fehlversuche; ein paar Minuten warten. |
 | `Lesen von "runSessions" fehlgeschlagen (403)` | Die Firestore-Regeln lassen dieses Konto nicht durch — Platzhalter-E-Mail in `firestore.rules` noch nicht ersetzt? |
 | `Der Stand aus der Cloud besteht die eigene Pruefung nicht` | In der Cloud steht ein Datensatz, den das Format nicht kennt. Datei ansehen, Ursache klaeren, nichts blind ueberschreiben. |

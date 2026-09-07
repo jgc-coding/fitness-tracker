@@ -44,11 +44,24 @@ const FIREBASE_JS = path.join(WURZEL, 'src', 'db', 'firebase.js')
 const COLLECTIONS = { plaene: 'runPlans', laeufe: 'runSessions', merker: 'deletions' }
 const BATCH_MAX = 200
 
+/**
+ * Bricht ab, indem es wirft — NICHT ueber process.exit().
+ *
+ * Grund: Nach einem fetch haelt Node offene Verbindungen bereit. Ein hartes
+ * process.exit() mittendrin bringt unter Windows die Laufzeit selbst zum
+ * Meckern ("Assertion failed ... async.c"), und der Rueckgabewert wird 127
+ * statt 1 — eine Fehlermeldung, die eine andere Fehlermeldung verdeckt.
+ * Wir werfen stattdessen und setzen den Rueckgabewert ganz am Ende.
+ */
+class Abbruch extends Error {
+  constructor(satz, hinweis = '') {
+    super(satz)
+    this.hinweis = hinweis
+  }
+}
+
 function abbruch(satz, hinweis = '') {
-  console.error(`\n[lauf-cloud] ${satz}`)
-  if (hinweis) console.error(`             ${hinweis}`)
-  console.error('')
-  process.exit(1)
+  throw new Abbruch(satz, hinweis)
 }
 
 function arg(name, standard = null) {
@@ -112,9 +125,13 @@ async function anmelden() {
   const daten = await antwort.json()
   if (!antwort.ok) {
     const grund = daten?.error?.message || antwort.status
+    // Firebase nennt bewusst nicht, WELCHES von beiden falsch ist: sonst
+    // koennte man von aussen durchprobieren, welche Adressen ein Konto haben.
     abbruch(
       `Anmeldung fehlgeschlagen (${grund}).`,
-      'INVALID_LOGIN_CREDENTIALS heisst: E-Mail oder Passwort in privat\\firebase-konto.json stimmt nicht.'
+      grund === 'INVALID_LOGIN_CREDENTIALS'
+        ? 'E-Mail ODER Passwort stimmt nicht; welches von beiden, sagt Firebase absichtlich nicht. Die richtige Adresse steht in der App unter Settings -> Cloud (bei angemeldetem Konto) und in der Firebase Console unter Authentication.'
+        : 'Siehe docs/laufplan-cloud.md, Abschnitt 4.'
     )
   }
   return { token: daten.idToken, projectId, email: daten.email }
@@ -323,10 +340,9 @@ async function schreiben(sitzung, quelle) {
 
   const geprueft = validateRunPlanFile(roh)
   if (!geprueft.ok) {
-    console.error(`\n[lauf-cloud] ${geprueft.errors.length} Fehler in ${path.basename(quelle)} — es wird NICHTS geschrieben:\n`)
+    console.error(`\n[lauf-cloud] ${geprueft.errors.length} Fehler in ${path.basename(quelle)} — es wird NICHTS geschrieben:`)
     for (const fehler of geprueft.errors) console.error('  - ' + fehler)
-    console.error('')
-    process.exit(1)
+    abbruch('Bitte die Datei berichtigen und den Befehl wiederholen.')
   }
 
   const [plaene, laeufe] = await Promise.all([
@@ -388,16 +404,28 @@ async function schreiben(sitzung, quelle) {
 
 // --- Ablauf ------------------------------------------------------------------
 
-const befehl = process.argv[2]
-if (!['holen', 'schreiben'].includes(befehl)) {
-  abbruch(
-    `Unbekannter Befehl ${JSON.stringify(befehl ?? '')}.`,
-    'Erlaubt: "holen" oder "schreiben <datei>". Beispiele stehen im Kopf dieser Datei.'
-  )
+try {
+  const befehl = process.argv[2]
+  if (!['holen', 'schreiben'].includes(befehl)) {
+    abbruch(
+      `Unbekannter Befehl ${JSON.stringify(befehl ?? '')}.`,
+      'Erlaubt: "holen" oder "schreiben <datei>". Beispiele stehen im Kopf dieser Datei.'
+    )
+  }
+
+  const sitzung = await anmelden()
+  console.log(`\n[lauf-cloud] Angemeldet als ${sitzung.email} · Projekt ${sitzung.projectId}`)
+
+  if (befehl === 'holen') await holen(sitzung)
+  else await schreiben(sitzung, process.argv[3])
+} catch (err) {
+  if (err instanceof Abbruch) {
+    console.error(`\n[lauf-cloud] ${err.message}`)
+    if (err.hinweis) console.error(`             ${err.hinweis}`)
+  } else {
+    console.error(`\n[lauf-cloud] Unerwarteter Fehler: ${err?.message || err}`)
+    if (err?.stack) console.error(err.stack.split('\n').slice(1, 4).join('\n'))
+  }
+  console.error('')
+  process.exitCode = 1
 }
-
-const sitzung = await anmelden()
-console.log(`\n[lauf-cloud] Angemeldet als ${sitzung.email} · Projekt ${sitzung.projectId}`)
-
-if (befehl === 'holen') await holen(sitzung)
-else await schreiben(sitzung, process.argv[3])
