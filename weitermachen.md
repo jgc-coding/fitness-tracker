@@ -1,73 +1,99 @@
-# Weitermachen — Stand 2026-09-05
+# Weitermachen — Stand 2026-09-07
 
 ## Stand
-- **v1.4.0 Laufplaner (Paket 1) ist LIVE** (GitHub Pages, Tag `v1.4.0`, master).
-  Neuer Reiter "Laufen" mit Woche / Jahr / Plan: Jahresplan von Claude als
-  JSON importieren (Pruefung, Vorschau, Merge nach Kennung), Laeufe abhaken,
-  verschieben, tauschen, auslassen, Stand als Datei zurueck an Claude.
-  Dexie v3 (additiv), Sync und Backup erweitert. Beide Varianten gebaut und
-  deployt; Live-Bundle enthaelt den Laufplaner-Chunk und die Version 1.4.0.
-- Geprueft im laufenden Browser gegen IndexedDB: Import mit Vorschau, Abbruch
-  bei fehlerhafter Datei (Fehler mit Pfad), alle Sheet-Aktionen, Reload-
-  Festigkeit, Sprung Jahr -> Woche, Status-Export und Re-Import
-  ("keine Aenderung"), Backup-Runde mit den neuen Tabellen, sechs Tabs auf
-  360 px, Upgrade einer bestehenden v2-Datenbank ohne Datenverlust, dazu
-  Kernfunktionen 1/2/5 (Plan, Satz loggen, Resume). 64 Node-Testfaelle sichern
-  die Merge-Regeln ab. Nicht pruefbar ohne zweites Geraet: Sync Handy A -> B.
-- **Branch-Lage bereinigt:** lokaler `master` und `origin/master` waren
-  auseinandergelaufen (v1.3.0-save-state auf origin, Hub-Umzug lokal). Beide
-  sind zusammengefuehrt; `meine-todos.md` bleibt geloescht, der Hub ist der
-  eine Ort fuer Gabriels Aufgaben. Das dabei gefundene Handy-Todo
-  ("Workout beenden"-Knopf testen) ist im Hub nachgetragen.
-- Aufgeraeumt: beide Alt-Branches geloescht, Worktree abgemeldet. Es bleibt nur
-  die leere Ordnerhuelle `.claude\worktrees\running-training-planner-5c3fc6`
-  (Arbeitsverzeichnis der Sitzung, deshalb nicht loeschbar) — mit
-  `rmdir` bzw. beim naechsten Aufraeumen entfernen. Repo hat nur noch `master`.
+- **v1.5.0 Garmin-Anbindung (Paket 2) ist LIVE** (Tag `v1.5.0`, master, Actions
+  gruen, Live-Bundle verifiziert). Laeufe von der Uhr kommen ueber intervals.icu
+  in den Plan: Verbindungs-Karte unter Laufen -> Plan, automatischer Abgleich
+  beim Oeffnen (Pause 15 min) plus Knopf "Jetzt abgleichen", Zuordnung mit
+  Ist-Werten, ungeplante Laeufe bleiben erhalten. Neu:
+  `src/utils/intervalsApi.js`, `src/utils/runMatch.js`,
+  `scripts/runmatch-test.mjs` (43 Faelle, im Done-Gate), `scripts/intervals-abruf.mjs`.
+- **Vor dem Bau an echten Daten kalibriert statt geraten:** Feldnamen und
+  Einheiten an einer echten Antwort geprueft, und der Browser-Zugriff von
+  `jgc-coding.github.io` gegen die echte Adresse verifiziert (401 lesbar = erlaubt).
+- Geprueft im laufenden Browser gegen IndexedDB: Fehlerpfad (falscher Schluessel
+  -> menschlicher Satz plus Diagnose-Zeile mit ID), Erfolgspfad, Zuordnung zum
+  geplanten Lauf, ungeplanter Lauf, zweiter Abgleich ohne Aenderung,
+  15-Minuten-Pause, Backup ohne Schluessel, Wochenbilanz, Laufplan-Import
+  (Paket 1) unveraendert, alle sechs Reiter ohne Konsolenfehler. Kein
+  Schema-Wechsel (Dexie bleibt v3).
+- **Beide Jahresplaene sind gebaut und von Gabriel importiert** (Lisa: 100 Meilen
+  Berlin 14.08.2027, 48 Wochen; Gab: Backyard Ultra 19.06.2027, 40 Wochen).
+  Kopien liegen in `C:\Projekte\Fitness Tracker\privat\`.
+- **Gabriels intervals.icu-Zugang steht** (Athleten-Id `i704265`, Garmin
+  verbunden). Der Schluessel kam per Telegram und wurde von
+  `privat\intervals-von-telegram.mjs` direkt in `privat\intervals.json`
+  geschrieben, ohne durch den Chat zu laufen.
+- Aufgeraeumt: vier gemergte Branches und ihre Worktrees entfernt, alle
+  `privat\`-Daten aus den Worktrees vorher in den Hauptbaum gesichert
+  (16 Dateien). Repo hat nur noch `master` plus den Branch dieser Sitzung.
 
 ## Offen
-- **Laufplaner Paket 2** (Garmin ueber intervals.icu, `I6b` in
-  `verbesserungen.md`): bewusst nicht begonnen. Der Bauplan verlangt, Feldnamen
-  und CORS zuerst gegen eine echte Antwort zu pruefen — dafuer braucht es
-  Gabriels Konto und API-Schluessel (Anleitung: `docs/garmin-anbindung.md`,
-  Schritte 1-3 stehen im Hub).
-- **Erster Jahresplan fehlt.** Die App zeigt bis dahin nur den Leerzustand.
-  Was Claude dafuer braucht, steht in `docs/laufplaner-plan.md` Abschnitt 8 und
-  als Frageliste im Hub.
+- **In Gabriels intervals.icu-Konto liegt noch keine einzige Aktivitaet.** Die
+  Garmin-Verbindung holt keine Historie nach, und er ist seit 19.07.2026 nicht
+  gelaufen. Der erste echte Test kommt mit seinem ersten Plan-Lauf am
+  Sa 19.09.2026 — dann ist `source: "GARMIN"` statt `"UPLOAD"` zu erwarten.
+- **Lisas intervals.icu-Zugang fehlt** (Konto, Garmin verbinden, Schluessel).
+  Gabriel macht das vom PC; danach traegt sie ihn auf ihrem Handy ein.
+- **CLAUDE.md ist auf ~14.500 Zeichen gewachsen** (Richtwert 13.000). Straffung
+  vorgeschlagen, wartet auf Gabriels Ok — nichts eigenmaechtig kuerzen.
+- Vier leere Worktree-Huellen unter `.claude\worktrees\` sind von einem Prozess
+  gesperrt und blieben liegen (Befehl steht unten bei den naechsten Schritten).
 - Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I7** (Beschreibungen
   in `verbesserungen.md`).
 - Der echte Knopfdruck auf "Workout beenden" am Android-Sperrbildschirm ist
   weiterhin ungetestet (nur am Geraet pruefbar, steht im Hub).
 
 ## Naechste Schritte (Claude)
-1. **Ersten Jahresplan bauen**, sobald Gabriel die Eckdaten liefert (Zielrennen
-   und Termin je Person, aktueller Wochenumfang, laengster Lauf, verfuegbare
-   Tage, Krafttage, Verletzungen; optional die Garmin-CSV nach
-   `privat\garmin-historie-<name>.csv`). Leitplanken und Ablauf:
-   `docs/laufplaner-plan.md` Abschnitt 8. Datei mit
-   `node .\scripts\laufplan-pruefen.mjs` pruefen, bevor Gabriel importiert.
-2. **Paket 2 bauen**, sobald Athleten-Id und Schluessel existieren: erst mit
-   `privat/intervals.json` eine echte Antwort ansehen (Abschnitt 6.2/6.4),
-   dann `src/utils/runMatch.js` + Tests, dann die Verbindungs-Karte in
-   `RunPlanView`. Nichts davon blind bauen.
-3. Meldet Gabriel nach dem Handy-Test ein Problem mit "Workout beenden" oder
-   dem Quick-Log-Knopf: zuerst `public/sw-custom.js` und die Notification-
-   Payload in `TrackingView.vue` pruefen (beides v1.3.0-neu).
-4. Sagt Gabriel, dass die sechs Reiter auf seinem Handy zu eng sind: die
+1. **Nach Gabriels erstem Lauf (ab 19.09.) den echten Abgleich pruefen:** kommt
+   die Aktivitaet an, trifft sie den geplanten Lauf, stimmen km und Zeit? Bei
+   Abweichungen zuerst `scripts/runmatch-test.mjs` um den Fall erweitern, dann
+   `src/utils/runMatch.js` anfassen — der Test ist der Vertrag.
+2. **Lisas Zugang einrichten**, sobald ihr Konto existiert: Schluessel nie in den
+   Chat, sondern per `privat\intervals-von-telegram.mjs` oder direkt in
+   `privat\intervals.json` (Eintrag `user1`).
+3. Leere Ordnerhuellen entfernen, sobald kein Prozess sie mehr haelt:
+   `Remove-Item "C:\Projekte\Fitness Tracker\.claude\worktrees\<name>" -Recurse -Force`
+   fuer `garmin-trainingpeaks-data-sync-bdabf9`, `lisa-training-plan-e35753`,
+   `lisa-training-tracking-extract-f10072`, `running-training-planner-5c3fc6`.
+4. Meldet Gabriel ein Problem mit "Workout beenden" oder dem Quick-Log-Knopf:
+   zuerst `public/sw-custom.js` und die Notification-Payload in
+   `TrackingView.vue` pruefen (beides v1.3.0-neu).
+5. Sagt Gabriel, dass die sechs Reiter auf seinem Handy zu eng sind: die
    Beschriftungen blenden sich heute erst unter 340 px aus
    (`BottomNav.vue`, Media-Query) — Schwelle anheben statt Labels kuerzen.
+6. Paket 3 (Wochenbericht per Telegram, `docs/laufplaner-plan.md` Abschnitt 7)
+   nur nach ausdruecklicher Freigabe bauen.
 
 ## Stolperfallen (aktuell)
+- **Bash frisst `${...}` in `node -e`-Aufrufen.** Ein JS-Template-Literal in
+  einem doppelt gequoteten Bash-String wird von der Shell expandiert und kommt
+  LEER im Code an (heute zweimal passiert, einmal unbemerkt in
+  `RunningView.vue`). Auch ein Heredoc kann am Parser scheitern. Fuer neue oder
+  geaenderte Dateien mit Template-Literals das Write/Edit-Tool nehmen; wenn
+  `node -e` ersetzt, den einzufuegenden Text vorher in eine Datei schreiben und
+  per `readFileSync` einsetzen.
 - **Der Reiter "Laufen" ist nicht der Ort fuer Planungslogik.** Plaene entstehen
-  bei Claude, die App zeigt und protokolliert. Wer die Merge-Regeln anfasst,
-  erweitert zuerst `scripts/laufplan-merge-test.mjs` (64 Faelle) — der Test ist
-  der Vertrag, nicht der Code.
+  bei Claude, die App zeigt und protokolliert. Wer Merge- oder Abgleich-Regeln
+  anfasst, erweitert zuerst den Test (`laufplan-merge-test.mjs` 64 Faelle,
+  `runmatch-test.mjs` 43 Faelle) — der Test ist der Vertrag, nicht der Code.
+- **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version.**
+  Der Service Worker liefert bis dahin den alten Stand aus. Zum Pruefen im
+  Browser-Pane: Service Worker abmelden, Caches leeren, neu laden — dann aber
+  von der Wurzel `/fitness-tracker/` aus starten, denn ohne Service Worker
+  laufen Deeplinks wie `/settings` bei GitHub Pages in einen 404.
 - **Browser-Pane: `requestAnimationFrame` ist eingefroren**, solange die Ansicht
-  nicht sichtbar ist. Vue-Transitions (Router-Wechsel, Modal) bleiben dadurch
-  haengen — die Seite ist logisch schon weiter, die alte Huelle steht noch im
-  DOM. Fuer Tests hilft
+  nicht sichtbar ist. Vue-Transitions bleiben haengen — die Seite ist logisch
+  schon weiter, die alte Huelle steht noch im DOM. Fuer Tests hilft
   `window.requestAnimationFrame = cb => setTimeout(() => cb(performance.now()), 0)`.
-  Klicks per `computer` scheitern in dem Zustand ebenfalls; `javascript_tool`
-  mit `element.click()` funktioniert. Screenshots gehen gar nicht.
+  Klicks per `computer` scheitern in dem Zustand; `javascript_tool` mit
+  `element.click()` funktioniert. Screenshots laufen manchmal in einen Timeout
+  und klappen beim zweiten Versuch.
+- **Zugangsdaten im Browser-Test:** Ein Skript, das Schluessel aus einer Datei
+  liest und in Formularfelder schreibt, wird vom Sicherheitsfilter blockiert —
+  zu Recht. Der Weg, der funktioniert: `window.fetch` auf die echte Antwortform
+  umbiegen und den UI-Pfad mit Testwerten pruefen; die echte Schnittstelle
+  separat in Node testen.
 - Der Dev-Server der Single-Variante braucht einen eigenen Port
   (`.claude/launch.json`, Eintrag "Vite Dev Server (Single)", Port 5175) —
   sonst antwortet still die Haupt-App auf 5173.

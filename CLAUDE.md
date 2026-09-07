@@ -140,6 +140,11 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
 - **Exercise Picker (Planung):** Sammelt Uebungen lokal, speichert batch beim Schliessen
 - **Base-Path:** `/fitness-tracker/` in Vite, Router und PWA-Manifest
 - **Default-User:** Lisa (user1), Gab (user2)
+- **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version** —
+  der Service Worker liefert bis dahin den alten Stand aus. Zum Live-Pruefen im
+  Browser: Service Worker abmelden, Caches leeren, dann von der Wurzel
+  `/fitness-tracker/` starten; ohne Service Worker enden Deeplinks wie
+  `/settings` bei GitHub Pages im 404.
 - **Ein Satz je Uebung ist Absicht** (Entscheidung Gabriel 2026-08-16): getrackt wird
   genau ein Referenzwert (Gewicht x Wdh) pro Uebung und Nutzer; das Sets-Feld der
   Planung ist reine Notiz. Kein Multi-Set-Tracking bauen.
