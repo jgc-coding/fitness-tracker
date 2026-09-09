@@ -41,8 +41,10 @@ Der Schluessel ist wie ein Passwort: Er gehoert nicht in einen Chat, nicht in
 eine Notiz-App und nicht ins Repository.
 
 ### 4. In der App eintragen
-In der App: **Laufen → Plan → Verbindung intervals.icu**. Dort Athleten-Id und
-Schluessel eintragen und "Verbindung testen" antippen.
+In der App: **Laufen → Plan → Verbindung intervals.icu**. Dort steht je Person
+eine Karte; in der eigenen Athleten-Id und Schluessel eintragen und
+**"Verbinden und testen"** antippen. Danach zeigt die Karte "verbunden", einen
+Knopf "Jetzt abgleichen" und einen Knopf "Entfernen".
 
 Jedes Handy traegt den Schluessel seines eigenen Besitzers ein. Die Ist-Werte
 wandern anschliessend ueber den normalen Cloud-Sync auf das andere Handy — der
