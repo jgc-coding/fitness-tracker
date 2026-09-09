@@ -3,99 +3,52 @@
 **Prozess-Stufe: Produkt** (taeglich in Benutzung — Versionierung, CHANGELOG, Regressionscheck und Done-Gate gelten voll)
 
 ## Projektbeschreibung
-PWA (Progressive Web App) zum Tracken, Planen und Auswerten von Kraftsport-Training fuer ein Paar (Lisa & Gab). Beide trainieren denselben Plan mit individuellen Gewichten/Wiederholungen. Offline-first auf Android, Daten lokal in IndexedDB. Deployed auf GitHub Pages.
+PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer ein Paar (Lisa & Gab).
+Beide trainieren denselben Plan mit individuellen Gewichten/Wiederholungen. Offline-first
+auf Android, Daten lokal in IndexedDB, deployed auf GitHub Pages. Dazu der Reiter „Laufen"
+(Laufplaner, siehe unten).
 
 ## Tech-Stack
-- **Frontend:** Vue 3 (Composition API) + Vite 6
-- **Routing:** Vue Router 4 (5 Routen, Lazy Loading)
-- **State:** Pinia (Stores: auth, plans, workout)
-- **Offline-DB:** Dexie.js v4 (IndexedDB, Schema v2 mit `deletions`-Tombstones)
-- **Cloud-Sync:** Firebase (Firestore + Auth), lazy geladen; Login mit gemeinsamem
-  E-Mail/Passwort-Konto — Setup/Regeln: `docs/firebase-absicherung.md` + `firestore.rules`
-- **PWA:** vite-plugin-pwa (Workbox, Service Worker)
-- **Hosting:** GitHub Pages via GitHub Actions (`deploy.yml`)
-- **CSS:** Custom, keine UI-Bibliothek. Moderne Features wie `color-mix` fuer NEUE
+- **Frontend:** Vue 3 (Composition API) + Vite 6, Vue Router 4 (Lazy Loading), Pinia
+- **Sprache:** JavaScript, **kein** TypeScript
+- **Offline-DB:** Dexie.js v4 (IndexedDB)
+- **Cloud-Sync:** Firebase (Firestore + Auth), lazy geladen; gemeinsames
+  E-Mail/Passwort-Konto — Setup: `docs/firebase-absicherung.md` + `firestore.rules`
+- **PWA:** vite-plugin-pwa (Workbox); **Hosting:** GitHub Pages via `deploy.yml`
+- **CSS:** custom, keine UI-Bibliothek. Moderne Features wie `color-mix` fuer NEUE
   Styles meiden (alte Android-WebViews) — statische rgba-Werte bevorzugen
-- **Sprache:** JavaScript (kein TypeScript)
 
-## Design-Tokens
-- Hintergrund: `#f3f6f7` | Akzent: `#911f2f` | Text: `#1e1f23`
-- User 1 (Lisa): `#911f2f` (rot) | User 2 (Gab): `#2c5f8a` (blau)
-- Definiert in `src/styles/variables.css`
+## Design-Tokens (`src/styles/variables.css`)
+Hintergrund `#f3f6f7` · Akzent `#911f2f` · Text `#1e1f23` ·
+User 1 Lisa `#911f2f` (rot) · User 2 Gab `#2c5f8a` (blau)
 
-## Dateistruktur
+## Dateistruktur (nur, was der Dateiname nicht verraet)
 ```
 src/
-  main.js                Einstiegspunkt, erstellt App mit Pinia + Router
-  App.vue                Root-Komponente mit Bottom-Navigation
-  router/index.js        5 Routen: /tracking, /planning, /history, /catalog, /settings
-  stores/                Pinia Stores
-    auth.js              Benutzernamen, User-Verwaltung
-    plans.js             Trainingsplaene, Trainingstage, CRUD
-    workout.js           Aktives Workout, Set-Logging, Gewicht-Steigern-Flag
-    running.js           Laufplaene, Laeufe, Import/Merge, Status-Export
-  db/dexie.js            Dexie-Schema v3: exercises, plans, trainingDays, workoutLogs,
-                         setLogs, syncQueue (Push-Retry), meta, deletions (Tombstones),
-                         runPlans + runSessions (Laufplaner)
-  db/firebase.js         Firebase-Init (lazy import; nur Haupt-App)
-  services/
-    syncService.js       Cloud-Sync: E-Mail-Login, Firestore-Listener, Reconcile,
-                         Tombstones, Retry-Queue, Status-Refs (syncStatus, pendingPushCount)
-  composables/           Wiederverwendbare Logik
-    useExercises.js      Uebungen laden, suchen, CRUD
-    useHistory.js        Spreadsheet-Daten, letzte Werte, Steigerungslogik
-  views/
-    TrackingView.vue     Workout ausfuehren, WheelPicker, Dual-User, Notifications
-    PlanningView.vue     Plaene erstellen, Trainingstage, Uebungen zuordnen
-    HistoryView.vue      Horizontales Spreadsheet, gruppiert nach Muskelgruppe
-    CatalogView.vue      Uebungskatalog mit Suche und Filtern
-    SettingsView.vue     Benutzernamen, Seeds, Backup (Export/Import), Cloud-Login, Info
-    RunningView.vue      Reiter "Laufen": Unterreiter Woche / Jahr / Plan
-  components/
-    layout/              BottomNav (5 Tabs), TopBar (mit Sync-Status-Punkt)
-    shared/              Modal (Android-Back schliesst!), EmptyState, WheelPicker
-    running/             RunWeekView, RunYearView, RunPlanView, RunSessionSheet,
-                         RunSessionChip (nur vom Laufplaner genutzt)
+  db/dexie.js            Schema v3: exercises, plans, trainingDays, workoutLogs,
+                         setLogs, syncQueue, meta, deletions, runPlans, runSessions
+  services/syncService.js  Login, Firestore-Listener, Reconcile, Tombstones, Retry-Queue
+  stores/running.js      Laufplaene, Laeufe, Import/Merge, Status-Export
+  composables/useHistory.js  Spreadsheet-Daten, letzte Werte, Steigerungslogik
+  components/shared/     Modal (Android-Back schliesst!), EmptyState, WheelPicker
   utils/
-    constants.js         MUSCLE_GROUPS, EQUIPMENT_TYPES, USERS, PLAN_TYPES
-    dateHelpers.js       Datumsfunktionen, KW-Erkennung, Deload-Berechnung
-    formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
-    notifications.js     Service Worker Notifications fuer Sperrbildschirm
-    exportData.js        CSV-Export (mit UTF-8-BOM), JSON-Backup + Import (merge-only)
     runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
-    runPlanMerge.js      Merge-Regeln fuer den Laufplan-Import (reine Funktion)
-    intervalsApi.js      Abruf und Umrechnung von intervals.icu (Browser + Node)
+    runPlanMerge.js      Merge-Regeln des Imports (reine Funktion)
     runMatch.js          Zuordnung Aktivitaet -> geplanter Lauf (reine Funktion)
-  styles/
-    variables.css        CSS Custom Properties (Farben, Abstande, Fonts)
-    global.css           Reset, Basisstile, Utility-Klassen
-public/
-  logo.svg               Keto Hybrid Logo
-  icons/                 PWA-Icons (192px, 512px)
-  sw-custom.js           notificationclick-Handler + Quick-Log (schreibt Saetze in IndexedDB)
-scripts/
-  check-drift.mjs        Waechter: geteilte Dateien src/ <-> single/src/ identisch
-  laufplan-pruefen.mjs   Prueft eine Laufplan-Datei vor dem Import (Exit 1 bei Fehler)
-  laufplan-merge-test.mjs  Vertragstest der Merge-Regeln (112 Faelle, ohne Browser)
-  runmatch-test.mjs      Vertragstest der Garmin-Zuordnung (48 Faelle, ohne Browser)
-  pace-modell-test.mjs   Vertragstest des Puls-zu-Tempo-Modells (erfundene Daten)
-  intervals-abruf.mjs    Laeufe von intervals.icu holen (fuer Anpass-Sitzungen)
-  lauf-cloud.mjs         Laufplaene direkt aus Firestore holen / dorthin schreiben
-  laufplan-vorgaben.mjs  Traegt Puls- und Tempovorgaben in eine Plandatei ein
-  pace-modell.mjs        Bericht zum Puls-zu-Tempo-Modell einer Person
-  lib/pace-modell-kern.mjs  Schaetzung Tempo ~ Puls + Gelaende + Dauer (nur Node)
-docs/
-  firebase-absicherung.md  Console-Anleitung (Konto, Registrierung sperren, Rules)
-  laufplan-format.md       Dateiformat-Vertrag zwischen Claude und App
-  laufplan-beispiel.json   Gueltige Beispieldatei (erfundene Daten)
-  laufplaner-plan.md       Bauplan des Laufplaners (Pakete 1 und 2)
-  laufplan-cloud.md        Cloud-Zugang vom PC (Zugangsdatei, holen/schreiben)
-  laufplan-vorgaben.md     Wie Puls- und Tempovorgaben entstehen (Profil, Modell)
-  garmin-anbindung.md      Einrichtung intervals.icu (Konto und Schluessel: Gabriel selbst)
-firestore.rules          Vorlage der Firestore-Regeln (Einspielen manuell via Console)
-.github/workflows/
-  deploy.yml             CI/CD: Build + Deploy auf GitHub Pages (Branch: master)
+    intervalsApi.js      Abruf und Umrechnung von intervals.icu (Browser + Node)
+    exportData.js        CSV mit UTF-8-BOM, JSON-Backup (Import ist merge-only)
+    dateHelpers.js       KW-Erkennung, Deload-Berechnung
+    formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
+public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
+scripts/                 check-drift, laufplan-pruefen, laufplan-vorgaben, pace-modell
+                         (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf
+                         Vertragstests: laufplan-merge-test, runmatch-test, pace-modell-test
+docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
+                         laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
+                         garmin-anbindung
 ```
+Views (6 Reiter), Router, Stores `auth`/`plans`/`workout`, `styles/`, `main.js` und
+`App.vue` heissen wie ihr Inhalt.
 
 ## Befehle
 ```bash
@@ -103,149 +56,141 @@ npm run dev       # Entwicklungsserver (Port 5173)
 npm run build     # Produktions-Build nach /dist
 npm run preview   # Build lokal testen (Port 4173)
 
-# FitTrack Single (unabhaengige Einzelnutzer-Variante, siehe unten)
-# ACHTUNG: nutzt denselben Default-Port 5173 wie `npm run dev`. Laeuft beides
-# parallel, antwortet still die Haupt-App -> `npm run dev:single -- --port 5175 --strictPort`
-npm run dev:single     # Dev-Server der Single-Variante
+npm run dev:single     # Single-Variante — ACHTUNG: gleicher Default-Port 5173 wie
+                       # `npm run dev`. Laeuft beides, antwortet still die Haupt-App.
+                       # Abhilfe: `-- --port 5175 --strictPort`
 npm run build:single   # Build nach /dist/single
 npm run check:drift    # Prueft, ob src/ und single/src/ synchron sind
-npm run build:all      # check:drift + beide Apps bauen — wird im Deploy genutzt
+npm run build:all      # check:drift + beide Apps bauen — so laeuft der Deploy
 ```
 
 ## FitTrack Single (unabhaengige Variante)
-Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nutzer-App.
-- **WICHTIG — Doppel-Wartung:** `single/src/` ist eine Kopie von `src/`. Jede Aenderung an
-  einer geteilten Datei MUSS in beide Kopien (`cp src/X single/src/X`). `npm run check:drift`
-  erzwingt das vor jedem Build; bewusste Ausnahmen stehen in `scripts/check-drift.mjs`.
-  Ist `check:drift` rot, obwohl `git status` sauber ist, liegt es an Zeilenenden: Auf
-  diesem Rechner steht `core.autocrlf=true`, einzelne Dateien im Arbeitsbaum haben
-  dann CRLF, waehrend Git beide Kopien identisch fuehrt. Heilung: betroffene Datei
-  loeschen und mit `git checkout -- single/src/` neu holen (der Vergleich ist bytegenau).
-- **Speicherort:** `single/` (eigene `index.html` + Kopie von `src/`), Build-Config `vite.single.config.js`
-- **Unabhaengig:** Kein Firebase, kein Cloud-Sync. Eigene IndexedDB-Datenbank `FitnessTrackerSingle`
-  (Haupt-App nutzt `FitnessTracker`) — auch im selben Browser keine gemeinsamen Daten.
-- **Ein Nutzer:** `USERS` enthaelt nur `user1`; Dual-User-UI (User-Tabs, History-Umschalter) ist ausgeblendet.
-- **Base-Path:** `/fitness-tracker/single/` — eigene PWA (Name „FitTrack Single", eigener Scope/Manifest/Service-Worker).
-- **Deploy:** `deploy.yml` baut via `npm run build:all` beide Apps in dieselbe GitHub-Pages-Artifact
-  (`/fitness-tracker/` und `/fitness-tracker/single/`). Die Haupt-App bleibt unveraendert; einzige Anpassung
-  dort ist eine `navigateFallbackDenylist` fuer `/single/`, damit sich die Service-Worker nicht stoeren.
+Eigenstaendige Variante fuer **eine** Person in `single/` (eigene `index.html` + Kopie
+von `src/`, Build-Config `vite.single.config.js`, Base-Path `/fitness-tracker/single/`,
+eigene PWA). Kein Firebase, kein Cloud-Sync, eigene IndexedDB `FitnessTrackerSingle`,
+`USERS` nur `user1` (Dual-User-UI ausgeblendet). `deploy.yml` baut beide Apps in
+dieselbe Pages-Artifact; die Haupt-App hat dafuer nur eine `navigateFallbackDenylist`
+fuer `/single/`, damit sich die Service-Worker nicht stoeren.
 
-## Architektur-Hinweise
-- **Offline-first:** Alle Reads kommen aus IndexedDB. Writes gehen in IndexedDB und werden
-  (wenn angemeldet) direkt nach Firestore gepusht; fehlgeschlagene Pushes landen in der
-  `syncQueue` und werden automatisch nachgeholt (App-Start, online-Event, naechster Erfolg).
-- **Sync-Auth:** Kein Sync ohne Login (Status `auth-required`, Banner im Tracking).
-  Anonyme Alt-Sessions werden aktiv abgemeldet. Die App hat KEINE Registrierung —
-  Konten entstehen nur in der Firebase Console (`docs/firebase-absicherung.md`).
-- **Loeschen = Tombstone:** `pushDelete` schreibt zuerst einen Merker in `deletions`
+- **Doppel-Wartung:** Jede Aenderung an einer geteilten Datei MUSS in beide Kopien
+  (`cp src/X single/src/X`). `check:drift` erzwingt das vor jedem Build; bewusste
+  Ausnahmen stehen in `scripts/check-drift.mjs`.
+- **`check:drift` rot, obwohl `git status` sauber?** Zeilenenden: `core.autocrlf=true`
+  laesst einzelne Dateien im Arbeitsbaum als CRLF liegen, waehrend Git beide Kopien
+  identisch fuehrt (der Vergleich ist bytegenau). Heilung: Datei loeschen und mit
+  `git checkout -- single/src/` neu holen.
+
+## Architektur: Kraft-Training
+- **Offline-first:** Alle Reads aus IndexedDB. Writes gehen in IndexedDB und (wenn
+  angemeldet) direkt nach Firestore; fehlgeschlagene Pushes landen in der `syncQueue`
+  und werden nachgeholt (App-Start, online-Event, naechster Erfolg).
+- **Kein Sync ohne Login** (Status `auth-required`, Banner im Tracking). Anonyme
+  Alt-Sessions werden aktiv abgemeldet. Die App hat KEINE Registrierung — Konten
+  entstehen nur in der Firebase Console.
+- **Loeschen = Tombstone:** `pushDelete` schreibt erst einen Merker in `deletions`
   (lokal, offline-faehig), dann Cloud. Reconcile ueberspringt tombstoned Records —
   sonst laedt ein Offline-Geraet Geloeschtes wieder hoch ("Wiederauferstehung").
-- **Vue-Proxys nie direkt in Dexie schreiben:** reaktive Objekte/Arrays (aus `ref`/
-  `reactive`, z.B. `day.exercises`) sprengen `put`/`update` mit `DataCloneError`.
-  Vor jedem Schreibvorgang flach kopieren (`list.map(e => ({ ...e }))`).
-- **Gewichtsschritte:** 1.25kg fuer Barbell/Machine-Weight, 1kg fuer alle anderen
-- **Exercise Picker (Planung):** Sammelt Uebungen lokal, speichert batch beim Schliessen
-- **Base-Path:** `/fitness-tracker/` in Vite, Router und PWA-Manifest
-- **Default-User:** Lisa (user1), Gab (user2)
-- **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version** —
-  der Service Worker liefert bis dahin den alten Stand aus. Zum Live-Pruefen im
-  Browser: Service Worker abmelden, Caches leeren, dann von der Wurzel
-  `/fitness-tracker/` starten; ohne Service Worker enden Deeplinks wie
-  `/settings` bei GitHub Pages im 404.
-- **Ein Satz je Uebung ist Absicht** (Entscheidung Gabriel 2026-08-16): getrackt wird
-  genau ein Referenzwert (Gewicht x Wdh) pro Uebung und Nutzer; das Sets-Feld der
-  Planung ist reine Notiz. Kein Multi-Set-Tracking bauen.
+- **Vue-Proxys nie direkt in Dexie schreiben:** reaktive Objekte/Arrays (z.B.
+  `day.exercises`) sprengen `put`/`update` mit `DataCloneError`. Vorher flach
+  kopieren (`list.map(e => ({ ...e }))`).
+- **Ein Satz je Uebung ist Absicht** (Entscheidung Gabriel 2026-08-16): genau ein
+  Referenzwert (Gewicht x Wdh) je Uebung und Nutzer; das Sets-Feld der Planung ist
+  reine Notiz. Kein Multi-Set-Tracking bauen.
 - **Workout-Abweichungen liegen am Log:** Tausch/Quick-Add schreiben die aktuelle
   Uebungsliste als `exercises`-Override an den `workoutLog` (persistWorkoutExercises);
   Resume nutzt das Override, sonst die Plan-Liste. Individuelle Trainings liegen
   ebenfalls in `db.workoutLogs` (isCustom) und ueberleben Reloads.
-- **Zuletzt benutzt:** `saveSet` stempelt `lastUsedAt` an die Uebung; Tausch-/Add-/
-  Custom-Listen sortieren danach, die Tausch-Liste gruppiert zusaetzlich
-  "gleiche Muskelgruppe zuerst".
+- **Zuletzt benutzt:** `saveSet` stempelt `lastUsedAt`; Tausch-/Add-/Custom-Listen
+  sortieren danach, die Tausch-Liste gruppiert "gleiche Muskelgruppe zuerst".
 - **Quick-Log aus der Notification:** Die App legt je Nutzer eine Warteschlange
-  fertiger setLog-Datensaetze in `notification.data` (buildNotificationQuickLog);
-  der Service Worker (`public/sw-custom.js`) schreibt sie bei Knopfdruck direkt in
-  IndexedDB (Haupt-App zusaetzlich in die syncQueue) — funktioniert ohne offene App.
-- **Nur ZWEI Notification-Knoepfe (Android-Limit):** Platz 1 das Quick-Log des
-  Standard-Nutzers (leere Warteschlange -> naechster Nutzer rueckt nach),
-  Platz 2 fest "Workout beenden" (setzt completedAt, `data.workoutLogId`).
-  Die Regel steht doppelt — `buildNotificationActions` in der TrackingView und
-  `showCompactNotification` im Service Worker; beide muessen gleich bleiben.
-  Nach dem Beenden meldet der SW `workout-finished` an offene Fenster.
-- **Laufplaner: Claude plant, die App zeigt und haelt fest.** Plaene entstehen
-  NICHT in der App, sondern als JSON-Datei von Claude (Vertrag:
-  `docs/laufplan-format.md`). Der Import prueft erst vollstaendig, zeigt eine
-  Vorschau und schreibt dann in EINER Dexie-Transaktion; Tombstones und
-  Cloud-Push laufen danach (db.deletions ist nicht Teil der Transaktion).
-- **Merge-Regel des Laufplans:** Kennungen (`id`) sind die Klammer zwischen
-  Claude und App. Erledigte und ausgelassene Laeufe gewinnen immer lokal, noch
-  geplante uebernimmt die Datei, und geloescht wird nur, was geplant UND in der
-  Zukunft ist. Aendert sich nichts, wird auch nichts geschrieben (der eigene
-  Status-Export ergibt beim Re-Import "keine Aenderung"). Die Regeln stehen
-  ausformuliert in `docs/laufplaner-plan.md` 5.4 und sind mit
-  `scripts/laufplan-merge-test.mjs` abgesichert — bei Aenderungen dort zuerst
-  den Test erweitern.
-- **Ein Satz je Lauf, ein Haken:** Kein Lauf-Tracking in der App. Der Haken darf
-  ohne Ist-Werte gesetzt werden; in der Wochenbilanz zaehlt dann der Planwert.
-- **Puls- und Tempovorgabe steht in `targets` und gehoert dem PLAN:** Liste aus
-  bis zu vier Abschnitten je Lauf (`{ label, hrFrom, hrTo, paceFrom, paceTo }`,
-  Tempo als Text "m:ss"), leer ist `null`. Bringt eine Datei fuer einen noch
-  geplanten Lauf keine mit, ist die alte zurueckgenommen — genau umgekehrt zu
-  `feedback`, das dem Laeufer gehoert und nie verloren geht. Die Zahlen kommen
-  aus der eigenen Historie, nicht aus einer Tabelle: `docs/laufplan-vorgaben.md`.
-  Ausserhalb des gemessenen Pulsbereichs wird die Hochrechnung gedaempft, sonst
-  entstuende ein Schwellentempo, das niemand laufen kann.
-- **Der PC kann direkt an die Cloud** (`scripts/lauf-cloud.mjs`, Anleitung in
-  `docs/laufplan-cloud.md`): dasselbe Konto und dieselben Regeln wie die App,
-  derselbe Merge wie beim Import. Ohne `--jetzt` immer nur ein Trockenlauf, vor
-  jedem Schreiben eine Sicherung, beim Loeschen ein Tombstone wie in der App.
-  Zugangsdaten NUR in `privat\firebase-konto.json`, nie im Chat.
-- **Rueckmeldung steht in `feedback`, nicht in `actual`:** `{ rpe 1-5, note, at }`
-  je Lauf, beides freiwillig, leer = `null`. `actual.note` gehoert der Maschine
-  (Zeitnotiz der Uhr, Grund fuers Auslassen), `feedback.note` dem Laeufer. Kein
-  Import und kein Garmin-Abgleich loescht sie (Faelle F1-F7 in
-  `laufplan-merge-test.mjs`).
-- **Garmin laeuft ueber intervals.icu, nicht direkt.** Die App holt fertige
-  Aktivitaeten aus dem Browser (`src/utils/intervalsApi.js`), ordnet sie dem
-  geplanten Lauf desselben Tages zu (`src/utils/runMatch.js`) und setzt Haken
-  samt Ist-Werten. Sie loescht nie etwas und entfernt nie einen Haken; ein von
-  Hand gesetzter Haken wird nur ergaenzt. Dieselbe Aktivitaet kommt nie zweimal
-  herein (`externalId` = `athleteId:id`). Die Regeln sind mit
-  `scripts/runmatch-test.mjs` abgesichert — bei Aenderungen dort zuerst den
-  Test erweitern.
-- **Schluessel fuer intervals.icu sind GERAETE-lokal** (`localStorage`, Muster
-  wie der Standard-Nutzer): nicht in `db.meta`, nicht in der Cloud, nicht im
-  Backup-Export. Die Athleten-Id steckt dagegen in jeder `externalId` und ist
-  damit Teil der gesyncten Daten — das ist gewollt, sie ist kein Geheimnis.
-- **Zeit bei Laeufen: Runden zaehlen anders.** Fuer Lauf-Typ `loops` gilt die
-  Gesamtzeit (`elapsed_time`), sonst die Zeit in Bewegung (`moving_time`); der
-  andere Wert landet als Notiz in `actual.note`. Beim Backyard 2026 sind das
-  12:00 h gegen 9:24 h. Das Dateiformat kennt nur EIN Minutenfeld — ein
-  zusaetzliches Feld in `actual` wuerde beim Status-Export still verloren gehen.
-- **Standard-Nutzer ist GERAETE-lokal** (`localStorage`, Schluessel mit DB-Namen,
-  siehe `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History und beim
-  Notification-Knopf. Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und
-  beide Handys wuerden sich den Wert gegenseitig ueberschreiben.
+  fertiger setLog-Datensaetze in `notification.data` (buildNotificationQuickLog); der
+  Service Worker schreibt sie bei Knopfdruck direkt in IndexedDB (Haupt-App zusaetzlich
+  in die syncQueue) — funktioniert ohne offene App.
+- **Nur ZWEI Notification-Knoepfe (Android-Limit):** Platz 1 Quick-Log des
+  Standard-Nutzers (leere Warteschlange -> naechster Nutzer rueckt nach), Platz 2 fest
+  "Workout beenden" (setzt completedAt, `data.workoutLogId`); danach meldet der SW
+  `workout-finished` an offene Fenster. Die Regel steht DOPPELT —
+  `buildNotificationActions` (TrackingView) und `showCompactNotification`
+  (Service Worker) muessen gleich bleiben.
+- **Gewichtsschritte:** 1.25 kg fuer Barbell/Machine-Weight, 1 kg sonst.
+- **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
+- **Standard-Nutzer ist GERAETE-lokal** (`localStorage`, Schluessel mit DB-Namen, siehe
+  `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History, am Notification-Knopf.
+  Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und beide Handys wuerden sich
+  den Wert gegenseitig ueberschreiben.
+
+## Architektur: Laufplaner
+- **Claude plant, die App zeigt und haelt fest.** Plaene entstehen NICHT in der App,
+  sondern als JSON-Datei von Claude (Vertrag: `docs/laufplan-format.md`). Der Import
+  prueft erst vollstaendig, zeigt eine Vorschau und schreibt dann in EINER
+  Dexie-Transaktion; Tombstones und Cloud-Push laufen danach.
+- **Merge-Regel:** Kennungen (`id`) sind die Klammer zwischen Claude und App. Erledigte
+  und ausgelassene Laeufe gewinnen immer lokal, noch geplante uebernimmt die Datei,
+  geloescht wird nur, was geplant UND in der Zukunft ist. Aendert sich nichts, wird
+  nichts geschrieben (der eigene Status-Export ergibt beim Re-Import "keine Aenderung").
+  Ausformuliert in `docs/laufplaner-plan.md` 5.4.
+- **Der Test ist der Vertrag, nicht der Code.** Wer Merge- oder Abgleich-Regeln
+  anfasst, erweitert ZUERST `scripts/laufplan-merge-test.mjs` bzw.
+  `scripts/runmatch-test.mjs`.
+- **Ein Satz je Lauf, ein Haken:** kein Lauf-Tracking in der App. Der Haken darf ohne
+  Ist-Werte gesetzt werden; in der Wochenbilanz zaehlt dann der Planwert.
+- **`targets` gehoert dem PLAN, `feedback` dem LAEUFER.** `targets` ist die Puls- und
+  Tempovorgabe (bis zu vier Abschnitte je Lauf, `{ label, hrFrom, hrTo, paceFrom,
+  paceTo }`, Tempo als Text "m:ss", leer = `null`); fehlt sie in einer neuen Datei, ist
+  sie zurueckgenommen. `feedback` ist `{ rpe 1-5, note, at }` und geht NIE verloren —
+  kein Import und kein Garmin-Abgleich fasst es an. `actual.note` gehoert dagegen der
+  Maschine (Zeitnotiz der Uhr, Grund fuers Auslassen).
+- **Die Tempozahlen kommen aus der eigenen Historie**, nicht aus einer Tabelle
+  (`docs/laufplan-vorgaben.md`). Ausserhalb des gemessenen Pulsbereichs wird die
+  Hochrechnung gedaempft, sonst entstuende ein Schwellentempo, das niemand laufen kann.
+  Das Trainingswissen (Pulsbereiche) liegt in `privat\pace-profil.json`, nie im Repo.
+- **Der PC kann direkt an die Cloud** (`scripts/lauf-cloud.mjs`,
+  `docs/laufplan-cloud.md`): dasselbe Konto, dieselben Regeln, derselbe Merge wie in
+  der App. Ohne `--jetzt` immer nur ein Trockenlauf, vor jedem Schreiben eine
+  Sicherung, beim Loeschen ein Tombstone. Zugangsdaten NUR in
+  `privat\firebase-konto.json`, nie im Chat.
+- **Garmin laeuft ueber intervals.icu, nicht direkt.** Die App holt fertige Aktivitaeten
+  (`intervalsApi.js`), ordnet sie dem geplanten Lauf desselben Tages zu (`runMatch.js`)
+  und setzt Haken samt Ist-Werten. Sie loescht nie etwas, entfernt nie einen Haken,
+  ergaenzt einen von Hand gesetzten nur; dieselbe Aktivitaet kommt nie zweimal herein
+  (`externalId` = `athleteId:id`).
+- **Zeit bei Laeufen: Runden zaehlen anders.** Fuer Lauf-Typ `loops` gilt die Gesamtzeit
+  (`elapsed_time`), sonst die Zeit in Bewegung (`moving_time`); der andere Wert landet
+  als Notiz in `actual.note`. Beim Backyard 2026 sind das 12:00 h gegen 9:24 h. Das
+  Dateiformat kennt nur EIN Minutenfeld — ein zusaetzliches Feld in `actual` ginge beim
+  Status-Export still verloren.
+- **Schluessel fuer intervals.icu sind GERAETE-lokal** (`localStorage`): nicht in
+  `db.meta`, nicht in der Cloud, nicht im Backup-Export. Die Athleten-Id steckt dagegen
+  in jeder `externalId` und ist damit Teil der gesyncten Daten — gewollt, sie ist kein
+  Geheimnis.
+
+## Deploy und Umgebung
+- **Base-Path** `/fitness-tracker/` in Vite, Router und PWA-Manifest.
+- **Default-User:** Lisa (user1), Gab (user2).
+- **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version** — der
+  Service Worker liefert bis dahin den alten Stand aus. Zum Live-Pruefen im Browser:
+  Service Worker abmelden, Caches leeren, dann von der Wurzel `/fitness-tracker/`
+  starten; ohne Service Worker enden Deeplinks wie `/settings` bei GitHub Pages im 404.
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
-- **`/backup-restore`** — Vollstaendiges Backup aller IndexedDB-Daten als JSON, oder Wiederherstellung aus Backup-Datei
+- **`/backup-restore`** — Backup aller IndexedDB-Daten als JSON, oder Wiederherstellung
 
 ## Connectoren/APIs
-- Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth). Config in
-  `src/db/firebase.js` (der API-Key ist bei Firebase kein Geheimnis — der Schutz
-  liegt in den Firestore-Rules + gesperrter Registrierung, siehe docs/).
+- Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth), Config in
+  `src/db/firebase.js`. Der API-Key ist bei Firebase kein Geheimnis — der Schutz liegt
+  in den Firestore-Rules und der gesperrten Registrierung.
 - **Zwei Logins mit derselben Adresse — die haeufigste Falle hier.** Die Firebase
-  Console gehoert Google und nimmt Gabriels GOOGLE-Passwort. Das App-Konto steht
-  in der Nutzerliste des Projekts (Anbieter nur E-Mail/Passwort, kein Google) und
-  hat ein EIGENES. Wer das Google-Passwort in `privat\firebase-konto.json` schreibt,
-  bekommt `INVALID_LOGIN_CREDENTIALS`, und Firebase sagt absichtlich nicht, welches
-  von beiden falsch war. Kandidaten durchprobieren: `privat\passwort-pruefen.html`.
-- **Dieses Repo ist OEFFENTLICH.** Keine personenbezogenen Daten in Repo-Dateien —
-  auch nicht in Doku wie `weitermachen.md`. Die Konto-E-Mail bleibt als Platzhalter
-  `FITNESS-KONTO@BEISPIEL.DE` in `firestore.rules`; die echte Adresse existiert nur
-  in der Firebase Console (und in Claudes lokalem Memory).
-- **Console-Arbeit** laeuft ueber Claude-in-Chrome (Preview-Tool rendert nicht):
+  Console gehoert Google und nimmt Gabriels GOOGLE-Passwort. Das App-Konto steht in der
+  Nutzerliste des Projekts (Anbieter nur E-Mail/Passwort, kein Google) und hat ein
+  EIGENES. Wer das Google-Passwort in `privat\firebase-konto.json` schreibt, bekommt
+  `INVALID_LOGIN_CREDENTIALS`, und Firebase sagt absichtlich nicht, welches von beiden
+  falsch war. Kandidaten durchprobieren: `privat\passwort-pruefen.html`.
+- **Dieses Repo ist OEFFENTLICH.** Keine personenbezogenen Daten in Repo-Dateien, auch
+  nicht in Doku. Die Konto-E-Mail bleibt als Platzhalter `FITNESS-KONTO@BEISPIEL.DE` in
+  `firestore.rules`; die echte Adresse existiert nur in der Firebase Console und in
+  Claudes lokalem Memory.
+- **Console-Arbeit** laeuft ueber Claude-in-Chrome (das Preview-Tool rendert sie nicht):
   Der Rules-Editor ist CodeMirror 5 (`document.querySelector('.CodeMirror')
-  .CodeMirror.setValue(...)`); der Anonym-Anbieter-Dialog ist hoeher als das Fenster
-  und nicht scrollbar — Speichern dort per Skript-Klick ausloesen.
+  .CodeMirror.setValue(...)`); der Anonym-Anbieter-Dialog ist hoeher als das Fenster und
+  nicht scrollbar — Speichern dort per Skript-Klick ausloesen.

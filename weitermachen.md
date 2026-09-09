@@ -21,6 +21,11 @@
 - Vertraege: `laufplan-merge-test.mjs` 112 Faelle (T1-T13 fuer die Vorgabe),
   neuer `pace-modell-test.mjs` 19 Faelle. Beide im Done-Gate.
 - Aufgeraeumt: Branch und Worktree `garmin-connection-sync-319408` sind weg.
+- **CLAUDE.md gestrafft** (Gabriels Ok am 09.09.): 17.288 -> 12.718 Zeichen, unter
+  dem Richtwert 13.000. Keine Regel entfernt, nur Prosa verdichtet und der
+  Dateibaum auf das reduziert, was der Dateiname nicht verraet. Dabei zwei
+  veraltete Angaben berichtigt (Dexie-Schema v2 -> v3, "5 Routen" -> 6 Reiter)
+  und drei Stolperfallen entfernt, die doppelt hier standen.
 
 ## Offen
 - **Praxistest der Rueckmeldung am Handy** (v1.6.0: Stufe und Notiz geben,
@@ -31,8 +36,6 @@
   `source: "GARMIN"` statt `"UPLOAD"` zu erwarten.
 - **Lisas intervals.icu-Zugang fehlt** (Konto, Garmin verbinden, Schluessel).
   Steht im Hub.
-- **CLAUDE.md ist auf 17.288 Zeichen gewachsen** (Richtwert 13.000). Straffung
-  vorgeschlagen, Frage liegt im Hub — nichts eigenmaechtig kuerzen.
 - **Offene Frage zum Kurztext:** Soll die Zeile "Erledigt ohne Rueckmeldung: N"
   im kopierten Text bleiben? Frage liegt im Hub.
 - Drei leere Worktree-Huellen unter `.claude\worktrees\` sind weiterhin von
@@ -91,18 +94,10 @@
   (`#app.__vue_app__.config.globalProperties.$pinia._s.get('running')`).
 - **Pinia-Stores haben kein HMR:** Nach jeder Store-Aenderung die Seite neu
   laden, sonst prueft man die alte Fassung.
-- **Der Reiter "Laufen" ist nicht der Ort fuer Planungslogik.** Wer Merge- oder
-  Abgleich-Regeln anfasst, erweitert zuerst den Test
-  (`laufplan-merge-test.mjs` 112 Faelle, `runmatch-test.mjs` 48 Faelle) — der
-  Test ist der Vertrag, nicht der Code.
-- **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version.**
-  Zum Pruefen im Browser-Pane: Service Worker abmelden, Caches leeren, neu
-  laden — dann von der Wurzel `/fitness-tracker/` aus starten, denn ohne
-  Service Worker laufen Deeplinks bei GitHub Pages in einen 404.
+- **Browser-Pane und Service Worker:** Zum Pruefen des Live-Stands erst den
+  Service Worker abmelden und die Caches leeren (Regel dazu in der CLAUDE.md).
 - **Browser-Pane: `requestAnimationFrame` ist eingefroren**, solange die Ansicht
   nicht sichtbar ist. Abhilfe nach jedem Reload:
   `window.requestAnimationFrame = cb => setTimeout(() => cb(performance.now()), 0)`.
   Klicks per `computer` scheitern dann; `javascript_tool` mit `element.click()`
   funktioniert.
-- Der Dev-Server der Single-Variante braucht einen eigenen Port
-  (`.claude/launch.json`, Port 5175) — sonst antwortet still die Haupt-App.
