@@ -94,6 +94,18 @@ function firebaseConfig() {
   return { apiKey, projectId }
 }
 
+/**
+ * Wohin Sicherungen und geholte Staende gehoeren.
+ *
+ * Normalerweise privat\ neben dem Repo. Wurde --konto angegeben, gilt DESSEN
+ * Ordner: das Skript laeuft dann aus einem Worktree, und ein Worktree wird
+ * irgendwann geloescht — eine Sicherung, die mit ihm verschwindet, ist keine.
+ */
+function privatOrdner() {
+  const explizit = arg('konto', null)
+  return explizit ? path.dirname(path.resolve(explizit)) : path.join(WURZEL, 'privat')
+}
+
 function konto() {
   // --konto ist fuer Sonderfaelle da, in denen privat\ woanders liegt (etwa
   // wenn das Skript aus einem Worktree heraus laeuft, der den Ordner nicht hat).
@@ -316,7 +328,7 @@ async function holen(sitzung) {
     console.error('  Die Datei wird trotzdem geschrieben, damit man sie ansehen kann.\n')
   }
 
-  const ziel = arg('ziel', path.join(WURZEL, 'privat', `cloud-stand-${nurUser || 'alle'}-${heute()}.json`))
+  const ziel = arg('ziel', path.join(privatOrdner(), `cloud-stand-${nurUser || 'alle'}-${heute()}.json`))
   fs.mkdirSync(path.dirname(ziel), { recursive: true })
   fs.writeFileSync(ziel, JSON.stringify(datei, null, 2) + '\n', 'utf8')
 
@@ -377,7 +389,7 @@ async function schreiben(sitzung, quelle) {
   }
 
   // Sicherung des bisherigen Standes, bevor irgendetwas angefasst wird.
-  const sicherung = path.join(WURZEL, 'privat', `cloud-sicherung-${jetzt.replace(/[:.]/g, '-')}.json`)
+  const sicherung = path.join(privatOrdner(), `cloud-sicherung-${jetzt.replace(/[:.]/g, '-')}.json`)
   fs.mkdirSync(path.dirname(sicherung), { recursive: true })
   fs.writeFileSync(sicherung, JSON.stringify(bauePlanDatei(plaene, laeufe), null, 2) + '\n', 'utf8')
   console.log(`\n  Sicherung des bisherigen Standes: ${path.resolve(sicherung)}`)
