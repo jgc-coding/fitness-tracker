@@ -3,6 +3,23 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.7.1] — 2026-09-09
+
+Nur Werkzeuge, die App selbst ist unveraendert. Beim ersten echten Einsatz von
+`lauf-cloud.mjs` sind zwei Dinge aufgefallen:
+
+- **Sauberer Fehlercode statt Laufzeit-Absturz.** Ein hartes `process.exit()`
+  nach einem `fetch` bringt unter Windows die Node-Laufzeit zum Meckern und
+  liefert Rueckgabewert 127 statt 1 — eine Fehlermeldung, die die eigentliche
+  verdeckt. Das Skript wirft jetzt und setzt den Rueckgabewert am Ende.
+- **Sicherungen landen dort, wo die Daten liegen.** Mit `--konto` gilt jetzt
+  dessen Ordner. Vorher schrieb ein Lauf aus einem Worktree die Sicherung in
+  ebendiesen Worktree — und der wird irgendwann geloescht. Eine Sicherung,
+  die mit ihm verschwindet, ist keine.
+- Die Meldung bei abgelehnter Anmeldung sagt jetzt, dass Firebase absichtlich
+  offen laesst, ob E-Mail oder Passwort falsch war, und wo die richtige Adresse
+  steht.
+
 ## [1.7.0] — 2026-09-07
 
 Zwei Dinge: Laufplaene lassen sich jetzt direkt aus der Cloud lesen und dorthin
