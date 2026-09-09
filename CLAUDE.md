@@ -235,6 +235,12 @@ Eigenstaendige Variante fuer **eine** Person, komplett getrennt von der Zwei-Nut
 - Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth). Config in
   `src/db/firebase.js` (der API-Key ist bei Firebase kein Geheimnis — der Schutz
   liegt in den Firestore-Rules + gesperrter Registrierung, siehe docs/).
+- **Zwei Logins mit derselben Adresse — die haeufigste Falle hier.** Die Firebase
+  Console gehoert Google und nimmt Gabriels GOOGLE-Passwort. Das App-Konto steht
+  in der Nutzerliste des Projekts (Anbieter nur E-Mail/Passwort, kein Google) und
+  hat ein EIGENES. Wer das Google-Passwort in `privat\firebase-konto.json` schreibt,
+  bekommt `INVALID_LOGIN_CREDENTIALS`, und Firebase sagt absichtlich nicht, welches
+  von beiden falsch war. Kandidaten durchprobieren: `privat\passwort-pruefen.html`.
 - **Dieses Repo ist OEFFENTLICH.** Keine personenbezogenen Daten in Repo-Dateien —
   auch nicht in Doku wie `weitermachen.md`. Die Konto-E-Mail bleibt als Platzhalter
   `FITNESS-KONTO@BEISPIEL.DE` in `firestore.rules`; die echte Adresse existiert nur
