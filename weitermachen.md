@@ -34,8 +34,10 @@
   ist seit 19.07.2026 nicht gelaufen; die Garmin-Verbindung holt keine Historie
   nach. Erster echter Test mit seinem Plan-Lauf am Sa 19.09.2026 — dann ist
   `source: "GARMIN"` statt `"UPLOAD"` zu erwarten.
-- **Lisas intervals.icu-Zugang fehlt** (Konto, Garmin verbinden, Schluessel).
-  Steht im Hub.
+- **Lisas erster Lauf ist der eigentliche Test der Garmin-Anbindung.** Ihr Zugang
+  steht (10.09.), aber intervals.icu bekommt nur Laeufe, die NACH dem Verbinden
+  aufgezeichnet wurden — bis dahin ist ihr Konto dort leer. Gleiche Lage wie bei
+  Gabriel.
 - **Offene Frage zum Kurztext:** Soll die Zeile "Erledigt ohne Rueckmeldung: N"
   im kopierten Text bleiben? Frage liegt im Hub.
 - Drei leere Worktree-Huellen unter `.claude\worktrees\` sind weiterhin von
@@ -54,26 +56,24 @@
    Ausreisser), `wiedereinstieg` in `privat\pace-profil.json` anpassen,
    `laufplan-vorgaben.mjs` laufen lassen, mit `lauf-cloud.mjs schreiben` in die
    Cloud. Ablauf steht in `docs/laufplan-vorgaben.md` Abschnitt 5.
-2. **Nach Gabriels erstem Lauf den Garmin-Abgleich pruefen:** kommt die
+2. **Nach dem ersten Lauf den Garmin-Abgleich pruefen** (bei beiden, Zugaenge
+   stehen seit 10.09.): kommt die
    Aktivitaet an, trifft sie den geplanten Lauf, stimmen km und Zeit? Bei
    Abweichungen zuerst `scripts/runmatch-test.mjs` um den Fall erweitern, dann
    `src/utils/runMatch.js` — der Test ist der Vertrag.
 3. **Rueckmeldungen in die Plananpassung einbauen:** Sie stehen jetzt selbst in
    der Cloud, `lauf-cloud.mjs holen` bringt sie mit. Kennungen behalten,
    erledigte Laeufe gewinnen lokal (`docs/laufplan-format.md` Abschnitt 5).
-4. **Lisas Zugang einrichten**, sobald ihr Konto existiert: Schluessel nie in den
-   Chat, sondern per `privat\intervals-von-telegram.mjs` oder direkt in
-   `privat\intervals.json` (Eintrag `user1`).
-5. Leere Ordnerhuellen entfernen, sobald kein Prozess sie mehr haelt:
+4. Leere Ordnerhuellen entfernen, sobald kein Prozess sie mehr haelt:
    `Remove-Item "C:\Projekte\Fitness Tracker\.claude\worktrees\<name>" -Recurse -Force`
    fuer die drei oben genannten.
-6. Meldet Gabriel ein Problem mit "Workout beenden" oder dem Quick-Log-Knopf:
+5. Meldet Gabriel ein Problem mit "Workout beenden" oder dem Quick-Log-Knopf:
    zuerst `public/sw-custom.js` und die Notification-Payload in
    `TrackingView.vue` pruefen.
-7. Sagt Gabriel, dass die sechs Reiter auf seinem Handy zu eng sind: die
+6. Sagt Gabriel, dass die sechs Reiter auf seinem Handy zu eng sind: die
    Beschriftungen blenden sich heute erst unter 340 px aus
    (`BottomNav.vue`, Media-Query) — Schwelle anheben statt Labels kuerzen.
-8. Paket 3 (Wochenbericht per Telegram, `docs/laufplaner-plan.md` Abschnitt 7)
+7. Paket 3 (Wochenbericht per Telegram, `docs/laufplaner-plan.md` Abschnitt 7)
    nur nach ausdruecklicher Freigabe bauen.
 
 ## Stolperfallen (aktuell)
