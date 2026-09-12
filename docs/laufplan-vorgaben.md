@@ -100,6 +100,29 @@ ist oeffentlich.
 | `wiedereinstieg` | Zuschlag in Sekunden je km bis zu einem Datum. Von oben nach unten, die erste passende Stufe gilt. |
 | `regeln` | Welcher Lauf welche Vorgabe bekommt. |
 
+### Pulsbereiche muessen belegt sein
+
+Die Pulsbereiche sind die Eingabe, aus der alles andere faellt — das Modell
+rechnet sie nur in Tempo um. Eine geratene Zahl erzeugt hier eine praezise
+aussehende Tempovorgabe, die trotzdem unbrauchbar ist, und der Fehler faellt
+beim Nachrechnen nicht auf: Die Rechnung stimmt ja, nur ihre Eingabe nicht.
+Genau das ist am 12.09.2026 passiert. Aufgefallen ist es erst, weil der Laeufer
+sein vorgegebenes Tempo als zu langsam empfand.
+
+Darum traegt jeder Pulsbereich seine Begruendung im Profil neben sich, im Feld
+`_pulsbereiche`. Belastbar sind vor allem drei Quellen aus der eigenen Historie:
+
+- **Lange Laeufe.** Wer stundenlang bei einem Puls unterwegs ist, arbeitet dort
+  noch mit Sauerstoff — die Grenze liegt also darueber, nicht darunter.
+- **Die Verteilung der Durchschnittspulse.** Ein „lockerer" Bereich, in dem
+  kaum einer der letzten Laeufe liegt, beschreibt niemanden.
+- **Ein harter Wettkampf ueber etwa eine Stunde.** Daraus faellt der
+  Schwellenpuls, und die uebrigen Bereiche als Prozentsatz davon.
+
+Fehlt ein solcher Beleg, gehoert der Bereich nicht ins Profil. `pace-modell.mjs`
+sagt von sich aus, welcher Pulsbereich durch echte Laeufe gedeckt ist und ab wo
+es hochrechnet — diese Grenze ist der ehrlichste Hinweis, den es hier gibt.
+
 ### Regeln
 
 Regeln werden von oben nach unten geprueft, **die erste passende gewinnt**.
