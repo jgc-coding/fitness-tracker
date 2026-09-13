@@ -3,6 +3,30 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.8.0] — 2026-09-13
+
+Ein Wunsch aus dem Training (Gabriel): Waehrend des Workouts steht neben dem
+letzten Gewicht jetzt auch die Wiederholungszahl.
+
+### Features
+- **Wiederholungen neben dem Vorwert:** Ist eine Uebung heute noch nicht
+  eingetragen, zeigt die Karte je Nutzer "42.5kg x 10" statt nur "42.5kg" —
+  den Gewichtsvorschlag (mit Pfeil, wenn gesteigert) und die Wdh der letzten
+  Einheit. Dieselbe Zahl steht in der Empfehlungszeile ueber dem Rad und in
+  der Uebungsliste auf dem Sperrbildschirm ("~42.5kg x10").
+
+### Fixes
+- **Wdh werden auf schmalen Handys nicht mehr abgeschnitten:** Bei 360 px
+  Bildschirmbreite passte schon der gespeicherte Wert "42.5kg x 10" nicht in
+  die halbe Karte, das Ende wurde abgeschnitten. Der Wert bricht jetzt vor dem
+  "x" in eine zweite Zeile um; auf breiteren Handys bleibt es bei einer Zeile.
+
+### Entscheidungen
+- **Eine Quelle fuer die Wdh:** Karte, Empfehlungszeile, Vorbelegung des Rads,
+  Quick-Log-Knopf und Sperrbildschirm lesen dieselbe Hilfsfunktion
+  (`getLastReps` in der TrackingView). Die Karte zeigt damit immer die Zahl,
+  mit der das Rad startet. Am Verhalten der Vorbelegung aendert sich nichts.
+
 ## [1.7.1] — 2026-09-09
 
 Nur Werkzeuge, die App selbst ist unveraendert. Beim ersten echten Einsatz von

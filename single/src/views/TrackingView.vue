@@ -80,10 +80,15 @@
               <span v-if="authStore.users.length > 1" class="user-value-name">{{ user.name }}</span>
               <span class="user-value-data">
                 <template v-if="getSavedValue(planExercise.exerciseId, user.id, 'weight')">
-                  {{ getSavedValue(planExercise.exerciseId, user.id, 'weight') }}kg x {{ getSavedValue(planExercise.exerciseId, user.id, 'reps') }}
+                  {{ getSavedValue(planExercise.exerciseId, user.id, 'weight') }}kg <span class="value-reps">x {{ getSavedValue(planExercise.exerciseId, user.id, 'reps') }}</span>
                 </template>
                 <template v-else-if="recommendations[planExercise.exerciseId]?.[user.id]">
                   <span class="rec-hint">{{ recommendations[planExercise.exerciseId][user.id].weight }}kg</span>
+                  <!-- Wdh der letzten Einheit. {{ ' ' }} statt Leerzeichen: Vue streicht
+                       Leerraum am Rand eines template, und nur dort darf umbrochen werden -->
+                  <template v-if="getLastReps(planExercise.exerciseId, user.id) != null">
+                    {{ ' ' }}<span class="rec-hint value-reps">x {{ getLastReps(planExercise.exerciseId, user.id) }}</span>
+                  </template>
                   <span v-if="increaseFlags[planExercise.exerciseId]?.[user.id]" class="increase-hint">&#8593;</span>
                 </template>
                 <template v-else>--</template>
@@ -132,7 +137,7 @@
 
         <!-- Recommendation hint -->
         <div v-if="pickerRecommendation" class="picker-rec">
-          Empfehlung: {{ pickerRecommendation.weight }}kg
+          Empfehlung: {{ pickerRecommendation.weight }}kg<template v-if="pickerLastReps != null"> x {{ pickerLastReps }}</template>
           <span v-if="pickerShouldIncrease" class="increase-hint"> &#8593; erhoeht</span>
         </div>
 
@@ -439,6 +444,12 @@ const pickerShouldIncrease = computed(() => {
   return increaseFlags[ex?.exerciseId]?.[pickerUserId.value] || false
 })
 
+const pickerLastReps = computed(() => {
+  if (activeExerciseIndex.value < 0) return null
+  const ex = workoutExercises.value[activeExerciseIndex.value]
+  return ex ? getLastReps(ex.exerciseId, pickerUserId.value) : null
+})
+
 const otherUserName = computed(() => {
   const other = authStore.users.find(u => u.id !== pickerUserId.value)
   return other?.name || ''
@@ -461,6 +472,12 @@ function getSavedValue(exerciseId, userId, field) {
   const sets = workoutStore.getSetsForExercise(exerciseId, userId)
   const set = sets.find(s => s.setNumber === 1)
   return set ? set[field] : null
+}
+
+// Wdh der letzten Einheit. Karte, Rad-Vorbelegung, Quick-Log-Knopf und
+// Sperrbildschirm lesen sie nur hier: die Karte zeigt, womit das Rad startet.
+function getLastReps(exerciseId, userId) {
+  return lastSetsCache[exerciseId]?.[userId]?.[0]?.reps ?? null
 }
 
 // Gewichtsschritt der Uebung: 1.25 kg fuer Langhantel/Maschine, sonst 1 kg
@@ -509,10 +526,9 @@ function openExerciseInput(index) {
     pickerReps.value = saved.reps
   } else {
     const rec = recommendations[ex.exerciseId]?.[pickerUserId.value]
-    const lastSets = lastSetsCache[ex.exerciseId]?.[pickerUserId.value]
     // ?? statt ||: 0 kg (Koerpergewichtsuebung) ist ein gueltiger Wert
     pickerWeight.value = rec?.weight ?? 20
-    pickerReps.value = lastSets?.[0]?.reps ?? 10
+    pickerReps.value = getLastReps(ex.exerciseId, pickerUserId.value) ?? 10
   }
 
   showWheelPicker.value = true
@@ -528,9 +544,8 @@ watch(pickerUserId, (userId) => {
     pickerReps.value = saved.reps
   } else {
     const rec = recommendations[ex.exerciseId]?.[userId]
-    const lastSets = lastSetsCache[ex.exerciseId]?.[userId]
     pickerWeight.value = rec?.weight ?? 20
-    pickerReps.value = lastSets?.[0]?.reps ?? 10
+    pickerReps.value = getLastReps(ex.exerciseId, userId) ?? 10
   }
 })
 
@@ -606,9 +621,8 @@ function buildNotificationQuickLog() {
       const saved = workoutStore.getSetsForExercise(ex.exerciseId, user.id).find(s => s.setNumber === 1)
       if (saved) continue
       const rec = recommendations[ex.exerciseId]?.[user.id]
-      const lastSets = lastSetsCache[ex.exerciseId]?.[user.id]
       const weight = rec?.weight ?? 20
-      const reps = lastSets?.[0]?.reps ?? 10
+      const reps = getLastReps(ex.exerciseId, user.id) ?? 10
       queue.push({
         label: `${getExerciseName(ex.exerciseId)} ${weight}kg x${reps}`,
         set: {
@@ -649,7 +663,8 @@ function updateNotification() {
     getExerciseName,
     authStore.users,
     recommendations,
-    getSavedValue
+    getSavedValue,
+    getLastReps
   )
   const { actions, data } = buildNotificationQuickLog()
   showWorkoutNotification(currentDay.value.title, lines, { actions, data })
@@ -996,9 +1011,14 @@ onUnmounted(() => {
   font-weight: var(--font-weight-semibold);
   flex: 1;
   text-align: right;
-  white-space: nowrap;
+  /* Darf umbrechen: "42.5kg x 10" passt bei 360 px nicht in die halbe Karte.
+     Getrennt wird nur vor dem "x" (.value-reps bleibt zusammen). */
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.value-reps {
+  white-space: nowrap;
 }
 
 .rec-hint {

@@ -71,7 +71,9 @@ export function dismissWorkoutNotification() {
   }
 }
 
-export function buildExerciseLines(workoutExercises, getExerciseName, users, recommendations, getSavedValue) {
+// getLastReps kommt aus der TrackingView: dieselbe Quelle wie Karte und Rad,
+// damit der Sperrbildschirm dieselben Wdh zeigt.
+export function buildExerciseLines(workoutExercises, getExerciseName, users, recommendations, getSavedValue, getLastReps) {
   const lines = []
 
   for (const ex of workoutExercises) {
@@ -87,7 +89,8 @@ export function buildExerciseLines(workoutExercises, getExerciseName, users, rec
       } else {
         const rec = recommendations[ex.exerciseId]?.[user.id]
         if (rec) {
-          userParts.push(`${user.name}: ~${rec.weight}kg`)
+          const reps = getLastReps(ex.exerciseId, user.id)
+          userParts.push(`${user.name}: ~${rec.weight}kg${reps != null ? ` x${reps}` : ''}`)
         } else {
           userParts.push(`${user.name}: --`)
         }

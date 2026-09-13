@@ -96,6 +96,11 @@ fuer `/single/`, damit sich die Service-Worker nicht stoeren.
 - **Ein Satz je Uebung ist Absicht** (Entscheidung Gabriel 2026-08-16): genau ein
   Referenzwert (Gewicht x Wdh) je Uebung und Nutzer; das Sets-Feld der Planung ist
   reine Notiz. Kein Multi-Set-Tracking bauen.
+- **Vorwert = Gewicht x Wdh aus EINER Quelle:** Karte, Empfehlungszeile, Rad-Vorbelegung,
+  Quick-Log-Knopf und Sperrbildschirm lesen die Wdh der letzten Einheit nur ueber
+  `getLastReps` (TrackingView), sonst zeigt die Karte etwas anderes, als das Rad
+  vorbelegt. Auf 360-px-Handys bricht der Wert vor dem "x" um (`{{ ' ' }}` im
+  Template ist Absicht, siehe Kommentar dort).
 - **Workout-Abweichungen liegen am Log:** Tausch/Quick-Add schreiben die aktuelle
   Uebungsliste als `exercises`-Override an den `workoutLog` (persistWorkoutExercises);
   Resume nutzt das Override, sonst die Plan-Liste. Individuelle Trainings liegen
