@@ -9,9 +9,9 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
 
 ## Kernfunktionen (Pruefliste — jede Runde erneut abfahren)
 1. **Plan erstellen** (Plan + Trainingstag + Uebungen zuordnen) — erwartet: Plan sichtbar, Uebungen mit Sets · zuletzt: laeuft (2026-08-16, live in Single-Variante)
-2. **Workout starten + Satz loggen** — erwartet: 1 Tap Start, Vorbelegung mit letzten Werten, Satz erscheint auf Karte · zuletzt: laeuft (2026-08-16, live)
-3. **Uebung tauschen/hinzufuegen im Workout** — erwartet: Tausch ueberlebt Tab-Wechsel und Reload; Frage "nur heute / dauerhaft" · zuletzt: laeuft (2026-08-16, live nach V2-Fix)
-4. **Individuelles Training** — erwartet: ueberlebt App-Neustart · zuletzt: laeuft (2026-08-16, live nach V3-Fix)
+2. **Workout starten + Satz loggen** — erwartet: 1 Tap Start, Vorbelegung mit letzten Werten, Satz erscheint auf Karte · zuletzt: laeuft (2026-09-13, Browser, beide Apps: Karte zeigt Gewicht x Wdh, Rad startet mit denselben Zahlen, Speichern beider Nutzer mit Auto-Wechsel)
+3. **Uebung tauschen/hinzufuegen im Workout** — erwartet: Tausch ueberlebt Tab-Wechsel und Reload; Frage "nur heute / dauerhaft" · zuletzt: Tausch "nur heute" laeuft (2026-09-13, Browser); Reload nach Tausch und Hinzufuegen zuletzt 2026-08-16 geprueft
+4. **Individuelles Training** — erwartet: ueberlebt App-Neustart · zuletzt: laeuft (2026-09-13, Browser — nach Neuladen wieder da)
 5. **Plan-Workout-Resume nach Reload** — erwartet: aktiver Tag + Saetze wieder da · zuletzt: laeuft (2026-08-16, live)
 6. **History-Spreadsheet** — erwartet: Muskelgruppen, neueste Spalte direkt sichtbar, spontane Uebungen dabei · zuletzt: laeuft (2026-08-16, live)
 7. **Katalog** (Suche/Filter/eigene Uebung/Seed) — zuletzt: laeuft (2026-08-16, live)
@@ -23,6 +23,18 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
 - [ ] **V8** (C) Direkteingabe im Gewichts-Rad — zurueckgestellt 2026-08-16 (Gabriel)
       Tipp auf den Wert oeffnet Ziffernblock; Rad bleibt fuer Feinjustage.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
+- [ ] **V14** (C) Deploy-Workflow auf Node-24-faehige Actions heben — gefunden 2026-09-13
+      GitHub meldet beim Deploy "Node.js 20 is deprecated": checkout, setup-node und
+      upload-artifact laufen nur noch erzwungen auf Node 24. Heute gruen; faellt der
+      Zwang weg, bricht der Deploy. Versionen bewusst anheben, mit Test-Deploy pruefen.
+      Beleg: Actions-Lauf 34761917049; deploy.yml nutzt Actions @v4 und node-version 20. · Aufwand: S
+- [ ] **V15** (C) Zweiter Eintrag am selben Tag mischt Gewicht und Wdh — gefunden 2026-09-13
+      Wird dieselbe Uebung fuer denselben Nutzer an einem Tag zweimal gespeichert
+      (Tagwechsel mitten im Training, zwei Handys ohne Sync), kommt das Gewicht vom
+      neuesten Eintrag, die Wdh aber vom aeltesten. Seit v1.8.0 steht dieses Paar sichtbar
+      auf der Karte. Beleg: useHistory.js — getLatestWeight nimmt den neuesten Satz,
+      getLastSets()[0] den aeltesten (Sortierung nach id); aus dem Code gelesen, nicht
+      nachgestellt. · Aufwand: S
 
 ## Ideen
 - **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S

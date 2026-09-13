@@ -1,10 +1,16 @@
-# Weitermachen — Stand 2026-09-09
+# Weitermachen — Stand 2026-09-13
 
 ## Stand
-- **v1.7.1 ist LIVE** (Tags `v1.7.0` und `v1.7.1`, master, Actions gruen,
-  Live-Bundle geprueft: Version 1.7.1 und die Vorgabe-Anzeige stecken im
-  ausgelieferten `RunningView`-Bundle). Gabriel hat am Handy bestaetigt, dass
-  die Vorgaben ankommen.
+- **v1.8.0 ist LIVE** (Tag `v1.8.0`, master `3ad060e`, Actions-Lauf 34761917049
+  gruen, Live-Bundle beider Apps geprueft: Version 1.8.0 und `value-reps` im
+  `TrackingView`-Chunk). Neu: Die Uebungskarte im Workout zeigt je Nutzer
+  Gewicht UND Wdh der letzten Einheit ("42.5kg x 10"), ebenso die
+  Empfehlungszeile ueber dem Rad und die Liste auf dem Sperrbildschirm. Auf
+  360-px-Handys bricht der Wert vor dem "x" um (vorher schnitt die Karte schon
+  gespeicherte Werte ab). Im Browser bei 360 und 412 px gemessen, am Handy
+  noch nicht angesehen.
+- v1.7.1 davor: Gabriel hat am Handy bestaetigt, dass die Puls- und
+  Tempovorgaben ankommen.
 - **Der PC haengt jetzt direkt an der Cloud** (`scripts/lauf-cloud.mjs`):
   `holen` schreibt den Stand als normale Plandatei nach `privat\`, `schreiben`
   fuehrt eine Plandatei ueber DASSELBE Merge-Modul wie die App mit der Cloud
@@ -28,6 +34,11 @@
   und drei Stolperfallen entfernt, die doppelt hier standen.
 
 ## Offen
+- **Sichtpruefung v1.8.0 am Handy** (Wdh neben dem Vorwert): Karte vor dem
+  Eintragen ("42.5kg x 10", Pfeil bei Steigerung), Umbruch langer Werte wie
+  "103.75kg x 12" in zwei Zeilen, Liste auf dem Sperrbildschirm ("~42.5kg x10").
+  Nur am Geraet pruefbar; PWA vorher einmal ganz schliessen. Die Checkliste ging
+  am 13.09. per Telegram an Gabriel.
 - **Praxistest der Rueckmeldung am Handy** (v1.6.0: Stufe und Notiz geben,
   Kurztext kopieren) steht weiterhin aus. Steht im Hub.
 - **In Gabriels intervals.icu-Konto liegt noch keine einzige Aktivitaet.** Er
@@ -77,6 +88,18 @@
    nur nach ausdruecklicher Freigabe bauen.
 
 ## Stolperfallen (aktuell)
+- **Browser-Pane springt zwischen zwei Runden auf die Preview-Adresse zurueck**
+  (hier `localhost:5173`). Tests auf einer eigenen Adresse darum als EIN
+  `browser_batch`, der mit `navigate` beginnt; sonst trifft das naechste Skript
+  die falsche Seite.
+- **Dev-Server liest eine geaenderte `package.json` nicht neu:** Die Einstellungen
+  zeigen die alte Versionsnummer, obwohl der richtige Server laeuft. Die neue
+  Version im Build belegen (`dist/assets/SettingsView-*.js`) oder den Server neu
+  starten.
+- **Vue-Hot-Reload mit Template vor Skript geaendert** ergibt
+  `_ctx.X is not a function` in der Konsole. Das ist ein Zwischenstand: nach
+  frischem Laden die Fehler selbst mitschneiden (`console.error` umhaengen), statt
+  alte Konsolen-Eintraege zu deuten.
 - **`process.exit()` nach einem `fetch` bricht unter Windows ab.** Node meckert
   mit "Assertion failed ... async.c" und liefert Rueckgabewert 127 statt 1 — die
   eigentliche Fehlermeldung ist dann verdeckt. Stattdessen werfen und ganz am
