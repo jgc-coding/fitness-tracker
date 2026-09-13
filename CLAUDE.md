@@ -181,6 +181,9 @@ fuer `/single/`, damit sich die Service-Worker nicht stoeren.
   eine eigene Herkunft ohne Anmeldung). `localhost` und `127.0.0.1` koennen aus einer
   frueheren Sitzung angemeldet sein — dann landet jeder gespeicherte Testsatz in der
   echten Cloud.
+- **`privat\` gehoert in den Hauptbaum** (`C:\Projekte\Fitness Tracker\privat`). Ein
+  `privat\` in einem Worktree geht mit ihm verloren: `git worktree remove` loescht
+  ignorierte Dateien ohne Rueckfrage. Vorher `git status --porcelain --ignored` pruefen.
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
