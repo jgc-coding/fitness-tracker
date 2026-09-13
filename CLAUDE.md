@@ -176,6 +176,11 @@ fuer `/single/`, damit sich die Service-Worker nicht stoeren.
   Service Worker liefert bis dahin den alten Stand aus. Zum Live-Pruefen im Browser:
   Service Worker abmelden, Caches leeren, dann von der Wurzel `/fitness-tracker/`
   starten; ohne Service Worker enden Deeplinks wie `/settings` bei GitHub Pages im 404.
+- **Browser-Tests mit Testdaten nur auf einer frischen Adresse** wie
+  `http://reps-test.localhost:5173/fitness-tracker/` (jede `*.localhost`-Subdomain ist
+  eine eigene Herkunft ohne Anmeldung). `localhost` und `127.0.0.1` koennen aus einer
+  frueheren Sitzung angemeldet sein — dann landet jeder gespeicherte Testsatz in der
+  echten Cloud.
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
