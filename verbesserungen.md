@@ -28,13 +28,6 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
       upload-artifact laufen nur noch erzwungen auf Node 24. Heute gruen; faellt der
       Zwang weg, bricht der Deploy. Versionen bewusst anheben, mit Test-Deploy pruefen.
       Beleg: Actions-Lauf 34761917049; deploy.yml nutzt Actions @v4 und node-version 20. · Aufwand: S
-- [ ] **V15** (C) Zweiter Eintrag am selben Tag mischt Gewicht und Wdh — gefunden 2026-09-13
-      Wird dieselbe Uebung fuer denselben Nutzer an einem Tag zweimal gespeichert
-      (Tagwechsel mitten im Training, zwei Handys ohne Sync), kommt das Gewicht vom
-      neuesten Eintrag, die Wdh aber vom aeltesten. Seit v1.8.0 steht dieses Paar sichtbar
-      auf der Karte. Beleg: useHistory.js — getLatestWeight nimmt den neuesten Satz,
-      getLastSets()[0] den aeltesten (Sortierung nach id); aus dem Code gelesen, nicht
-      nachgestellt. · Aufwand: S
 
 ## Ideen
 - **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S

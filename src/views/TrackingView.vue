@@ -300,7 +300,7 @@ const workoutStore = useWorkoutStore()
 const plansStore = usePlansStore()
 const authStore = useAuthStore()
 const { exercises, loadExercises, getExerciseById } = useExercises()
-const { getLatestWeight, getLastSets, shouldIncreaseWeight } = useHistory()
+const { getLatestWeight, shouldIncreaseWeight } = useHistory()
 
 const showDaySelector = ref(false)
 const showSwapModal = ref(false)
@@ -312,7 +312,6 @@ const swapIndex = ref(-1)
 const recommendations = reactive({})
 const increaseFlags = reactive({})
 const increaseToggles = reactive({})
-const lastSetsCache = reactive({})
 const workoutExercises = ref([])
 const currentDay = ref(null)
 
@@ -479,10 +478,13 @@ function getSavedValue(exerciseId, userId, field) {
   return set ? set[field] : null
 }
 
-// Wdh der letzten Einheit. Karte, Rad-Vorbelegung, Quick-Log-Knopf und
-// Sperrbildschirm lesen sie nur hier: die Karte zeigt, womit das Rad startet.
+// Wdh der letzten Einheit — aus DEMSELBEN gespeicherten Satz wie der
+// Gewichtsvorschlag daneben. Vorher standen beide in getrennten Speichern, die
+// nacheinander gefuellt wurden: der Vorschlag nur bei einem Treffer, die Wdh
+// dagegen immer. Blieb die zweite Abfrage leer, zeigte die Karte das Gewicht
+// ohne Wdh, bis die App neu startete (Gabriel beim Uebungstausch, 15.09.2026).
 function getLastReps(exerciseId, userId) {
-  return lastSetsCache[exerciseId]?.[userId]?.[0]?.reps ?? null
+  return recommendations[exerciseId]?.[userId]?.reps ?? null
 }
 
 // Gewichtsschritt der Uebung: 1.25 kg fuer Langhantel/Maschine, sonst 1 kg
@@ -495,7 +497,6 @@ async function loadRecommendations() {
   for (const ex of workoutExercises.value) {
     if (!recommendations[ex.exerciseId]) recommendations[ex.exerciseId] = {}
     if (!increaseFlags[ex.exerciseId]) increaseFlags[ex.exerciseId] = {}
-    if (!lastSetsCache[ex.exerciseId]) lastSetsCache[ex.exerciseId] = {}
 
     for (const user of authStore.users) {
       const latest = await getLatestWeight(ex.exerciseId, user.id)
@@ -509,11 +510,11 @@ async function loadRecommendations() {
         const weight = shouldInc
           ? Math.round((latest.weight + getWeightStep(ex.exerciseId)) * 100) / 100
           : latest.weight
+        // latest traegt die Wdh dieses Satzes mit — getLastReps liest sie von
+        // hier. Ein Eintrag, ein Paar: das Rad startet mit dem, was die Karte
+        // zeigt, und ein leeres Abfrageergebnis kann kein halbes Paar hinterlassen.
         recommendations[ex.exerciseId][user.id] = { ...latest, weight }
       }
-
-      const last = await getLastSets(ex.exerciseId, user.id)
-      lastSetsCache[ex.exerciseId][user.id] = last
     }
   }
 }
