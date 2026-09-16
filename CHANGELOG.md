@@ -3,6 +3,35 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [1.8.1] — 2026-09-16
+
+Ein Fehler aus dem Training (Gabriel): Nach einem Uebungstausch fehlte die
+Wiederholungszahl auf allen Karten, das Gewicht blieb stehen. Nach einem
+Neustart der App war sie wieder da.
+
+### Fixes
+- **Gewicht und Wiederholungen kommen jetzt aus demselben Satz.** Vorher lagen
+  sie in zwei getrennten Speichern, die nacheinander gefuellt wurden: der
+  Gewichtsvorschlag nur bei einem Treffer, die Wiederholungen dagegen immer —
+  auch mit einem leeren Abfrageergebnis. Blieb die zweite Abfrage leer, zeigte
+  die Karte das Gewicht ohne Wdh, bis die App neu startete. `getLastReps` liest
+  die Wdh jetzt aus dem Datensatz, aus dem auch der Gewichtsvorschlag stammt;
+  ein halbes Paar kann damit nicht mehr entstehen. Welcher Ausloeser die Abfrage
+  auf dem Handy leer ausgehen liess, ist NICHT bewiesen — der halbe Zustand war
+  im Browser nur waehrend des Ladens sichtbar ("42.5kg" ohne Wdh, gemessen 120 ms
+  nach dem Start). Die Aenderung macht ihn unabhaengig vom Ausloeser unmoeglich.
+- **Zweiter Eintrag am selben Tag mischt nichts mehr** (Befund V15): Wurde
+  dieselbe Uebung fuer denselben Nutzer an einem Tag zweimal gespeichert, kam das
+  Gewicht vom neuesten Eintrag, die Wdh aber vom aeltesten. Beide stammen jetzt
+  aus demselben Satz. Bei alten Mehrsatz-Daten zeigt die Karte deshalb die Wdh
+  des zuletzt eingetragenen Satzes statt der des ersten (oft ein Aufwaermsatz).
+
+### Entscheidungen
+- **Eine Datenbank-Abfrage weniger je Uebung und Nutzer.** Der Ladelauf im
+  Tracking kommt mit zwei statt drei Abfragen aus; der separate Wdh-Speicher
+  (`lastSetsCache`) ist ersatzlos entfallen. Weniger Code, und der Vorwert kann
+  nicht mehr auseinanderlaufen.
+
 ## [1.8.0] — 2026-09-13
 
 Ein Wunsch aus dem Training (Gabriel): Waehrend des Workouts steht neben dem
