@@ -67,6 +67,29 @@
 9. Paket 3 (Wochenbericht per Telegram, `docs/laufplaner-plan.md` Abschnitt 7) nur nach
    ausdruecklicher Freigabe bauen.
 
+## Was Gabriel selbst tun muss
+
+Am 19.09.2026 von der Hub-Tafel hierher gezogen. Die Tafel nimmt seither nur
+noch, was Gabriel selbst eintraegt oder ausdruecklich beauftragt. Wo oben im
+Text von der Hub-Karte oder einem Hub-Sammelpunkt die Rede ist, sind diese
+Punkte gemeint.
+
+- [ ] Rueckmeldung nach dem Lauf am Handy testen (v1.6.0 ist live) (seit 2026-09-07)
+  - App schliessen und neu oeffnen, sonst zeigt sie noch 1.5.0
+  - Laufen, Woche: einen erledigten Lauf antippen, Wie war es? tippen, Stufe und Notiz speichern
+  - Laufen, Plan: Nur Rueckmeldungen kopieren antippen und den Text in den Chat kleben
+- [ ] Lisas Handy: App neu starten, damit die Tempovorgaben ankommen (seit 2026-09-09)
+- [ ] Beim naechsten Training v1.8.1 am Handy pruefen (seit 2026-09-16)
+  - App ganz schliessen und neu oeffnen, unter Settings steht 1.8.1
+  - Karte zeigt vor dem Eintragen Gewicht x Wdh, bei allen Uebungen
+  - Eine Uebung tauschen: Wiederholungen bleiben ueberall stehen
+  - Rad und Empfehlungszeile starten mit genau diesen Zahlen
+- [ ] Claude Rueckmeldung geben (4 Punkte, Stand 16.09.) (seit 2026-09-16)
+  - Soll die Zeile Erledigt ohne Rueckmeldung im kopierten Kurztext bleiben?
+  - save-state clean und ignorierte privat-Dateien: Skill anpassen?
+  - V14 freigeben: Deploy-Actions auf neue Version heben?
+  - Worktree-Reste dieser Sitzung loeschen? Befehle stehen in weitermachen.md
+
 ## Stolperfallen (aktuell)
 - **Browser-Pane springt zwischen zwei Runden auf die Preview-Adresse zurueck**
   (`localhost:5173`): Tests als EIN `browser_batch`, der mit `navigate` beginnt.
