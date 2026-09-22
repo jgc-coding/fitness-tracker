@@ -1,22 +1,34 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 1, Paket P1)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 2, Paket P2)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
   deployt.
-- **P1 ist umgesetzt:** Die Single-Variante ist komplett entfernt (`single/`,
-  `vite.single.config.js`, `scripts/check-drift.mjs`, die fuenf npm-Skripte,
-  `navigateFallbackDenylist`, `single/`-Pruefung in `isOwnClient`). Der Deploy
-  ruft jetzt `npm run build` auf. `USERS` hat drei Nutzer (user3 Ben, gruen
-  `--color-user3` #2f7d4f), Lisa traegt `zyklus: true`; SettingsView beschriftet
-  die Nutzer generisch ("Benutzer N" per Index). CLAUDE.md und README sind auf
-  den Drei-Personen-Stand angepasst, veraltete Single-Kommentare in `src/` und
-  `scripts/lib/` bereinigt. Alle pruefen.txt-Befehle gruen (Build eingeschlossen).
+- **P2 ist umgesetzt:** Der auth store fuehrt `activeUserIds` (localStorage,
+  Schluessel `${db.name}:activeUserIds`, Fallback `['user1','user2']`) plus
+  `activeUsers` (Computed) und `setActiveUsers` (validiert Ids, sortiert nach
+  USERS-Reihenfolge, verwirft leere Listen). Neue Komponente
+  `src/components/shared/UserSelectModal.vue` (Mehrfachauswahl mit Nutzerfarben,
+  Bestaetigen bei 0 deaktiviert, letzte Auswahl vorbelegt; Android-Back laesst
+  die alte Auswahl gelten, weil nur Bestaetigen den Store schreibt). App.vue
+  zeigt den Dialog beim Start, ausser heute liegt ein unfertiges Workout in der
+  DB. `startWorkout`/`startCustomWorkout` schreiben `userIds` an den workoutLog,
+  `resumeTodaysWorkout` uebernimmt `aw.userIds` in die Auswahl. TrackingView
+  zeigt im aktiven Workout eine antippbare Chip-Zeile (Nutzerfarben); Aenderung
+  laeuft ueber `workoutStore.updateWorkoutUsers` (nur userIds + updatedAt,
+  Saetze unangetastet). Alle fuenf pruefen.txt-Befehle gruen (Build 110 Module).
+- **P1 (Lauf 1):** Single-Variante komplett entfernt, drei Nutzer im Fundament
+  (Details im CHANGELOG-Verlauf des Plans bzw. Lauf-1-Protokoll unten).
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P2-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P2 weiter (Startdialog "Wer trainiert?").
+- **Pakete P3-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P3 weiter (Tracking-Anzeige fuer 1 bis 3 aktive
+  Nutzer; Karten, Empfehlungen, Rad-Tabs und Notification arbeiten dann ueber
+  `activeUsers` statt `users`).
+- **Hinweis fuer P3:** Die Kartenanzeige, das Rad und `buildNotificationQuickLog`
+  in TrackingView laufen nach P2 BEWUSST noch ueber `authStore.users` (alle
+  drei) — die Umstellung auf `activeUsers` ist genau der Inhalt von P3.
 - **`.claude\launch.json` enthaelt noch die Konfiguration "Vite Dev Server
   (Single)"**, die auf die geloeschte `vite.single.config.js` zeigt. Ein
   Paket-Lauf darf unter `.claude\` nicht schreiben — bitte in einer
@@ -35,8 +47,9 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P2**: Startdialog "Wer trainiert?" + `activeUserIds` im auth
-   store (Kriterien im Plan).
+1. **Autopilot P3**: Tracking-Anzeige fuer 1 bis 3 aktive Nutzer (Kriterien im
+   Plan; `authStore.users` in TrackingView vollstaendig durch `activeUsers`
+   ersetzen, Karten-Layout nach Anzahl, Auto-Wechsel im Rad).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -75,6 +88,9 @@
 ## Stolperfallen (aktuell)
 - **Es gibt keine `single/`-Kopie mehr** — kein `cp src/X single/src/X`, kein
   check:drift. Aeltere Notizen, die das noch verlangen, sind ueberholt.
+- **UserSelectModal uebernimmt die Auswahl NUR ueber Bestaetigen** — das ist
+  Absicht (Android-Back = abbrechen). Wer den Dialog erweitert, darf den Store
+  nicht schon beim Antippen der Namen schreiben.
 - **Der Wechsel-Ring (ab P9/P10) braucht tiefe Kopien:** beim Persistieren von
   Uebungslisten `alternativen` mitkopieren, sonst DataCloneError (Leitplanke
   im Plan).
@@ -96,22 +112,35 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 2 / P2: Startdialog "Wer trainiert?" und aktive Nutzer im Store.
+  Beleg: `src/stores/auth.js` exportiert `activeUserIds`/`activeUsers`/
+  `setActiveUsers` (localStorage-Schluessel `${db.name}:activeUserIds`,
+  Fallback `['user1','user2']`); `src/components/shared/UserSelectModal.vue`
+  existiert; App.vue oeffnet den Dialog nur ohne heutiges unfertiges Workout;
+  `startWorkout`/`startCustomWorkout` schreiben `userIds`, `resumeTodaysWorkout`
+  liest sie zurueck; TrackingView hat die Chip-Zeile mit
+  `onActiveUsersChanged` -> `updateWorkoutUsers`. Alle fuenf pruefen.txt-Befehle
+  gruen, `npm run build` baut 110 Module ohne Fehler.
+- Workout-Store nutzt den auth store direkt (`useAuthStore()` im Setup) —
+  kein Import-Zyklus, auth.js importiert workout.js nicht.
 - Lauf 1 / P1: Single-Variante entfernt und Drei-Nutzer-Fundament gelegt.
   Beleg: `single/`, `vite.single.config.js`, `scripts/check-drift.mjs`
   existieren nicht mehr; die drei Kriterien-Greps (`FitTrack Single`,
   `single/src`, `check:drift`) liefern keine Treffer; alle fuenf
-  pruefen.txt-Befehle gruen, `npm run build` baut 108 Module ohne Fehler.
+  pruefen.txt-Befehle gruen.
 - Loeschen per PowerShell `Remove-Item` statt `git rm` (schreibende
   git-Befehle sind dem Paket-Lauf verboten); `git status` fuehrt die
   Loeschungen sauber als `D`.
 
 ### Fehlversuche (mit exaktem Grund)
-- `git grep` mit vorangestelltem `cd` bzw. mit `echo "rc=$?"`-Kette wurde von
-  der Sandbox verweigert (Verzeichniswechsel vor Versionskontroll-Befehl bzw.
-  Mehrfach-Operation). Loesung: jeden `git grep` einzeln und ohne `cd`.
+- Lauf 2: keine.
+- Lauf 1: `git grep` mit vorangestelltem `cd` bzw. mit `echo "rc=$?"`-Kette
+  wurde von der Sandbox verweigert (Verzeichniswechsel vor
+  Versionskontroll-Befehl bzw. Mehrfach-Operation). Loesung: jeden `git grep`
+  einzeln und ohne `cd`.
 
 ### Noch nicht probiert
 - `.claude\launch.json` bereinigen (Schreiben unter `.claude\` ist dem
   Paket-Lauf verboten — interaktive Session noetig).
-- Browser-Test des Drei-Nutzer-Fundaments (laut Plan erst nach allen Paketen
-  in der interaktiven Pruefung vor dem Deploy).
+- Browser-Test des Startdialogs und der Chip-Zeile (laut Plan erst nach allen
+  Paketen in der interaktiven Pruefung vor dem Deploy).

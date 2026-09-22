@@ -153,7 +153,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: SettingsView zeigt die Benutzer-Beschriftung generisch fuer alle Nutzer ("Benutzer 3" statt hart kodiertem Zweier-Ternary)
   - Kriterium: CLAUDE.md und README.md sind angepasst: `git grep -l "FitTrack Single" -- CLAUDE.md README.md` und `git grep -l "single/src" -- CLAUDE.md README.md` und `git grep -l "check:drift" -- CLAUDE.md README.md package.json scripts/ src/` liefern jeweils keine Treffer; die uebrigen Beschreibungen dort bleiben korrekt (kein Status-Text)
   - Kriterium: pruefen.txt gruen (`npm run build` eingeschlossen)
-- [ ] P2: Startdialog "Wer trainiert?" und aktive Nutzer im Store
+- [x] P2: Startdialog "Wer trainiert?" und aktive Nutzer im Store
   - Kriterium: auth store fuehrt `activeUserIds` (Ref, Array) + `activeUsers` (Computed) + Setter mit localStorage-Persistenz (Schluessel mit `db.name`-Praefix wie beim Standard-Nutzer); Fallback bei leerem/kaputtem Speicher ist `['user1','user2']`, nie ein leeres Array
   - Kriterium: Neue Komponente (z.B. `src/components/shared/UserSelectModal.vue`) auf Basis des bestehenden Modals: Mehrfachauswahl der drei Nutzer mit Nutzerfarben, Bestaetigen-Knopf bei 0 Ausgewaehlten deaktiviert, letzte Auswahl vorausgewaehlt
   - Kriterium: App.vue zeigt den Dialog beim Start, AUSSER es existiert ein heutiges unfertiges Workout (direkte Dexie-Abfrage wie in `resumeTodaysWorkout`); Schliessen ueber Android-Back laesst die bisherige Auswahl unveraendert gelten

@@ -3,8 +3,10 @@ import { ref, computed } from 'vue'
 import { db, generateId } from '../db/dexie.js'
 import { getToday } from '../utils/dateHelpers.js'
 import { pushRecord } from '../services/syncService.js'
+import { useAuthStore } from './auth.js'
 
 export const useWorkoutStore = defineStore('workout', () => {
+  const authStore = useAuthStore()
   const activeWorkout = ref(null)
   const currentSets = ref([])
   const isWorkoutActive = computed(() => activeWorkout.value !== null)
@@ -23,6 +25,9 @@ export const useWorkoutStore = defineStore('workout', () => {
         date: today,
         planId,
         trainingDayId: trainingDay.id,
+        // Wer heute trainiert (Startdialog) — Teil des Logs, damit History
+        // und Resume die Besetzung kennen
+        userIds: [...authStore.activeUserIds],
         startedAt: new Date().toISOString(),
         completedAt: null,
         createdAt: new Date().toISOString(),
@@ -30,12 +35,15 @@ export const useWorkoutStore = defineStore('workout', () => {
       }
       await db.workoutLogs.add(existing)
       pushRecord('workoutLogs', existing.id, existing)
-    } else if (existing.completedAt) {
+    } else {
       // Re-opening a finished day — clear completedAt so new sets append to
-      // the right session rather than a "finished" one.
+      // the right session rather than a "finished" one. In beiden Faellen
+      // gilt die aktuelle Nutzer-Auswahl (der Start kam durch den Dialog).
       const updatedAt = new Date().toISOString()
-      await db.workoutLogs.update(existing.id, { completedAt: null, updatedAt })
-      existing = { ...existing, completedAt: null, updatedAt }
+      const patch = { userIds: [...authStore.activeUserIds], updatedAt }
+      if (existing.completedAt) patch.completedAt = null
+      await db.workoutLogs.update(existing.id, patch)
+      existing = { ...existing, ...patch }
       pushRecord('workoutLogs', existing.id, existing)
     }
 
@@ -54,6 +62,7 @@ export const useWorkoutStore = defineStore('workout', () => {
       trainingDayId: null,
       isCustom: true,
       title: 'Individuelles Training',
+      userIds: [...authStore.activeUserIds],
       exercises: exercises.map(e => ({ ...e })),
       startedAt: new Date().toISOString(),
       completedAt: null,
@@ -75,6 +84,19 @@ export const useWorkoutStore = defineStore('workout', () => {
     activeWorkout.value.exercises = exercises
     activeWorkout.value.updatedAt = updatedAt
     await db.workoutLogs.update(activeWorkout.value.id, { exercises, updatedAt })
+    const full = await db.workoutLogs.get(activeWorkout.value.id)
+    if (full) pushRecord('workoutLogs', full.id, full)
+  }
+
+  // Besetzung waehrend eines laufenden Workouts aendern (Chip-Zeile im
+  // Tracking). Nur userIds wird geschrieben — bereits gespeicherte Saetze
+  // bleiben unangetastet.
+  async function updateWorkoutUsers(userIds) {
+    if (!activeWorkout.value) return
+    const updatedAt = new Date().toISOString()
+    const patch = { userIds: [...userIds], updatedAt }
+    await db.workoutLogs.update(activeWorkout.value.id, patch)
+    activeWorkout.value = { ...activeWorkout.value, ...patch }
     const full = await db.workoutLogs.get(activeWorkout.value.id)
     if (full) pushRecord('workoutLogs', full.id, full)
   }
@@ -216,6 +238,12 @@ export const useWorkoutStore = defineStore('workout', () => {
       .sort((a, b) => String(b.startedAt || '').localeCompare(String(a.startedAt || '')))[0]
     if (unfinished) {
       activeWorkout.value = unfinished
+      // Die Besetzung des wiederaufgenommenen Workouts gilt weiter. Logs ohne
+      // userIds (aelterer Stand) lassen die gespeicherte Auswahl unangetastet —
+      // setActiveUsers verwirft leere/unbekannte Listen selbst.
+      if (Array.isArray(unfinished.userIds) && unfinished.userIds.length > 0) {
+        authStore.setActiveUsers(unfinished.userIds)
+      }
       await loadSets()
       return true
     }
@@ -238,6 +266,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     isWorkoutActive,
     startWorkout,
     startCustomWorkout,
+    updateWorkoutUsers,
     persistWorkoutExercises,
     loadSets,
     saveSet,
