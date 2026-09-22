@@ -12,7 +12,8 @@ Firebase (gemeinsames Konto), deployed auf GitHub Pages.
 - Trainingsplaene mit Trainingstagen (woechentlich oder Woche A/B), Deload-Hinweis
 - Workout-Tracking mit Gewichts-/Wiederholungsraedern, Vorbelegung mit den
   letzten Werten, "Gewicht steigern"-Merker
-- Uebungsfotos mit Muskel-Grafik und Detailansicht, dort Notizen je Nutzer
+- Uebungszeichnungen mit Muskel-Grafik und Detailansicht (Start- und
+  Endposition im Wechsel), dort Notizen je Nutzer
 - Alternativ-Uebungen je Plan-Eintrag mit Schnellwechsel im Workout
   (Tippen oder Wischen); Uebung tauschen (nur heute oder dauerhaft im Plan)
   oder spontan hinzufuegen; individuelles Training ohne Plan
@@ -33,3 +34,10 @@ npm run build          # Produktions-Build (wird im Deploy genutzt)
 
 Details zu Architektur und Konventionen: `CLAUDE.md`. Firebase-Absicherung:
 `docs/firebase-absicherung.md`. Aenderungshistorie: `CHANGELOG.md`.
+
+## Bildnachweis
+Die Uebungszeichnungen stammen aus [Workout Guide](https://github.com/bryllim/workout-guide)
+von Bryl Lim, teils nach [Everkinetic](https://github.com/everkinetic/data), und
+stehen unter [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.de).
+Fuer die App wurden sie eingefaerbt und als Vorschaubilder aufbereitet; Details in
+`public/uebungsbilder/LIZENZ.md`. Diese Lizenz gilt nur fuer die Bilder.

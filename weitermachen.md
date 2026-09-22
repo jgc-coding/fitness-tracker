@@ -1,6 +1,18 @@
 # Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 13, Paket P13 — Plan komplett)
 
 ## Stand
+- **Nachtraege 22.09.2026 (interaktive Session nach dem Lauf, alles lokal
+  committet, nichts gepusht):** Startdialog hakt immer nur den
+  Standard-Nutzer vor; Uebung "Chin Up" im Standard-Katalog; Standard-Uebung
+  JE NUTZER im Alternativen-Ring (Stern merkt sie gesynct am Plan,
+  `utils/uebungsRing.js` + `scripts/uebungsring-test.mjs`); die Fotos aus
+  free-exercise-db sind durch Zeichnungen der Sammlung Workout Guide ersetzt
+  (CC BY-SA 4.0 — Nachweis in Einstellungen -> Info und
+  `public/uebungsbilder/LIZENZ.md`, Detailansicht blendet Start-/Endbild
+  ueber, eigene Vorschaubilder fuer Karte und Katalog). `pruefen.txt` fuehrt
+  jetzt auch matching-, musclemap- und uebungsring-Test. Details: CHANGELOG
+  2.0.0 und Projekt-CLAUDE.md. Die P-Liste unten ist der Stand des
+  Autopilot-Laufs.
 - **Der Plan `docs/plan-fittrack-v2.md` ist KOMPLETT abgearbeitet (P1-P13).**
   Der Lauf war "ohne-clean": kein Push, kein Deploy, kein Tag. Live bleibt
   v1.8.1, bis Gabriel nach der Pruefung bewusst deployt (Ablauf im Plan,
@@ -58,13 +70,6 @@
   Browser-Sichtpruefung auf frischer `*.localhost`-Adresse (Punkte siehe
   "Noch nicht probiert" unten), davor Bens Single-Backup, dann /deploy +
   Tag `v2.0.0` + Telegram mit Warnzeile — Ablauf im Plan, "Nach dem Lauf".
-- **Neue Pruefskripte in `.claude\pruefen.txt` aufnehmen** (interaktive
-  Session, Paket-Laeufe duerfen dort nicht schreiben):
-  `node ./scripts/musclemap-pruefen.mjs` und
-  `node ./scripts/uebungsbilder-matching-test.mjs`.
-- **`.claude\launch.json` enthaelt noch die Konfiguration "Vite Dev Server
-  (Single)"**, die auf die geloeschte `vite.single.config.js` zeigt — in
-  einer interaktiven Session entfernen.
 - **Zwei Ordner-Reste unter `.claude\worktrees\`** (nur Code-Kopien, private
   Datei liegt pruefsummengleich im Hauptbaum-`privat\`):
   `Remove-Item -LiteralPath "C:\Projekte\Fitness Tracker\.claude\worktrees\lisa-lauf-plan-anpassung-1a4d00" -Recurse -Force`
@@ -143,8 +148,9 @@
   stop beim Schliessen und onUnmounted) — Muster fuer weitere Bild-Anzeigen.
 - **Thumbnail-Tipps stoppen die Weiterleitung** (`@click.stop` in
   TrackingView UND CatalogView) — bei Layout-Umbauten beibehalten.
-- **`uebungsbilder-holen.mjs` ueberspringt vorhandene Dateien** — wer ein
-  Foto neu holen will, loescht erst die betroffenen webp.
+- **`uebungsbilder-holen.mjs` ueberspringt vorhandene Dateien** — wer
+  Zeichnungen neu erzeugen will (z.B. andere Linienfarbe), ruft es mit
+  `--neu` auf. Ordner, die nicht mehr im Manifest stehen, loescht es nie.
 - **UserSelectModal uebernimmt die Auswahl NUR ueber Bestaetigen**
   (Android-Back = abbrechen) — Store nie schon beim Antippen schreiben.
 - **Browser-Pane springt zwischen zwei Runden auf die Preview-Adresse
@@ -230,16 +236,13 @@
 ### Noch nicht probiert
 - Sichtpruefung der GESAMTEN v2 im Browser auf frischer `*.localhost`-Adresse
   (interaktive Session vor dem Deploy): Startdialog 1/2/3 Nutzer und
-  Chip-Zeile (P2/P3), Thumbnails/MuscleMap/Auto-Zuordnung und die 60 Fotos
-  (P5-P7), Detailansicht mit Bildwechsel und Notiz-Speicherung gegen echte
+  Chip-Zeile (P2/P3), Optik der Zeichnungen in Karte, Katalog und
+  Detailansicht (am 22.09. nur per DOM belegt: 32 Vorschaubilder geladen,
+  Ueberblendung wechselt, Auto-Zuordnung "32 zugeordnet" und verwaister Key
+  ersetzt — die Pane war ausgeblendet), Notiz-Speicherung gegen echte
   IndexedDB (P8), Alternativen-Modal und Erhalt beim Plan-Editieren (P9),
   Ring-Wechsel per Tipp (P10), Notiz/Zyklustag speichern + Resume (P11),
   Tages-Modal mit nachtraeglichem Editieren (P12), Settings zeigt 2.0.0
   (P13). Alles bislang nur durch Build + Vertragstests + Code-Weg belegt.
 - Die Wisch-Geste (P10) ist nur am echten Geraet testbar — steht auf der
   Handy-Checkliste des Plans ("Nach dem Lauf", Punkt 4).
-- Der Knopf "Bilder automatisch zuordnen" lief noch nie gegen eine echte
-  IndexedDB mit den 31 Katalog-Uebungen.
-- `.claude\launch.json` und `.claude\pruefen.txt` bereinigen/erweitern
-  (Schreiben unter `.claude\` ist dem Paket-Lauf verboten — interaktive
-  Session noetig; pruefen.txt soll die zwei neuen Vertragstests aufnehmen).

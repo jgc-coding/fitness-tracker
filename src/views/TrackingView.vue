@@ -94,7 +94,7 @@
           @touchend.passive="onCardTouchEnd($event, index)"
         >
           <div class="exercise-row">
-            <!-- Thumbnail links: Foto 0 der KOPF-Uebung (die aktive Uebung des
+            <!-- Thumbnail links: Vorschaubild der KOPF-Uebung (die aktive Uebung des
                  bevorzugten Nutzers — auf Lisas Handy traegt die Karte Lisas
                  Uebung), ohne Bild die MuscleMap klein als Platzhalter.
                  Tipp aufs Thumbnail oeffnet die Detailansicht, NICHT das
@@ -399,7 +399,7 @@ import { useHistory } from '../composables/useHistory.js'
 import { isDeloadWeek, formatDate, getToday } from '../utils/dateHelpers.js'
 import { MUSCLE_GROUPS } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
-import { bildPfad, eintragFuerKey } from '../utils/uebungsBilder.js'
+import { vorschauUrl, eintragFuerKey } from '../utils/uebungsBilder.js'
 import {
   ringFuer,
   aktiveUebungId,
@@ -603,11 +603,10 @@ function getMuscleLabel(id) {
   return MUSCLE_GROUPS.find(m => m.id === id)?.label || id
 }
 
-// Foto 0 der Uebung — nur wenn der gespeicherte imageKey im Manifest existiert,
-// sonst null (kein kaputtes Bild-Icon bei verwaisten Keys).
+// Vorschaubild der Uebung — nur wenn der gespeicherte imageKey im Manifest
+// existiert, sonst null (kein kaputtes Bild-Icon bei verwaisten Keys).
 function getThumbUrl(exerciseId) {
-  const key = getExerciseById(exerciseId)?.imageKey
-  return eintragFuerKey(bildKatalog, key) ? bildPfad(key, 0) : null
+  return vorschauUrl(eintragFuerKey(bildKatalog, getExerciseById(exerciseId)?.imageKey))
 }
 
 // Grobgruppe fuer den MuscleMap-Platzhalter, wenn kein Foto zugeordnet ist
@@ -1412,7 +1411,7 @@ onUnmounted(() => {
   display: block;
   width: 40px;
   height: 40px;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-white);

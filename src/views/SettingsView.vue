@@ -54,8 +54,8 @@
         </button>
         <p v-if="seedMessage" class="seed-message">{{ seedMessage }}</p>
         <p class="settings-desc" style="margin-top: var(--space-md)">
-          Ordnet Uebungen anhand ihres Namens automatisch ein Foto zu.
-          Bereits gesetzte Bilder bleiben unangetastet.
+          Ordnet Uebungen anhand ihres Namens automatisch eine Zeichnung zu.
+          Bereits gesetzte, gueltige Bilder bleiben unangetastet.
         </p>
         <button class="btn btn-secondary btn-block" @click="assignImages" :disabled="assigningImages">
           {{ assigningImages ? 'Wird zugeordnet...' : 'Bilder automatisch zuordnen' }}
@@ -180,6 +180,18 @@
           <span>Daten</span>
           <span>Lokal (IndexedDB)</span>
         </div>
+        <!-- Bildnachweis: Pflicht der Lizenz CC BY-SA 4.0 (Urheber nennen,
+             Lizenz verlinken, Aenderung kennzeichnen) — nie entfernen.
+             Gleicher Nachweis in public/uebungsbilder/LIZENZ.md. -->
+        <p class="bildnachweis">
+          Uebungszeichnungen:
+          <a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide</a>
+          von Bryl Lim, teils nach
+          <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>
+          — Lizenz
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-SA 4.0</a>,
+          fuer die App eingefaerbt.
+        </p>
       </div>
     </div>
   </div>
@@ -202,7 +214,7 @@ import {
 } from '../services/syncService.js'
 import { exportToJSON, importFromJSON } from '../utils/exportData.js'
 import { useExercises } from '../composables/useExercises.js'
-import { findeImageKey } from '../utils/uebungsBilder.js'
+import { findeImageKey, eintragFuerKey } from '../utils/uebungsBilder.js'
 import bildKatalog from '../data/uebungskatalog.json'
 
 const authStore = useAuthStore()
@@ -384,9 +396,13 @@ async function seedExercises() {
   setTimeout(() => { seedMessage.value = '' }, 3000)
 }
 
-// Bilder automatisch zuordnen: setzt imageKey NUR bei Uebungen ohne Wert
-// (idempotent — ein zweiter Lauf aendert nichts mehr). Schreibweg ist
-// updateExercise aus useExercises, damit pushRecord die Cloud mitzieht.
+// Bilder automatisch zuordnen: setzt imageKey NUR bei Uebungen ohne gueltigen
+// Wert — leer oder verwaist, also ein Key, den das Manifest nicht mehr kennt
+// (z.B. die Foto-Keys vor dem Wechsel auf Zeichnungen am 22.09.2026).
+// Idempotent: ein zweiter Lauf aendert nichts mehr. Findet der Name keinen
+// Treffer, bleibt ein verwaister Key stehen (zeigt die MuscleMap) — nie
+// ungefragt loeschen. Schreibweg ist updateExercise aus useExercises, damit
+// pushRecord die Cloud mitzieht.
 async function assignImages() {
   assigningImages.value = true
   try {
@@ -394,7 +410,7 @@ async function assignImages() {
     let zugeordnet = 0
     let ohneBild = 0
     for (const ex of alle) {
-      if (ex.imageKey) continue
+      if (ex.imageKey && eintragFuerKey(bildKatalog, ex.imageKey)) continue
       const key = findeImageKey(bildKatalog, ex.name)
       if (key) {
         await updateExercise(ex.id, { imageKey: key })
@@ -678,5 +694,16 @@ onMounted(() => authStore.loadUserNames())
 
 .about-row:last-child {
   border-bottom: none;
+}
+
+.bildnachweis {
+  padding-top: var(--space-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
+.bildnachweis a {
+  color: var(--color-accent);
 }
 </style>

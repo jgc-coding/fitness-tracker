@@ -19,15 +19,20 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   gespeichert und im Workout ueber eine antippbare Chip-Zeile aenderbar. Karten,
   Rad, Empfehlungen und Sperrbildschirm-Knoepfe zeigen nur aktive Nutzer; das
   Karten-Layout passt sich an (1 volle Breite, 2 nebeneinander, 3 untereinander).
-- **Uebungsfotos und Muskel-Grafik:** 62 Fotos (2 je Uebung, im Repo, offline
-  verfuegbar) plus eine selbst gezeichnete Koerper-Silhouette (MuscleMap) mit
-  markierten Muskeln. Thumbnail auf der Tracking-Karte und im Katalog; in den
-  Einstellungen ordnet "Bilder automatisch zuordnen" die Fotos den
-  Katalog-Uebungen per Namensabgleich zu.
-- **Uebungs-Detailansicht:** Tipp aufs Thumbnail (Tracking oder Katalog) oeffnet
-  grosses Bild mit Bewegungs-Eindruck (Wechsel der zwei Fotos), MuscleMap,
-  gemeinsame Uebungs-Notiz und ein eigenes Notizfeld je Nutzer (gesynct,
-  workout-unabhaengig).
+- **Uebungszeichnungen und Muskel-Grafik:** moderne Linienzeichnungen fuer alle
+  32 Katalog-Uebungen (30 Motive, im Repo, offline verfuegbar) plus eine
+  selbst gezeichnete Koerper-Silhouette (MuscleMap) mit markierten Muskeln.
+  Kraeftigeres Vorschaubild auf der Tracking-Karte und im Katalog; in den
+  Einstellungen ordnet "Bilder automatisch zuordnen" die Zeichnungen den
+  Katalog-Uebungen per Namensabgleich zu. Bildnachweis unter Einstellungen ->
+  Info. (Nachtrag 22.09.2026: ersetzt die zunaechst verwendeten, altmodisch
+  wirkenden Fotos.)
+- **Uebungs-Detailansicht:** Tipp aufs Vorschaubild (Tracking oder Katalog)
+  oeffnet eine grosse Zeichnung mit Bewegungs-Eindruck (Start- und Endposition
+  blenden alle 1,2 s weich ineinander; vier Uebungen ohne passendes Bildpaar
+  als Standbild, bei "Bewegung reduzieren" im System immer Standbild),
+  MuscleMap, gemeinsame Uebungs-Notiz und ein eigenes Notizfeld je Nutzer
+  (gesynct, workout-unabhaengig).
 - **Alternativ-Uebungen:** In der Planung lassen sich je Uebung bis zu 4
   Alternativen hinterlegen. Im Workout wechselt man per Tipp aufs
   Wechsel-Symbol oder horizontalem Wischen auf der Karte durch den Ring
@@ -46,10 +51,10 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   Training dazugehakt. So startet jedes Handy mit dem eigenen Nutzer. Die
   Chip-Zeile im laufenden Workout zeigt weiterhin nur die aktuelle Besetzung.
 - **Uebung "Chin Up"** (Unterhandgriff, staerkerer Bizeps-Anteil) im
-  Standard-Katalog und Bild-Manifest mit 2 Fotos (Nachtrag 22.09.2026); in den
-  Katalog kommt sie ueber Settings -> "Standard-Uebungen laden". Zusaetzlich
-  matchen "Unterer Ruecken"/"Unterer Rücken" jetzt als Namens-Aliasse das
-  bestehende Hyperextension-Bild ("lower back").
+  Standard-Katalog und Bild-Manifest (Nachtrag 22.09.2026); in den Katalog
+  kommt sie ueber Settings -> "Standard-Uebungen laden". Zusaetzlich matchen
+  "Unterer Ruecken"/"Unterer Rücken" jetzt als Namens-Aliasse die
+  Rueckenstrecker-Zeichnung ("lower back").
 - **Standard-Uebung je Nutzer im Alternativen-Ring** (Nachtrag 22.09.2026):
   Jeder Nutzer hat an einer Uebungsposition seine EIGENE aktive Uebung —
   Lisas Bereich der Karte kann Latzug zeigen, waehrend Gab Klimmzuege macht.
@@ -66,9 +71,14 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
 
 ### Entscheidungen (Gabriel, 2026-09-22)
 - **Ben startet frisch** — keine Uebernahme seiner Daten aus der Single-App.
-- **Bildquelle ist `yuhonas/free-exercise-db`** (GitHub, gemeinfrei); die Fotos
-  werden einmal per Skript geholt und liegen dann im Repo — zur Laufzeit wird
-  nichts von fremden Servern geladen. Die Muskel-Grafik ist selbst gebaut.
+- **Bildquelle ist die Sammlung Workout Guide** (Bryl Lim, teils nach
+  Everkinetic, Lizenz CC BY-SA 4.0 — Namensnennung Pflicht). Die Zeichnungen
+  werden einmal per Skript geholt, eingefaerbt und liegen dann im Repo — zur
+  Laufzeit wird nichts von fremden Servern geladen. Die Muskel-Grafik ist
+  selbst gebaut. (Zuerst waren es Fotos aus `yuhonas/free-exercise-db`; die
+  wirkten altmodisch. Der gewuenschte 3D-Anatomie-Stil von Gymvisual ist
+  kostenpflichtig und darf nicht ins oeffentliche Repo, darum die kostenlose
+  Sammlung — Entscheidung Gabriel 22.09.2026.)
 - **Alternativen-Bedienung: Tippen UND Wischen** (beides, nicht eins von beiden).
 
 ### Entfernt

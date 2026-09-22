@@ -40,10 +40,24 @@ export function eintragFuerKey(katalog, key) {
   return katalog.find(e => e.key === key) || null
 }
 
-// Absoluter Bildpfad unterhalb der Vite-Base (Foto 0 oder 1). Die Base wird
-// erst beim Aufruf gelesen, damit der Vertragstest das Modul unter Node
-// importieren kann und dort eine eigene Base uebergibt.
-export function bildPfad(key, position = 0, base = import.meta.env.BASE_URL) {
+// Pfade kommen aus dem Manifest (`bilder`, `vorschau` — relativ zu public/)
+// und werden unter die Vite-Base gehaengt. Die Base wird erst beim Aufruf
+// gelesen, damit der Vertragstest das Modul unter Node importieren kann und
+// dort eine eigene Base uebergibt.
+function mitBase(relativ, base) {
   const wurzel = base.endsWith('/') ? base : base + '/'
-  return `${wurzel}uebungsbilder/${key}/${position}.webp`
+  return `${wurzel}${relativ}`
+}
+
+// Zeichnung Nummer `position` eines Eintrags (Animationsreihenfolge; ein
+// Eintrag hat 1 Bild = Standbild oder 2 Bilder = Start und Ende) — oder null.
+export function bildUrl(eintrag, position = 0, base = import.meta.env.BASE_URL) {
+  const relativ = eintrag?.bilder?.[position]
+  return relativ ? mitBase(relativ, base) : null
+}
+
+// Vorschaubild fuer Karten und Katalog (kraeftigere Linie, randlos
+// zugeschnitten — die feinen Zeichnungen verschwinden bei 40 px) — oder null.
+export function vorschauUrl(eintrag, base = import.meta.env.BASE_URL) {
+  return eintrag?.vorschau ? mitBase(eintrag.vorschau, base) : null
 }
