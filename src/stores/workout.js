@@ -103,6 +103,38 @@ export const useWorkoutStore = defineStore('workout', () => {
     if (full) pushRecord('workoutLogs', full.id, full)
   }
 
+  // Workout-Notiz am aktiven Log (P11). Additiv: Logs ohne `note` bleiben
+  // ueberall gueltig, gelesen wird immer mit Fallback ''.
+  async function updateWorkoutNote(note) {
+    if (!activeWorkout.value) return
+    const updatedAt = new Date().toISOString()
+    const patch = { note, updatedAt }
+    await db.workoutLogs.update(activeWorkout.value.id, patch)
+    activeWorkout.value = { ...activeWorkout.value, ...patch }
+    const full = await db.workoutLogs.get(activeWorkout.value.id)
+    if (full) pushRecord('workoutLogs', full.id, full)
+  }
+
+  // Zyklustag je Nutzer am aktiven Log (P11): `cycleDays` ist ein Objekt
+  // { userId: Zahl } und wird GEMERGT, nie ersetzt — day = null loescht nur
+  // den einen Schluessel. Der Spread macht aus dem reaktiven Objekt eine
+  // flache Kopie (DataCloneError-Schutz beim Dexie-update).
+  async function setCycleDay(userId, day) {
+    if (!activeWorkout.value) return
+    const cycleDays = { ...(activeWorkout.value.cycleDays || {}) }
+    if (day == null) {
+      delete cycleDays[userId]
+    } else {
+      cycleDays[userId] = day
+    }
+    const updatedAt = new Date().toISOString()
+    const patch = { cycleDays, updatedAt }
+    await db.workoutLogs.update(activeWorkout.value.id, patch)
+    activeWorkout.value = { ...activeWorkout.value, ...patch }
+    const full = await db.workoutLogs.get(activeWorkout.value.id)
+    if (full) pushRecord('workoutLogs', full.id, full)
+  }
+
   async function loadSets() {
     if (!activeWorkout.value) return
     currentSets.value = await db.setLogs
@@ -269,6 +301,8 @@ export const useWorkoutStore = defineStore('workout', () => {
     startWorkout,
     startCustomWorkout,
     updateWorkoutUsers,
+    updateWorkoutNote,
+    setCycleDay,
     persistWorkoutExercises,
     loadSets,
     saveSet,

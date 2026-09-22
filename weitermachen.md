@@ -1,10 +1,24 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 10, Paket P10)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 11, Paket P11)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
-  deployt. P1-P10 sind umgesetzt, als naechstes P11.
-- **P10 ist umgesetzt:** Schnellwechsel im Workout (TrackingView). Beim Aufbau
+  deployt. P1-P11 sind umgesetzt, als naechstes P12.
+- **P11 ist umgesetzt:** Workout-Notiz und Zyklustag. Im aktiven Workout steht
+  unter dem Kopf (Titel/Datum) die Zeile `.workout-meta` mit Knopf "Notiz"
+  (immer) und Knopf "Zyklustag" (nur wenn ein aktiver Nutzer `zyklus: true`
+  traegt — `zyklusUser`-Computed, laut constants.js nur Lisa). Vorhandene
+  Werte sind am Knopf erkennbar ("Notiz ✓" / "Zyklustag 17"). Das Notiz-Modal
+  hat ein Textfeld, Speichern ruft `updateWorkoutNote` (workout store):
+  `note` + updatedAt per db.workoutLogs.update, danach pushRecord mit dem
+  vollen Datensatz. Das Zyklus-Modal nutzt den bestehenden WheelPicker mit
+  Werten 1-45 plus separatem Entfernen-Knopf; beide Wege laufen ueber
+  `setCycleDay(userId, day)`: `cycleDays` wird als flache Kopie GEMERGT
+  (day = null loescht nur den einen Schluessel), nie ersetzt. Beide Felder
+  sind additiv — gelesen wird ueberall mit Fallback (`?.note || ''`,
+  `?.cycleDays`), alte workoutLogs bleiben gueltig; Resume laedt das Log aus
+  der DB, damit ueberleben Notiz und Zyklustag den Reload.
+- **P10:** Schnellwechsel im Workout (TrackingView). Beim Aufbau
   der Workout-Liste (`startWorkout`, `startCustom`, beide Resume-Zweige) laeuft
   jeder Eintrag durch den Helfer `mitBasis`
   (`{ ...e, basisExerciseId: e.basisExerciseId || e.exerciseId }`) — Override/
@@ -52,8 +66,8 @@
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P11-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P11 weiter (Workout-Notiz und Zyklustag).
+- **Pakete P12-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P12 weiter (History mit Tages-Detail).
 - **Neue Pruefskripte in `.claude\pruefen.txt` aufnehmen** (interaktive
   Session, Paket-Laeufe duerfen dort nicht schreiben):
   `node ./scripts/musclemap-pruefen.mjs` und
@@ -76,9 +90,10 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P11**: Workout-Notiz und Zyklustag (Knopf-Zeile unter dem Kopf,
-   Notiz-Modal, Zyklus-Modal mit WheelPicker 1-45 + Entfernen, `note` und
-   `cycleDays` additiv am workoutLog — Kriterien im Plan).
+1. **Autopilot P12**: History mit Tages-Detail (antippbare Datums-Kopfzellen,
+   Tages-Modal mit Titel/Teilnehmern/Notiz/Zyklustag, dort nachtraeglich
+   editierbar mit denselben Bausteinen wie P11, Punkt-Markierung an Zellen
+   mit Notiz oder Zyklustag — Kriterien im Plan).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -115,6 +130,15 @@
   - Worktree-Reste dieser Sitzung loeschen? Befehle stehen in weitermachen.md
 
 ## Stolperfallen (aktuell)
+- **`cycleDays` immer mergen, nie ersetzen:** `setCycleDay` (workout store)
+  kopiert das Objekt flach (`{ ...(aw.cycleDays || {}) }`), setzt oder loescht
+  genau EINEN Schluessel und schreibt dann das Ganze. Wer direkt
+  `{ cycleDays: { user1: n } }` patcht, wirft die Eintraege anderer Nutzer weg.
+  `note` und `cycleDays` sind additiv — ueberall mit Fallback lesen
+  (`?.note || ''`), alte workoutLogs haben die Felder nicht. P12 nutzt fuer
+  das nachtraegliche Editieren dieselben Store-Funktionen NICHT (die haengen
+  am aktiven Workout) — dort ist `db.workoutLogs.update` + pushRecord auf
+  beliebige Log-Ids gefragt.
 - **`basisExerciseId` gehoert dem Workout-Log, nie dem Plan:** `mitBasis`
   (TrackingView) setzt es nur in `workoutExercises`; der dauerhafte Tausch
   (`applySwap`) schreibt es bewusst NICHT in `day.exercises`. Der Ring liest
@@ -195,6 +219,20 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 11 / P11: Workout-Notiz und Zyklustag. Beleg: alle fuenf pruefen.txt-
+  Befehle gruen (Build 117 Module, TrackingView-Chunk waechst von ~29.7 auf
+  32.16 kB — Meta-Zeile, zwei Modals und die Draft-Logik stecken drin);
+  Regressionscheck `musclemap-pruefen` und `uebungsbilder-matching-test`
+  weiter gruen. Im Code belegt: `updateWorkoutNote` und `setCycleDay` im
+  workout store folgen exakt dem Muster von `updateWorkoutUsers` (update mit
+  updatedAt, activeWorkout nachziehen, pushRecord mit vollem Datensatz);
+  `setCycleDay` mergt `cycleDays` ueber eine flache Kopie und loescht bei
+  day = null nur den einen Schluessel; die Knoepfe zeigen vorhandene Werte
+  ("Notiz ✓" via `workoutNote`-Computed, "Zyklustag N" via
+  `currentCycleDay`); der Zyklus-Knopf haengt an `zyklusUser`
+  (aktiver Nutzer mit `zyklus: true`); das Zyklus-Modal nutzt den
+  bestehenden WheelPicker (Werte 1-45 aus `cycleValues`) plus separatem
+  Entfernen-Knopf.
 - Lauf 10 / P10: Schnellwechsel im Workout (Tippen + Wischen). Beleg: alle
   fuenf pruefen.txt-Befehle gruen (Build 117 Module, TrackingView-Chunk
   waechst von ~27.5 auf 29.68 kB — Ring-Logik und Wisch-Erkennung stecken
@@ -240,6 +278,7 @@
   Loeschen per `Remove-Item` statt `git rm` (schreibende git-Befehle verboten).
 
 ### Fehlversuche (mit exaktem Grund)
+- Lauf 11: keine.
 - Lauf 10: keine.
 - Lauf 9: keine.
 - Lauf 8: keine.
@@ -255,6 +294,10 @@
   jeden `git grep` einzeln und ohne `cd`.
 
 ### Noch nicht probiert
+- Funktionstest von Notiz und Zyklustag gegen eine echte IndexedDB (Speichern,
+  erneutes Oeffnen, Resume nach Reload, Entfernen des Zyklustags, Sync-Push) —
+  P11 ist durch Build + Code-Weg belegt; gehoert in die interaktive
+  Sichtpruefung vor dem Deploy auf einer frischen `*.localhost`-Adresse.
 - Die Wisch-Geste selbst ist im Lauf nicht ausfuehrbar (Touch-Events brauchen
   ein echtes Geraet oder eine Browser-Pane mit Touch-Emulation) — P10 ist
   durch Build + Code-Weg belegt; Wischen gehoert auf die Handy-Checkliste des
