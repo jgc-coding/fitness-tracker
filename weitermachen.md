@@ -1,9 +1,27 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 6, Paket P6)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 7, Paket P7)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
   deployt.
+- **P7 ist umgesetzt:** `src/utils/uebungsBilder.js` (reine Funktionen, das
+  Manifest kommt immer als Parameter herein — kein JSON-Import im Modul, damit
+  Node den Vertragstest ohne Import-Attribut ausfuehren kann):
+  `normalisiereName` (klein, gerade + typografische Anfuehrungszeichen und
+  Doppelpunkte raus, Leerzeichen glaetten), `findeKatalogEintrag` /
+  `findeImageKey` (Abgleich gegen `aliasse`, BEIDE Seiten normalisiert),
+  `eintragFuerKey`, `bildPfad` (Vite-Base als Default-Parameter, wird erst beim
+  Aufruf gelesen). Vertragstest `scripts/uebungsbilder-matching-test.mjs`:
+  alle 31 Katalognamen treffen ihren Key, 3 Fantasienamen treffen nichts,
+  plus Normalisierungs-Randfaelle — gruen. Uebungen tragen optional `imageKey`
+  (addExercise-Parameter, Default null — nie undefined, Firestore lehnt das ab);
+  CatalogView hat in Neu- und Bearbeiten-Formular ein Auswahlfeld "Bild"
+  (Manifest-Eintraege + "Kein Bild") mit 96px-Vorschau. SettingsView-Knopf
+  "Bilder automatisch zuordnen" (Karte Uebungskatalog): setzt `imageKey` NUR
+  bei Uebungen ohne Wert, meldet "X zugeordnet, Y ohne Bild", schreibt per
+  updateExercise aus useExercises (inkl. pushRecord). Tracking-Karte zeigt
+  links ein 40px-Thumbnail (Foto 0.webp, nur wenn der Key im Manifest
+  existiert), sonst die MuscleMap klein (size 44) mit Grobgruppen-Markierung.
 - **P6 ist umgesetzt:** `src/components/shared/MuscleMap.vue` zeichnet
   Vorder- und Rueckseite als Inline-SVG (ein `<svg>` mit zwei Gruppen,
   viewBox 210x156); jede Muskelregion ist ein Shape mit `data-muscle`,
@@ -64,13 +82,13 @@
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P7-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P7 weiter (Bilder in Karten und Katalog,
-  Hilfsmodul `uebungsBilder.js`, Matching-Test).
+- **Pakete P8-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P8 weiter (Uebungs-Detailansicht mit Notizen
+  je Nutzer).
 - **Neue Pruefskripte in `.claude\pruefen.txt` aufnehmen** (interaktive
-  Session, Paket-Laeufe duerfen dort nicht schreiben): mindestens
-  `node ./scripts/musclemap-pruefen.mjs`; P7 bringt zusaetzlich
-  `uebungsbilder-matching-test.mjs`.
+  Session, Paket-Laeufe duerfen dort nicht schreiben):
+  `node ./scripts/musclemap-pruefen.mjs` und
+  `node ./scripts/uebungsbilder-matching-test.mjs`.
 - **`.claude\launch.json` enthaelt noch die Konfiguration "Vite Dev Server
   (Single)"**, die auf die geloeschte `vite.single.config.js` zeigt. Ein
   Paket-Lauf darf unter `.claude\` nicht schreiben — bitte in einer
@@ -89,11 +107,11 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P7**: Hilfsmodul `src/utils/uebungsBilder.js` (Manifest-Zugriff,
-   Pfad-Aufloesung mit Vite-Base, Namens-Matching als reine Funktionen),
-   Vertragstest `uebungsbilder-matching-test.mjs`, Bild-Auswahlfeld im
-   Katalog, Auto-Zuordnung in Settings, Thumbnail bzw. kleine MuscleMap
-   auf der Tracking-Karte (Kriterien im Plan).
+1. **Autopilot P8**: Uebungs-Detailansicht `ExerciseDetail.vue` (grosses Bild
+   mit ~900ms-Wechsel zwischen Foto 0 und 1, MuscleMap, gemeinsame Notiz,
+   Notizfeld je Nutzer via useExerciseNotes), Einstieg per Tipp aufs
+   Thumbnail der Tracking-Karte (Klick-Weiterleitung stoppen!) und aus der
+   Katalog-Zeile (Kriterien im Plan).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -130,11 +148,18 @@
   - Worktree-Reste dieser Sitzung loeschen? Befehle stehen in weitermachen.md
 
 ## Stolperfallen (aktuell)
-- **MuscleMap ist noch unverdrahtet:** kein Import im Code, darum prueft
-  `npm run build` die Datei NICHT. Bis P7 sie einbindet, sichern nur
-  `scripts/musclemap-pruefen.mjs` (Ids + Grobgruppen) und ein
-  SFC-Kompilier-Check die Komponente ab; wer sie aendert, laesst
-  mindestens das Pruefskript laufen.
+- **MuscleMap haengt seit P7 in der Tracking-Karte** (Platzhalter ohne Foto,
+  size 44) und laeuft damit durch `npm run build`; `scripts/
+  musclemap-pruefen.mjs` bleibt der Vertrag fuer Ids + Grobgruppen.
+- **uebungsBilder.js importiert das Manifest NICHT selbst** — alle Funktionen
+  nehmen den Katalog als Parameter (Node-Test ohne JSON-Import-Attribut).
+  Wer das Modul in einer View nutzt: `import bildKatalog from
+  '../data/uebungskatalog.json'` daneben legen und durchreichen. Der
+  Matching-Vertrag ist `scripts/uebungsbilder-matching-test.mjs` — zuerst
+  den Test erweitern, dann die Regeln.
+- **`imageKey` nie als `undefined` schreiben** (Firestore lehnt undefined-
+  Felder beim pushRecord ab) — addExercise setzt darum `imageKey: null` als
+  Default, Formulare geben `wert || null` weiter.
 - **`fallbackGroup` erwartet die Grobgruppen-Ids aus `constants.js`
   (MUSCLE_GROUPS)** — `full_body` faerbt bewusst nur hell (sekundaer),
   alle anderen Gruppen kraeftig. Sind `primary`/`secondary` gesetzt (auch
@@ -144,9 +169,9 @@
   MuscleMap-Props `primary`/`secondary` aus P6. Die `aliasse` stehen klein
   und OHNE die Anfuehrungszeichen der Plan-Tabelle ("bad girl", nicht
   '"bad girl"'), aber MIT Doppelpunkt/Klammern ("machine: chest press",
-  "cable row (without chest support)") — das Matching in P7 muss beide
-  Seiten normalisieren (klein, Anfuehrungszeichen/Doppelpunkte raus,
-  Leerzeichen glaetten), nicht nur die Eingabe.
+  "cable row (without chest support)") — das Matching (uebungsBilder.js)
+  normalisiert darum beide Seiten (klein, Anfuehrungszeichen/Doppelpunkte
+  raus, Leerzeichen glaetten), nicht nur die Eingabe.
 - **`uebungsbilder-holen.mjs` ueberspringt vorhandene Dateien** — wer ein
   Foto neu holen will (z.B. nach Aenderung von Breite/Qualitaet), loescht
   erst die betroffenen webp unter `public/uebungsbilder/<key>/`.
@@ -183,6 +208,17 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 7 / P7: Bilder in Karten und Katalog, automatische Zuordnung. Beleg:
+  `node ./scripts/uebungsbilder-matching-test.mjs` meldet "alles gruen"
+  (31 Katalognamen treffen ihren Key, 3 Fantasienamen treffen nichts,
+  plus Normalisierungs-/Pfad-Randfaelle, Exit 0);
+  `node ./scripts/musclemap-pruefen.mjs` weiter gruen; alle fuenf
+  pruefen.txt-Befehle gruen (`npm run build` jetzt 114 Module statt 110 —
+  uebungsBilder.js, uebungskatalog.json und MuscleMap sind erstmals im
+  Bundle, eigener Chunk `uebungskatalog-*.js` ~7.9 kB, TrackingView-Chunk
+  34.8 kB). UI-Aenderungen: Bild-Auswahlfeld mit Vorschau in beiden
+  CatalogView-Modals, Knopf "Bilder automatisch zuordnen" in SettingsView,
+  40px-Thumbnail bzw. MuscleMap-Platzhalter links auf der Tracking-Karte.
 - Lauf 6 / P6: Muskel-Grafik MuscleMap. Beleg:
   `node ./scripts/musclemap-pruefen.mjs` meldet "data-muscle-Ids gefunden:
   18 von 18", "Grobgruppen-Tabelle: 7 Gruppen erwartet, 17 Muskel-Ids
@@ -243,6 +279,7 @@
   Loeschungen sauber als `D`.
 
 ### Fehlversuche (mit exaktem Grund)
+- Lauf 7: keine.
 - Lauf 6: keine.
 - Lauf 5: keine (Netzzugriff auf raw.githubusercontent.com lief im ersten
   Versuch durch).
@@ -257,15 +294,18 @@
   einzeln und ohne `cd`.
 
 ### Noch nicht probiert
-- Sichtpruefung der MuscleMap im Browser (stimmen Proportionen und
-  Faerbung optisch?) — das Pruefskript belegt nur Ids und Tabelle, nicht
-  die Optik; gehoert in die interaktive Pruefung vor dem Deploy
-  (spaetestens mit P7, wenn die Grafik auf der Tracking-Karte auftaucht).
+- Sichtpruefung von Thumbnail, MuscleMap-Platzhalter, Bild-Auswahlfeld und
+  Auto-Zuordnung im Browser (P7 ist nur durch Vertragstest + Build belegt,
+  keine optische Pruefung) — gehoert in die interaktive Pruefung vor dem
+  Deploy auf einer frischen `*.localhost`-Adresse.
 - Sichtpruefung der 60 Fotos (zeigt jedes Bild wirklich die richtige
   Uebung?) — die Keys stammen fix aus der Plan-Tabelle, alle Downloads
-  liefen mit HTTP 200, aber den Bildinhalt hat niemand angesehen; gehoert
-  in die interaktive Pruefung vor dem Deploy (spaetestens mit P7/P8, wenn
-  die Bilder in der UI auftauchen).
+  liefen mit HTTP 200, aber den Bildinhalt hat niemand angesehen; ab P7
+  sind sie auf der Tracking-Karte sichtbar, gehoert in die interaktive
+  Pruefung vor dem Deploy.
+- Der Knopf "Bilder automatisch zuordnen" lief noch nie gegen eine echte
+  IndexedDB mit den 31 Katalog-Uebungen (nur der Matching-Vertragstest
+  unter Node) — Funktionstest in der interaktiven Browser-Pruefung.
 - Funktionstest des Composables gegen eine echte IndexedDB (laut Plan erst
   in der interaktiven Browser-Pruefung nach allen Paketen; bis P8 gibt es
   keine UI, die es aufruft).

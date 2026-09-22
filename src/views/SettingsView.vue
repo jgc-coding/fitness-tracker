@@ -53,6 +53,14 @@
           Standard-Uebungen laden
         </button>
         <p v-if="seedMessage" class="seed-message">{{ seedMessage }}</p>
+        <p class="settings-desc" style="margin-top: var(--space-md)">
+          Ordnet Uebungen anhand ihres Namens automatisch ein Foto zu.
+          Bereits gesetzte Bilder bleiben unangetastet.
+        </p>
+        <button class="btn btn-secondary btn-block" @click="assignImages" :disabled="assigningImages">
+          {{ assigningImages ? 'Wird zugeordnet...' : 'Bilder automatisch zuordnen' }}
+        </button>
+        <p v-if="imageMessage" class="seed-message">{{ imageMessage }}</p>
       </div>
 
       <!-- Seed History -->
@@ -193,9 +201,15 @@ import {
   resyncAll
 } from '../services/syncService.js'
 import { exportToJSON, importFromJSON } from '../utils/exportData.js'
+import { useExercises } from '../composables/useExercises.js'
+import { findeImageKey } from '../utils/uebungsBilder.js'
+import bildKatalog from '../data/uebungskatalog.json'
 
 const authStore = useAuthStore()
+const { updateExercise } = useExercises()
 const seedMessage = ref('')
+const imageMessage = ref('')
+const assigningImages = ref(false)
 const historyMessage = ref('')
 const seedingHistory = ref(false)
 const backupFileInput = ref(null)
@@ -367,6 +381,34 @@ async function seedExercises() {
   }
 
   setTimeout(() => { seedMessage.value = '' }, 3000)
+}
+
+// Bilder automatisch zuordnen: setzt imageKey NUR bei Uebungen ohne Wert
+// (idempotent — ein zweiter Lauf aendert nichts mehr). Schreibweg ist
+// updateExercise aus useExercises, damit pushRecord die Cloud mitzieht.
+async function assignImages() {
+  assigningImages.value = true
+  try {
+    const alle = await db.exercises.toArray()
+    let zugeordnet = 0
+    let ohneBild = 0
+    for (const ex of alle) {
+      if (ex.imageKey) continue
+      const key = findeImageKey(bildKatalog, ex.name)
+      if (key) {
+        await updateExercise(ex.id, { imageKey: key })
+        zugeordnet++
+      } else {
+        ohneBild++
+      }
+    }
+    imageMessage.value = `${zugeordnet} zugeordnet, ${ohneBild} ohne Bild`
+  } catch (e) {
+    console.error('Bild-Zuordnung fehlgeschlagen:', e)
+    imageMessage.value = 'Zuordnung fehlgeschlagen.'
+  }
+  assigningImages.value = false
+  setTimeout(() => { imageMessage.value = '' }, 5000)
 }
 
 // History seed data from screenshots: [exerciseName, lisaMax, gabMax]
