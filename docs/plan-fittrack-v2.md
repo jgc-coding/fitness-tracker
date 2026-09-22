@@ -217,7 +217,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: Zyklus-Modal nutzt den bestehenden WheelPicker mit Werten 1 bis 45 plus separatem "Entfernen"-Knopf; Speichern schreibt `cycleDays: { [userId]: Zahl }` fuer den Zyklus-Nutzer an den workoutLog (Objekt mergen, nicht ersetzen), Entfernen loescht nur diesen Schluessel
   - Kriterium: Beide Felder sind additiv — workoutLogs ohne sie bleiben ueberall gueltig
   - Kriterium: pruefen.txt gruen
-- [ ] P12: History mit Tages-Detail
+- [x] P12: History mit Tages-Detail
   - Kriterium: In der History ist jede Datums-Kopfzelle antippbar und oeffnet ein Tages-Modal: alle workoutLogs dieses Datums mit Titel (Trainingstag bzw. "Individuelles Training"), Teilnehmer-Namen aus `userIds` (Fallback bei alten Logs: keine Anzeige), Workout-Notiz, Zyklustag
   - Kriterium: Notiz und Zyklustag sind im Tages-Modal nachtraeglich editierbar (gleiche Bausteine wie P11, Schreibweg db.workoutLogs.update + pushRecord)
   - Kriterium: Datums-Kopfzellen mit vorhandener Notiz oder Zyklustag tragen eine kleine Punkt-Markierung

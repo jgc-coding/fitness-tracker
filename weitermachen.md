@@ -1,10 +1,28 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 11, Paket P11)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 12, Paket P12)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
-  deployt. P1-P11 sind umgesetzt, als naechstes P12.
-- **P11 ist umgesetzt:** Workout-Notiz und Zyklustag. Im aktiven Workout steht
+  deployt. P1-P12 sind umgesetzt, als naechstes P13 (Version, CHANGELOG, Doku).
+- **P12 ist umgesetzt:** History mit Tages-Detail. Jede Datums-Kopfzelle der
+  Spreadsheet-Tabelle (HistoryView) ist antippbar (`.date-head`,
+  `openDayModal`) und oeffnet ein Tages-Modal mit allen workoutLogs dieses
+  Datums: Titel (Trainingstag-Titel aus `db.trainingDays` bzw. "Individuelles
+  Training" bei `isCustom`), Teilnehmer-Namen aus `userIds` (alte Logs ohne
+  das Feld: keine Anzeige), Notiz-Text und alle Zyklustag-Eintraege mit
+  Nutzernamen. Notiz und Zyklustag sind dort nachtraeglich editierbar mit den
+  P11-Bausteinen (Textarea-Modal, WheelPicker 1-45 plus Entfernen-Knopf) —
+  aber ueber einen EIGENEN Schreibweg `patchLog`: `db.workoutLogs.update`
+  mit updatedAt, danach `pushRecord` mit dem vollen Datensatz (die
+  Store-Funktionen aus P11 haengen am aktiven Workout und passen hier nicht).
+  `writeLogCycle` liest den Log vor dem Merge frisch aus der DB und kopiert
+  `cycleDays` flach (ein Schluessel gesetzt/geloescht, nie ersetzt).
+  Kopfzellen von Tagen mit Notiz oder Zyklustag tragen einen kleinen
+  Akzent-Punkt (`.meta-dot`, gespeist aus dem `metaDates`-Computed ueber alle
+  einmal geladenen workoutLogs; nach jedem Edit wird nur der eine Eintrag
+  gegen den DB-Stand getauscht). Die Spreadsheet-Darstellung selbst (Zeilen,
+  Max-Spalte, Scroll-Verhalten, Rechts-Scroll beim Oeffnen) ist unveraendert.
+- **P11:** Workout-Notiz und Zyklustag. Im aktiven Workout steht
   unter dem Kopf (Titel/Datum) die Zeile `.workout-meta` mit Knopf "Notiz"
   (immer) und Knopf "Zyklustag" (nur wenn ein aktiver Nutzer `zyklus: true`
   traegt — `zyklusUser`-Computed, laut constants.js nur Lisa). Vorhandene
@@ -66,8 +84,8 @@
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P12-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P12 weiter (History mit Tages-Detail).
+- **Paket P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P13 weiter (Version 2.0.0, CHANGELOG, Doku).
 - **Neue Pruefskripte in `.claude\pruefen.txt` aufnehmen** (interaktive
   Session, Paket-Laeufe duerfen dort nicht schreiben):
   `node ./scripts/musclemap-pruefen.mjs` und
@@ -90,10 +108,8 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P12**: History mit Tages-Detail (antippbare Datums-Kopfzellen,
-   Tages-Modal mit Titel/Teilnehmern/Notiz/Zyklustag, dort nachtraeglich
-   editierbar mit denselben Bausteinen wie P11, Punkt-Markierung an Zellen
-   mit Notiz oder Zyklustag — Kriterien im Plan).
+1. **Autopilot P13**: Version 2.0.0, CHANGELOG-Block, Projekt-CLAUDE.md und
+   README auf den neuen Stand (Kriterien im Plan).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -135,10 +151,12 @@
   genau EINEN Schluessel und schreibt dann das Ganze. Wer direkt
   `{ cycleDays: { user1: n } }` patcht, wirft die Eintraege anderer Nutzer weg.
   `note` und `cycleDays` sind additiv — ueberall mit Fallback lesen
-  (`?.note || ''`), alte workoutLogs haben die Felder nicht. P12 nutzt fuer
-  das nachtraegliche Editieren dieselben Store-Funktionen NICHT (die haengen
-  am aktiven Workout) — dort ist `db.workoutLogs.update` + pushRecord auf
-  beliebige Log-Ids gefragt.
+  (`?.note || ''`), alte workoutLogs haben die Felder nicht. Das
+  nachtraegliche Editieren in der History (P12) nutzt dieselben
+  Store-Funktionen bewusst NICHT (die haengen am aktiven Workout) — dort
+  laeuft `patchLog` (HistoryView): `db.workoutLogs.update` + pushRecord auf
+  beliebige Log-Ids, und `writeLogCycle` liest den Log vor dem
+  cycleDays-Merge frisch aus der DB.
 - **`basisExerciseId` gehoert dem Workout-Log, nie dem Plan:** `mitBasis`
   (TrackingView) setzt es nur in `workoutExercises`; der dauerhafte Tausch
   (`applySwap`) schreibt es bewusst NICHT in `day.exercises`. Der Ring liest
@@ -219,6 +237,26 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 12 / P12: History mit Tages-Detail. Beleg: alle fuenf pruefen.txt-
+  Befehle gruen (Build 117 Module, HistoryView-Chunk waechst auf 7.68 kB JS
+  und 4.43 kB CSS — Tages-Modal, Edit-Modals und Punkt-Markierung stecken
+  drin); Regressionscheck `musclemap-pruefen` und
+  `uebungsbilder-matching-test` weiter gruen. Im Code belegt: Kopfzellen
+  `.date-head` mit `@click="openDayModal(date)"` und `.meta-dot` bei
+  `metaDates.has(date)` (Notiz ODER cycleDays vorhanden); das Tages-Modal
+  listet `dayLogs` (alle workoutLogs des Datums, nach startedAt sortiert)
+  mit `logTitle` (trainingDays-Titel bzw. "Individuelles Training"),
+  `logUserNames` (Fallback leer bei alten Logs), Notiz-Text und
+  `cycleEntries` (alle Zyklustag-Schluessel mit Nutzernamen, verlustfrei);
+  Editieren ueber die P11-Bausteine (Textarea, WheelPicker 1-45 +
+  Entfernen), Schreibweg `patchLog` = db.workoutLogs.update mit updatedAt +
+  pushRecord mit vollem Datensatz; `writeLogCycle` merged `cycleDays` ueber
+  eine flache Kopie des frisch aus der DB gelesenen Logs. Die
+  Spreadsheet-Darstellung (Zeilen, Max-Spalte, Scroll) ist unangetastet —
+  nur die th-Zelle bekam Klick + Punkt. Nebenbefund ohne Funktionswirkung:
+  der TrackingView-Chunk schrumpft von 32.16 auf 29.46 kB, weil WheelPicker
+  jetzt auch von HistoryView importiert wird und Rollup ihn in den
+  gemeinsamen Chunk verschiebt.
 - Lauf 11 / P11: Workout-Notiz und Zyklustag. Beleg: alle fuenf pruefen.txt-
   Befehle gruen (Build 117 Module, TrackingView-Chunk waechst von ~29.7 auf
   32.16 kB — Meta-Zeile, zwei Modals und die Draft-Logik stecken drin);
@@ -278,6 +316,7 @@
   Loeschen per `Remove-Item` statt `git rm` (schreibende git-Befehle verboten).
 
 ### Fehlversuche (mit exaktem Grund)
+- Lauf 12: keine.
 - Lauf 11: keine.
 - Lauf 10: keine.
 - Lauf 9: keine.
@@ -294,6 +333,11 @@
   jeden `git grep` einzeln und ohne `cd`.
 
 ### Noch nicht probiert
+- Sichtpruefung des Tages-Modals im Browser (Kopfzellen-Tipp, Punkt-
+  Markierung, Titel/Teilnehmer/Notiz/Zyklustag, nachtraegliches Editieren
+  gegen eine echte IndexedDB inkl. Sync-Push) — P12 ist durch Build +
+  Code-Weg belegt; gehoert in die interaktive Sichtpruefung vor dem Deploy
+  auf einer frischen `*.localhost`-Adresse.
 - Funktionstest von Notiz und Zyklustag gegen eine echte IndexedDB (Speichern,
   erneutes Oeffnen, Resume nach Reload, Entfernen des Zyklustags, Sync-Push) —
   P11 ist durch Build + Code-Weg belegt; gehoert in die interaktive
