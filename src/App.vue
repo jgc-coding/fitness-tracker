@@ -8,7 +8,7 @@
       </router-view>
     </main>
     <BottomNav />
-    <UserSelectModal v-model="showUserSelect" />
+    <UserSelectModal v-model="showUserSelect" :vorauswahl="authStore.startVorauswahl" />
   </div>
 </template>
 
@@ -19,7 +19,9 @@ import UserSelectModal from './components/shared/UserSelectModal.vue'
 import { initSync } from './services/syncService.js'
 import { db } from './db/dexie.js'
 import { getToday } from './utils/dateHelpers.js'
+import { useAuthStore } from './stores/auth.js'
 
+const authStore = useAuthStore()
 const showUserSelect = ref(false)
 
 onMounted(async () => {

@@ -15,8 +15,8 @@ const DEFAULT_USER_KEY = `${db.name}:defaultUserId`
 // Wer heute trainiert, ist ebenfalls eine GERAETE-Einstellung (siehe oben):
 // die Auswahl im Startdialog gilt fuer dieses Handy, nicht fuer alle.
 const ACTIVE_USERS_KEY = `${db.name}:activeUserIds`
-// Fallback = die bisherigen zwei Stammnutzer — nie ein leeres Array, sonst
-// haette das Workout keinen einzigen Teilnehmer.
+// Nur Erstwert des ref — der echte Fallback ohne gespeicherte Auswahl ist der
+// Standard-Nutzer dieses Geraets (siehe loadActiveUsers), nie ein leeres Array.
 const ACTIVE_USERS_FALLBACK = ['user1', 'user2']
 
 export const useAuthStore = defineStore('auth', () => {
@@ -27,6 +27,14 @@ export const useAuthStore = defineStore('auth', () => {
   const activeUsers = computed(() =>
     users.value.filter(u => activeUserIds.value.includes(u.id))
   )
+  // Vorauswahl NUR fuer den Startdialog: letzte Auswahl plus Standard-Nutzer
+  // dieses Geraets — der eigene Nutzer ist beim App-Start immer schon angehakt
+  // und bleibt im Dialog abwaehlbar. Der Chip-Weg im Workout nutzt das bewusst
+  // nicht, dort zaehlt allein die aktuelle Besetzung. Reihenfolge wie in USERS.
+  const startVorauswahl = computed(() => {
+    const ids = new Set([...activeUserIds.value, defaultUserId.value])
+    return users.value.map(u => u.id).filter(id => ids.has(id))
+  })
 
   async function updateUserName(userId, name) {
     const user = users.value.find(u => u.id === userId)
@@ -90,7 +98,9 @@ export const useAuthStore = defineStore('auth', () => {
       // Kaputter JSON-Rest oder gesperrter Speicher: Fallback greift unten
       console.warn('[FitTrack] [WARN] Aktive Nutzer nicht lesbar:', e)
     }
-    activeUserIds.value = sanitizeActiveIds(parsed) || [...ACTIVE_USERS_FALLBACK]
+    // Ohne gespeicherte Auswahl (Erststart): der Standard-Nutzer dieses
+    // Geraets — loadDefaultUser() ist beim Store-Anlegen vorher gelaufen.
+    activeUserIds.value = sanitizeActiveIds(parsed) || [defaultUserId.value]
   }
 
   function setActiveUsers(ids) {
@@ -122,6 +132,7 @@ export const useAuthStore = defineStore('auth', () => {
     defaultUserId,
     activeUserIds,
     activeUsers,
+    startVorauswahl,
     updateUserName,
     loadUserNames,
     setDefaultUser,

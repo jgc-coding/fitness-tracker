@@ -19,7 +19,7 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   gespeichert und im Workout ueber eine antippbare Chip-Zeile aenderbar. Karten,
   Rad, Empfehlungen und Sperrbildschirm-Knoepfe zeigen nur aktive Nutzer; das
   Karten-Layout passt sich an (1 volle Breite, 2 nebeneinander, 3 untereinander).
-- **Uebungsfotos und Muskel-Grafik:** 60 Fotos (2 je Uebung, im Repo, offline
+- **Uebungsfotos und Muskel-Grafik:** 62 Fotos (2 je Uebung, im Repo, offline
   verfuegbar) plus eine selbst gezeichnete Koerper-Silhouette (MuscleMap) mit
   markierten Muskeln. Thumbnail auf der Tracking-Karte und im Katalog; in den
   Einstellungen ordnet "Bilder automatisch zuordnen" die Fotos den
@@ -40,6 +40,16 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   alle Trainings des Tages (Titel, Teilnehmer, Notiz, Zyklustag); Notiz und
   Zyklustag sind dort nachtraeglich editierbar. Tage mit Notiz oder Zyklustag
   tragen einen kleinen Punkt.
+- **Standard-Nutzer als Start-Vorauswahl** (Nachtrag 22.09.2026): Der in den
+  Einstellungen gewaehlte Standard-Nutzer ist im Startdialog immer schon
+  angehakt (abwaehlbar); ohne gespeicherte Auswahl (Erststart) ist er die
+  komplette Vorauswahl. So startet jedes Handy mit dem eigenen Nutzer. Die
+  Chip-Zeile im laufenden Workout zeigt weiterhin nur die aktuelle Besetzung.
+- **Uebung "Chin Up"** (Unterhandgriff, staerkerer Bizeps-Anteil) im
+  Standard-Katalog und Bild-Manifest mit 2 Fotos (Nachtrag 22.09.2026); in den
+  Katalog kommt sie ueber Settings -> "Standard-Uebungen laden". Zusaetzlich
+  matchen "Unterer Ruecken"/"Unterer Rücken" jetzt als Namens-Aliasse das
+  bestehende Hyperextension-Bild ("lower back").
 
 ### Entscheidungen (Gabriel, 2026-09-22)
 - **Ben startet frisch** — keine Uebernahme seiner Daten aus der Single-App.

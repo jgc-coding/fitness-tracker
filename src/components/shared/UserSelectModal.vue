@@ -38,7 +38,11 @@ import { useAuthStore } from '../../stores/auth.js'
 // ueber den Bestaetigen-Knopf — Schliessen per Android-Back oder X laesst die
 // bisherigen activeUserIds unveraendert gelten (selected ist nur lokal).
 const props = defineProps({
-  modelValue: Boolean
+  modelValue: Boolean,
+  // Abweichende Vorauswahl NUR fuers Oeffnen (Array aus Nutzer-Ids). Der
+  // Startdialog haengt darueber den Standard-Nutzer an; ohne Prop (Chip-Weg
+  // im Workout) gilt die letzte bestaetigte Auswahl.
+  vorauswahl: { type: Array, default: null }
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm'])
@@ -46,11 +50,11 @@ const emit = defineEmits(['update:modelValue', 'confirm'])
 const authStore = useAuthStore()
 const selected = ref([])
 
-// Beim Oeffnen die letzte Auswahl vorbelegen
+// Beim Oeffnen vorbelegen: uebergebene Vorauswahl, sonst die letzte Auswahl
 watch(
   () => props.modelValue,
   (open) => {
-    if (open) selected.value = [...authStore.activeUserIds]
+    if (open) selected.value = props.vorauswahl ? [...props.vorauswahl] : [...authStore.activeUserIds]
   }
 )
 

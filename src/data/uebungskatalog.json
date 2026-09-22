@@ -313,6 +313,28 @@
     ]
   },
   {
+    "key": "Chin-Up",
+    "name": "Chin Up",
+    "bilder": [
+      "uebungsbilder/Chin-Up/0.webp",
+      "uebungsbilder/Chin-Up/1.webp"
+    ],
+    "primaer": [
+      "lats"
+    ],
+    "sekundaer": [
+      "biceps",
+      "forearms",
+      "middle_back"
+    ],
+    "aliasse": [
+      "chin up",
+      "chin-up",
+      "chin ups",
+      "chinup"
+    ]
+  },
+  {
     "key": "Wide-Grip_Lat_Pulldown",
     "name": "Wide-Grip Lat Pulldown",
     "bilder": [
@@ -386,7 +408,9 @@
       "hamstrings"
     ],
     "aliasse": [
-      "lower back"
+      "lower back",
+      "unterer ruecken",
+      "unterer rücken"
     ]
   },
   {
