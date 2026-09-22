@@ -103,7 +103,7 @@
           <option value="">Kein Bild</option>
           <option v-for="eintrag in bildKatalog" :key="eintrag.key" :value="eintrag.key">{{ eintrag.name }}</option>
         </select>
-        <img v-if="newExerciseImage" :src="vorschauUrl(newExerciseImage)" alt="Bild-Vorschau" class="bild-vorschau" />
+        <img v-if="newExerciseImage" :src="vorschauFuerKey(newExerciseImage)" alt="Bild-Vorschau" class="bild-vorschau" />
       </div>
       <button
         class="btn btn-primary btn-block"
@@ -142,7 +142,7 @@
           <option value="">Kein Bild</option>
           <option v-for="eintrag in bildKatalog" :key="eintrag.key" :value="eintrag.key">{{ eintrag.name }}</option>
         </select>
-        <img v-if="editImageKey" :src="vorschauUrl(editImageKey)" alt="Bild-Vorschau" class="bild-vorschau" />
+        <img v-if="editImageKey" :src="vorschauFuerKey(editImageKey)" alt="Bild-Vorschau" class="bild-vorschau" />
       </div>
       <button class="btn btn-primary btn-block" @click="saveEditExercise" style="margin-bottom: var(--space-sm)">
         Speichern
@@ -167,7 +167,7 @@ import ExerciseDetail from '../components/tracking/ExerciseDetail.vue'
 import { useExercises } from '../composables/useExercises.js'
 import { MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
-import { bildPfad, eintragFuerKey } from '../utils/uebungsBilder.js'
+import { vorschauUrl, eintragFuerKey } from '../utils/uebungsBilder.js'
 import bildKatalog from '../data/uebungskatalog.json'
 import { db } from '../db/dexie.js'
 
@@ -195,14 +195,15 @@ const editEquipmentVal = ref('')
 const editNotes = ref('')
 const editImageKey = ref('')
 
-function vorschauUrl(key) {
-  return bildPfad(key, 0)
+// Vorschaubild zum im Formular gewaehlten Bild-Key
+function vorschauFuerKey(key) {
+  return vorschauUrl(eintragFuerKey(bildKatalog, key))
 }
 
-// Foto 0 fuer das Zeilen-Thumbnail — nur bei gueltigem imageKey im Manifest,
-// sonst null (dann zeigt die Zeile die MuscleMap als Platzhalter).
+// Vorschaubild fuer das Zeilen-Thumbnail — nur bei gueltigem imageKey im
+// Manifest, sonst null (dann zeigt die Zeile die MuscleMap als Platzhalter).
 function thumbUrl(ex) {
-  return eintragFuerKey(bildKatalog, ex.imageKey) ? bildPfad(ex.imageKey, 0) : null
+  return vorschauFuerKey(ex.imageKey)
 }
 
 // Detailansicht (Tipp aufs Thumbnail — Bearbeiten bleibt dem Zeilen-Tipp)
@@ -336,7 +337,7 @@ onMounted(() => loadExercises())
   display: block;
   width: 40px;
   height: 40px;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-white);
@@ -416,5 +417,6 @@ onMounted(() => loadExercises())
   width: 96px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
+  background: var(--color-white);
 }
 </style>

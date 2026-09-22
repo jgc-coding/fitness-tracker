@@ -36,10 +36,10 @@ src/
   components/shared/     Modal (Android-Back schliesst!), EmptyState, WheelPicker,
                          UserSelectModal (Startdialog), MuscleMap (Inline-SVG,
                          18 data-muscle-Ids, Grobgruppen-Fallback)
-  components/tracking/ExerciseDetail.vue  Detailansicht: Bildwechsel ~900ms,
-                         MuscleMap, Notizfeld je Nutzer
-  data/uebungskatalog.json  Bild-Manifest: key, bilder, primaer/sekundaer
-                         (Muskel-Ids), aliasse (Katalognamen)
+  components/tracking/ExerciseDetail.vue  Detailansicht: Ueberblendung Start-/
+                         Endbild alle 1,2 s, MuscleMap, Notizfeld je Nutzer
+  data/uebungskatalog.json  Bild-Manifest: key, bilder (1-2 Frames), vorschau,
+                         primaer/sekundaer (Muskel-Ids), aliasse (Katalognamen)
   utils/
     runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
     runPlanMerge.js      Merge-Regeln des Imports (reine Funktion)
@@ -53,11 +53,12 @@ src/
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
-public/uebungsbilder/    2 webp je Manifest-Key (400px, im Repo, precached)
+public/uebungsbilder/    je Manifest-Key frame-<n>.svg + vorschau.webp (im Repo,
+                         precached), LIZENZ.md = Bildnachweis CC BY-SA 4.0
 scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf,
-                         uebungsbilder-holen (Fotos einmalig von free-exercise-db
-                         holen, idempotent)
+                         uebungsbilder-holen (Zeichnungen von Workout Guide
+                         holen und einfaerben, idempotent, --neu = alles neu)
                          Vertragstests: laufplan-merge-test, runmatch-test,
                          pace-modell-test, musclemap-pruefen,
                          uebungsbilder-matching-test, uebungsring-test
@@ -148,14 +149,29 @@ npm run preview   # Build lokal testen (Port 4173)
   Die Detailansicht speichert auch beim Schliessen (Android-Back) — nur
   Geaendertes wird gepusht.
 - **Uebungsbilder kommen aus dem Repo, nie von fremden Servern:** Das Manifest
-  `src/data/uebungskatalog.json` verbindet Katalognamen (`aliasse`) mit Fotos
-  (`public/uebungsbilder/<key>/0|1.webp`, einmalig geholt per
-  `scripts/uebungsbilder-holen.mjs`) und Muskeln (`primaer`/`sekundaer` fuer
-  die MuscleMap). Uebungen tragen optional `imageKey` (nie `undefined`, immer
-  `null` — Firestore lehnt undefined ab); ohne Bild zeigt die Karte die
-  MuscleMap mit Grobgruppen-Markierung. Das Namens-Matching ist per Vertrag
-  getestet (`scripts/uebungsbilder-matching-test.mjs` — zuerst Test, dann
-  Regeln), die 18 Muskel-Ids per `scripts/musclemap-pruefen.mjs`.
+  `src/data/uebungskatalog.json` verbindet Katalognamen (`aliasse`) mit
+  Zeichnungen und Muskeln (`primaer`/`sekundaer` fuer die MuscleMap). Keys sind
+  die Slugs der Sammlung Workout Guide (Bryl Lim, teils nach Everkinetic).
+  `bilder` nennt 1 Frame (Standbild) oder 2 (Start- und Endposition, die
+  Detailansicht blendet ueber) als `frame-<n>.svg` = Frame n der Quelle;
+  das mittlere Quell-Frame ist oft dicker gezeichnet und flackert darum —
+  Frame-Wahl je Uebung per Augenschein. `vorschau.webp` (kraeftigere Linie,
+  randlos, 128 px) dient Karte und Katalog, denn die feinen Linien
+  verschwinden bei 40 px. Pfade loesen `bildUrl`/`vorschauUrl` auf (nie selbst
+  zusammenbauen). Alles erzeugt `scripts/uebungsbilder-holen.mjs` (fester
+  Quell-Commit, Linienfarbe = Textfarbe). Uebungen tragen optional `imageKey`
+  (nie `undefined`, immer `null` — Firestore lehnt undefined ab); ohne Bild
+  zeigt die Karte die MuscleMap mit Grobgruppen-Markierung. "Bilder
+  automatisch zuordnen" ersetzt auch verwaiste Keys (nicht mehr im Manifest).
+  Vertraege: `scripts/uebungsbilder-matching-test.mjs` (Matching, Pfade, jede
+  Manifest-Datei vorhanden — zuerst Test, dann Regeln), die 18 Muskel-Ids per
+  `scripts/musclemap-pruefen.mjs`.
+- **Bildlizenz CC BY-SA 4.0 ist Pflicht, nicht Deko:** Nachweis steht in
+  Einstellungen -> Info und in `public/uebungsbilder/LIZENZ.md` — beide nie
+  entfernen, bei neuen Bildquellen ergaenzen. Bearbeitete Zeichnungen bleiben
+  unter derselben Lizenz. Bilder aus dem Screenshot-Stil (Gymvisual,
+  ExerciseDB und deren GitHub-Kopien) sind kostenpflichtig und duerfen nicht
+  ins oeffentliche Repo.
 - **Alternativen-Ring mit Standard-Uebung JE NUTZER:** In der Planung traegt
   ein Eintrag in `day.exercises` optional `alternativen` (Array aus
   exerciseId, hartes Maximum 4) und `bevorzugt` ({ userId: exerciseId } —

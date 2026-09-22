@@ -5,10 +5,19 @@
     @update:model-value="v => emit('update:modelValue', v)"
   >
     <div v-if="exercise" class="detail-content">
-      <!-- Grosses Bild: bei zwei vorhandenen Fotos wechselt die Anzeige alle
-           ~900ms zwischen Position 0 und 1 (Bewegungs-Eindruck) -->
+      <!-- Grosse Zeichnung: bei zwei Bildern (Start- und Endposition) blendet
+           die Anzeige im Wechsel weich ueber (Bewegungs-Eindruck); ein Bild
+           steht still. Beide Bilder liegen uebereinander im DOM, damit der
+           erste Wechsel nicht auf das Nachladen wartet. -->
       <div v-if="eintrag" class="detail-bild-wrap">
-        <img :src="bildUrl" alt="" class="detail-bild" />
+        <img
+          v-for="(relativ, i) in eintrag.bilder"
+          :key="relativ"
+          :src="bildUrl(eintrag, i)"
+          alt=""
+          class="detail-bild"
+          :class="{ sichtbar: i === bildPosition }"
+        />
       </div>
 
       <!-- Muskel-Grafik: primaer/sekundaer aus dem Manifest, ohne
@@ -60,7 +69,7 @@ import MuscleMap from '../shared/MuscleMap.vue'
 import { useAuthStore } from '../../stores/auth.js'
 import { useExerciseNotes } from '../../composables/useExerciseNotes.js'
 import { toTitleCase } from '../../utils/formatters.js'
-import { bildPfad, eintragFuerKey } from '../../utils/uebungsBilder.js'
+import { bildUrl, eintragFuerKey } from '../../utils/uebungsBilder.js'
 import bildKatalog from '../../data/uebungskatalog.json'
 
 const props = defineProps({
@@ -82,10 +91,6 @@ const eintrag = computed(() => eintragFuerKey(bildKatalog, props.exercise?.image
 const bildPosition = ref(0)
 let wechselTimer = null
 
-const bildUrl = computed(() =>
-  eintrag.value ? bildPfad(eintrag.value.key, bildPosition.value) : null
-)
-
 function stopBildwechsel() {
   if (wechselTimer) {
     clearInterval(wechselTimer)
@@ -96,13 +101,13 @@ function stopBildwechsel() {
 function startBildwechsel() {
   stopBildwechsel()
   bildPosition.value = 0
-  if ((eintrag.value?.bilder?.length || 0) < 2) return
-  // Zweites Foto vorladen, damit der erste Wechsel nicht flackert
-  const vorlader = new Image()
-  vorlader.src = bildPfad(eintrag.value.key, 1)
+  const anzahl = eintrag.value?.bilder?.length || 0
+  if (anzahl < 2) return
+  // "Bewegung reduzieren" im System: Standbild statt Dauer-Animation
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
   wechselTimer = setInterval(() => {
-    bildPosition.value = bildPosition.value === 0 ? 1 : 0
-  }, 900)
+    bildPosition.value = (bildPosition.value + 1) % anzahl
+  }, 1200)
 }
 
 // Alle drei Nutzer, der Standard-Nutzer des Geraets zuoberst
@@ -168,20 +173,29 @@ onUnmounted(stopBildwechsel)
 
 <style scoped>
 .detail-bild-wrap {
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  height: 240px;
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   margin-bottom: var(--space-md);
 }
 
+/* Bilder uebereinander, nur das aktive sichtbar — die Opacity-Transition
+   ergibt die weiche Ueberblendung. top/left statt inset (alte WebViews). */
 .detail-bild {
-  max-width: 100%;
-  max-height: 100%;
-  display: block;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.45s ease-in-out;
+}
+
+.detail-bild.sichtbar {
+  opacity: 1;
 }
 
 .detail-map {
