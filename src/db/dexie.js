@@ -30,6 +30,12 @@ db.version(3).stores({
   runSessions: 'id, planId, userId, date, [userId+date], externalId'
 })
 
+// v4 (additiv, verlustfrei): Notizen je Nutzer je Uebung, unabhaengig vom
+// Workout. id = `${exerciseId}_${userId}` (deterministisch, damit dieselbe
+// Notiz auf jedem Geraet denselben Datensatz trifft und Last-Write-Wins
+// per updatedAt greift). Bestehende Versionen bleiben unveraendert.
+db.version(4).stores({ exerciseNotes: 'id, exerciseId, userId' })
+
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
 }

@@ -85,6 +85,7 @@ export async function exportToJSON(userId = null) {
       : await db.setLogs.toArray(),
     runPlans: await db.runPlans.toArray(),
     runSessions: await db.runSessions.toArray(),
+    exerciseNotes: await db.exerciseNotes.toArray(),
     meta: await db.meta.toArray(),
     deletions: await db.deletions.toArray()
   }
@@ -102,6 +103,7 @@ const IMPORT_TABLES = [
   { name: 'setLogs', keyField: 'id' },
   { name: 'runPlans', keyField: 'id' },
   { name: 'runSessions', keyField: 'id' },
+  { name: 'exerciseNotes', keyField: 'id' },
   { name: 'meta', keyField: 'key' },
   { name: 'deletions', keyField: 'id' }
 ]
@@ -178,7 +180,7 @@ export async function importFromJSON(jsonText) {
   }
 
   // Let open views reload their reactive state from Dexie.
-  for (const collection of ['exercises', 'plans', 'trainingDays', 'workoutLogs', 'setLogs', 'runPlans', 'runSessions']) {
+  for (const collection of ['exercises', 'plans', 'trainingDays', 'workoutLogs', 'setLogs', 'runPlans', 'runSessions', 'exerciseNotes']) {
     window.dispatchEvent(
       new CustomEvent('fitness-sync-changed', { detail: { collection } })
     )

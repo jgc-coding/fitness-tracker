@@ -168,7 +168,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: HistoryView zeigt weiterhin ALLE drei Nutzer im Umschalter (Absicht: History ist unabhaengig von der Tageswahl)
   - Kriterium: `git grep -n "authStore.users" -- src/views/TrackingView.vue` liefert keine Treffer mehr (alles auf activeUsers umgestellt)
   - Kriterium: pruefen.txt gruen
-- [ ] P4: Dexie v4 mit exerciseNotes, Sync und Backup erweitert
+- [x] P4: Dexie v4 mit exerciseNotes, Sync und Backup erweitert
   - Kriterium: `src/db/dexie.js` enthaelt `db.version(4).stores({ exerciseNotes: 'id, exerciseId, userId' })` mit Kommentar "additiv, verlustfrei" — bestehende Versionen unveraendert
   - Kriterium: Neues Composable (z.B. `src/composables/useExerciseNotes.js`): Laden je Uebung, Speichern je Nutzer mit deterministischer Id `exerciseId + '_' + userId`, updatedAt, `pushRecord`; Leeren schreibt `text: ''` statt zu loeschen
   - Kriterium: `SYNCED` in syncService, `IMPORT_TABLES` und `exportToJSON` in exportData enthalten `exerciseNotes` (git grep belegbar in beiden Dateien)
