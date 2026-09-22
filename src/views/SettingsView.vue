@@ -329,6 +329,7 @@ const DEFAULT_EXERCISES = [
 
   // Back
   { name: 'weighted pull up', muscleGroup: 'back', equipment: 'bodyweight' },
+  { name: 'Chin Up', muscleGroup: 'back', equipment: 'bodyweight' },
   { name: 'Latzug', muscleGroup: 'back', equipment: 'machine_cable' },
   { name: 'chest supported row', muscleGroup: 'back', equipment: 'dumbbell' },
   { name: 'low row', muscleGroup: 'back', equipment: 'machine_cable' },

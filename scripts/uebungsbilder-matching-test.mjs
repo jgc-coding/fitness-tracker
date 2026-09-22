@@ -1,9 +1,9 @@
 // Vertragstest fuers Namens-Matching der Uebungsbilder (src/utils/uebungsBilder.js).
 //
-// Der Test ist der Vertrag: alle 31 Katalognamen aus der Plan-Tabelle
-// (docs/plan-fittrack-v2.md, Abschnitt "Bild-Zuordnung") muessen ihren Key
-// treffen, Fantasienamen duerfen nichts treffen. Wer Matching-Regeln aendert,
-// erweitert ZUERST diesen Test.
+// Der Test ist der Vertrag: alle 32 Katalognamen (31 aus der Plan-Tabelle in
+// docs/plan-fittrack-v2.md, Abschnitt "Bild-Zuordnung", plus "Chin Up" als
+// Nachtrag vom 22.09.2026) muessen ihren Key treffen, Fantasienamen duerfen
+// nichts treffen. Wer Matching-Regeln aendert, erweitert ZUERST diesen Test.
 //
 // Aufruf:  node ./scripts/uebungsbilder-matching-test.mjs
 
@@ -34,7 +34,7 @@ function pruefe(beschreibung, bedingung) {
   }
 }
 
-// Die 31 Katalognamen der Plan-Tabelle -> erwarteter Key. Namen stehen hier
+// Die 32 Katalognamen -> erwarteter Key. Namen stehen hier
 // EXAKT wie im Uebungskatalog der App (SettingsView DEFAULT_EXERCISES),
 // inklusive Anfuehrungszeichen, Doppelpunkten und Gross-/Kleinschreibung.
 const ERWARTET = [
@@ -56,6 +56,7 @@ const ERWARTET = [
   ['BB Bench press', 'Barbell_Bench_Press_-_Medium_Grip'],
   ['BB incline Bench press', 'Barbell_Incline_Bench_Press_-_Medium_Grip'],
   ['weighted pull up', 'Weighted_Pull_Ups'],
+  ['Chin Up', 'Chin-Up'],
   ['Latzug', 'Wide-Grip_Lat_Pulldown'],
   ['chest supported row', 'Dumbbell_Incline_Row'],
   ['low row', 'Seated_Cable_Rows'],
@@ -71,8 +72,8 @@ const ERWARTET = [
   ['core', 'Plank']
 ]
 
-console.log('[matching-test] 31 Katalognamen muessen ihren Key treffen:')
-pruefe(`Vertrag umfasst 31 Namen (ist: ${ERWARTET.length})`, ERWARTET.length === 31)
+console.log('[matching-test] 32 Katalognamen muessen ihren Key treffen:')
+pruefe(`Vertrag umfasst 32 Namen (ist: ${ERWARTET.length})`, ERWARTET.length === 32)
 for (const [name, key] of ERWARTET) {
   const treffer = findeImageKey(katalog, name)
   pruefe(`"${name}" -> ${key}`, treffer === key)
@@ -92,6 +93,12 @@ pruefe('normalisiereName entfernt Doppelpunkte und trimmt',
   normalisiereName('  Machine:  Chest Press ') === 'machine chest press')
 pruefe('leerer Name trifft nichts', findeKatalogEintrag(katalog, '') === null)
 pruefe('null trifft nichts', findeKatalogEintrag(katalog, null) === null)
+pruefe('deutscher Alias mit Umlaut ("Unterer Rücken") trifft die Hyperextension',
+  findeImageKey(katalog, 'Unterer Rücken') === 'Hyperextensions_Back_Extensions')
+pruefe('deutscher Alias in ae/oe/ue-Schreibweise ("Unterer Ruecken") trifft ebenfalls',
+  findeImageKey(katalog, 'Unterer Ruecken') === 'Hyperextensions_Back_Extensions')
+pruefe('Bindestrich-Schreibweise ("chin-up") trifft den neuen Eintrag',
+  findeImageKey(katalog, 'Chin-up') === 'Chin-Up')
 
 console.log('[matching-test] Manifest-Zugriff und Pfad-Aufloesung:')
 pruefe('eintragFuerKey findet Hack_Squat', eintragFuerKey(katalog, 'Hack_Squat')?.name === 'Hack Squat')
