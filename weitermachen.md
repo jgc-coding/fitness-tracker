@@ -1,9 +1,22 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 4, Paket P4)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 5, Paket P5)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
   deployt.
+- **P5 ist umgesetzt:** `src/data/uebungskatalog.json` (Top-Level-Array,
+  30 Eintraege nach der fixen Plan-Tabelle; je Eintrag `key`, `name`,
+  `bilder` (2 relative webp-Pfade), `primaer`/`sekundaer` als Arrays
+  normalisierter Muskel-Ids mit Unterstrich, `aliasse` klein geschrieben —
+  31 Aliasse gesamt, "low row" und "cable row (without chest support)"
+  haengen beide an Seated_Cable_Rows). `scripts/uebungsbilder-holen.mjs`
+  laedt je Key `0.jpg`/`1.jpg` von raw.githubusercontent.com
+  (yuhonas/free-exercise-db), skaliert mit sharp auf 400px Breite als webp
+  (Qualitaet 75, withoutEnlargement) nach `public/uebungsbilder/<key>/`,
+  ueberspringt vorhandene Dateien und bricht bei Netz-/HTTP-Fehler mit
+  Meldung und `process.exitCode = 1` ab (kein `process.exit()` nach fetch).
+  Alle 60 webp liegen im Repo; `vite.config.js` globPatterns enthaelt jetzt
+  `webp` — der Build precacht 99 Eintraege (1918 KiB) inkl. aller 60 Fotos.
 - **P4 ist umgesetzt:** Dexie v4 mit neuer Tabelle `exerciseNotes`
   (`db.version(4).stores({ exerciseNotes: 'id, exerciseId, userId' })`,
   additiv, bestehende Versionen unveraendert). Neues Composable
@@ -36,10 +49,9 @@
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P5-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P5 weiter (Bild-Manifest `uebungskatalog.json`,
-  Download-Skript `uebungsbilder-holen.mjs`, Precache; braucht Internet fuer
-  raw.githubusercontent.com, sonst gewollter Stopp).
+- **Pakete P6-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P6 weiter (MuscleMap.vue mit 18 `data-muscle`-Ids,
+  Pruefskript `musclemap-pruefen.mjs`).
 - **`.claude\launch.json` enthaelt noch die Konfiguration "Vite Dev Server
   (Single)"**, die auf die geloeschte `vite.single.config.js` zeigt. Ein
   Paket-Lauf darf unter `.claude\` nicht schreiben — bitte in einer
@@ -58,8 +70,9 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P5**: Bild-Manifest, Foto-Download-Skript, Precache
-   (Kriterien im Plan; Bild-Zuordnungstabelle steht fix im Plan, nicht raten).
+1. **Autopilot P6**: MuscleMap-Komponente (zwei Silhouetten als Inline-SVG,
+   alle 18 Muskel-Ids, Grobgruppen-Fallback) plus `musclemap-pruefen.mjs`
+   (Kriterien im Plan).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -96,6 +109,17 @@
   - Worktree-Reste dieser Sitzung loeschen? Befehle stehen in weitermachen.md
 
 ## Stolperfallen (aktuell)
+- **Das Bild-Manifest ist ein Top-Level-Array** (kein Wrapper-Objekt);
+  `primaer` und `sekundaer` sind Arrays — sie passen damit direkt auf die
+  MuscleMap-Props `primary`/`secondary` aus P6. Die `aliasse` stehen klein
+  und OHNE die Anfuehrungszeichen der Plan-Tabelle ("bad girl", nicht
+  '"bad girl"'), aber MIT Doppelpunkt/Klammern ("machine: chest press",
+  "cable row (without chest support)") — das Matching in P7 muss beide
+  Seiten normalisieren (klein, Anfuehrungszeichen/Doppelpunkte raus,
+  Leerzeichen glaetten), nicht nur die Eingabe.
+- **`uebungsbilder-holen.mjs` ueberspringt vorhandene Dateien** — wer ein
+  Foto neu holen will (z.B. nach Aenderung von Breite/Qualitaet), loescht
+  erst die betroffenen webp unter `public/uebungsbilder/<key>/`.
 - **Notizen je Nutzer laufen NUR ueber `useExerciseNotes`** (deterministische
   Id, `pushRecord`, Leeren = `text: ''`). Wer in P8 die Detailansicht baut,
   loescht nie einen exerciseNotes-Datensatz — sonst braucht es Tombstones.
@@ -129,6 +153,15 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 5 / P5: Bild-Manifest, Foto-Download, Precache. Beleg:
+  `src/data/uebungskatalog.json` hat 30 Eintraege (31 Aliasse, zwei davon an
+  Seated_Cable_Rows); `node ./scripts/uebungsbilder-holen.mjs` lief zweimal —
+  erster Lauf "60 geladen, 0 uebersprungen", zweiter Lauf "0 geladen,
+  60 uebersprungen" (Idempotenz belegt); der Zaehl-Einzeiler meldet
+  "webp: 60 | 2 x Eintraege: 60 | OK"; `dist/sw.js` enthaelt nach dem Build
+  alle 60 `uebungsbilder/...webp`-Pfade (globPatterns um `webp` erweitert,
+  Precache 99 Eintraege / 1918.58 KiB). Alle fuenf pruefen.txt-Befehle gruen
+  (`npm run build` 110 Module, 3.45s).
 - Lauf 4 / P4: Dexie v4 mit exerciseNotes, Sync und Backup erweitert.
   Beleg: `git grep -n "exerciseNotes" -- src/db/dexie.js
   src/services/syncService.js src/utils/exportData.js` zeigt den
@@ -171,6 +204,8 @@
   Loeschungen sauber als `D`.
 
 ### Fehlversuche (mit exaktem Grund)
+- Lauf 5: keine (Netzzugriff auf raw.githubusercontent.com lief im ersten
+  Versuch durch).
 - Lauf 4: eine PowerShell-Kette `Copy-Item ...; node --check ...; if ($?)`
   wurde von der Sandbox als Mehrfach-Operation verweigert. Loesung: Kopie
   per Write-Tool, `node --check` als Einzelbefehl.
@@ -182,6 +217,11 @@
   einzeln und ohne `cd`.
 
 ### Noch nicht probiert
+- Sichtpruefung der 60 Fotos (zeigt jedes Bild wirklich die richtige
+  Uebung?) — die Keys stammen fix aus der Plan-Tabelle, alle Downloads
+  liefen mit HTTP 200, aber den Bildinhalt hat niemand angesehen; gehoert
+  in die interaktive Pruefung vor dem Deploy (spaetestens mit P7/P8, wenn
+  die Bilder in der UI auftauchen).
 - Funktionstest des Composables gegen eine echte IndexedDB (laut Plan erst
   in der interaktiven Browser-Pruefung nach allen Paketen; bis P8 gibt es
   keine UI, die es aufruft).

@@ -174,7 +174,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: `SYNCED` in syncService, `IMPORT_TABLES` und `exportToJSON` in exportData enthalten `exerciseNotes` (git grep belegbar in beiden Dateien)
   - Kriterium: Keine UI-Aenderung in diesem Paket
   - Kriterium: pruefen.txt gruen
-- [ ] P5: Bild-Manifest, Foto-Download, Precache
+- [x] P5: Bild-Manifest, Foto-Download, Precache
   - Kriterium: `src/data/uebungskatalog.json` existiert und enthaelt exakt die Eintraege der Plan-Tabelle: je Eintrag `key`, `name` (lesbarer Anzeigename), `bilder` (2 relative Pfade `uebungsbilder/<key>/0.webp`, `.../1.webp`), `primaer`, `sekundaer` (normalisierte Muskel-Ids mit Unterstrich), `aliasse` (die Katalognamen aus der Tabelle, klein geschrieben); "low row" und "cable row (without chest support)" sind zwei Aliasse am Eintrag Seated_Cable_Rows
   - Kriterium: `scripts/uebungsbilder-holen.mjs` liest das Manifest, laedt je Key `0.jpg`/`1.jpg` von raw.githubusercontent.com (URL-Muster siehe Plan), skaliert mit sharp auf 400px Breite als webp (Qualitaet ~75) nach `public/uebungsbilder/<key>/`, ist idempotent (vorhandene Dateien uebersprungen) und bricht bei Netzfehler mit klarer Meldung und Exit ungleich 0 ab
   - Kriterium: Das Skript wurde ausgefuehrt; ein node-Einzeiler belegt: Anzahl der webp-Dateien unter `public/uebungsbilder/` == 2 x Anzahl der Manifest-Eintraege
