@@ -40,10 +40,10 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   alle Trainings des Tages (Titel, Teilnehmer, Notiz, Zyklustag); Notiz und
   Zyklustag sind dort nachtraeglich editierbar. Tage mit Notiz oder Zyklustag
   tragen einen kleinen Punkt.
-- **Standard-Nutzer als Start-Vorauswahl** (Nachtrag 22.09.2026): Der in den
-  Einstellungen gewaehlte Standard-Nutzer ist im Startdialog immer schon
-  angehakt (abwaehlbar); ohne gespeicherte Auswahl (Erststart) ist er die
-  komplette Vorauswahl. So startet jedes Handy mit dem eigenen Nutzer. Die
+- **Standard-Nutzer als Start-Vorauswahl** (Nachtrag 22.09.2026): Im
+  Startdialog ist immer genau der in den Einstellungen gewaehlte
+  Standard-Nutzer des Geraets vorausgewaehlt; Mittrainierende werden je
+  Training dazugehakt. So startet jedes Handy mit dem eigenen Nutzer. Die
   Chip-Zeile im laufenden Workout zeigt weiterhin nur die aktuelle Besetzung.
 - **Uebung "Chin Up"** (Unterhandgriff, staerkerer Bizeps-Anteil) im
   Standard-Katalog und Bild-Manifest mit 2 Fotos (Nachtrag 22.09.2026); in den
