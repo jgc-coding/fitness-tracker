@@ -1,26 +1,35 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 9, Paket P9)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 10, Paket P10)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
-  deployt. P1-P9 sind umgesetzt, als naechstes P10.
-- **P9 ist umgesetzt:** Im Tag-Editor der PlanningView hat jede Uebungszeile
-  einen Alternativen-Knopf ("⇄", bei hinterlegten Alternativen mit Zaehler und
-  Akzentfarbe). Er oeffnet ein Auswahl-Modal (Modal.vue, fullHeight): Suche,
-  Gruppierung "Gleiche Muskelgruppe (<Label>)" zuerst, dann "Weitere
-  Uebungen", Mehrfachauswahl mit hartem Maximum 4 — die Hinweiszeile ueber der
-  Liste zeigt "N von 4 ausgewaehlt" bzw. rot "Maximum erreicht (4
-  Alternativen) — erst eine abwaehlen", nicht ausgewaehlte Eintraege werden am
-  Maximum abgeblendet und ein Tipp darauf tut nichts. Die Basis-Uebung selbst
-  ist nicht waehlbar. "Fertig" speichert `alternativen` (Array aus exerciseId,
-  Auswahl-Reihenfolge = spaetere Ring-Reihenfolge) am Eintrag in
-  `day.exercises` ueber `updateTrainingDay` (pushRecord wie im Bestand); ohne
-  Aenderung wird nichts geschrieben. Neuer Helfer `kopiereUebungsEintrag`
-  (`{ ...e, alternativen: [...(e.alternativen || [])] }`) — `finishPicker`,
-  `removeExerciseFromDay` und `updateExerciseSets` bauen ihre Listen jetzt
-  darueber auf und erhalten damit generisch ALLE Felder (Regressionsschutz:
-  Hinzufuegen/Entfernen/Sets aendern verliert keine Alternativen). Eintraege
-  ohne `alternativen` bleiben gueltig (ueberall `|| []`-Fallback).
+  deployt. P1-P10 sind umgesetzt, als naechstes P11.
+- **P10 ist umgesetzt:** Schnellwechsel im Workout (TrackingView). Beim Aufbau
+  der Workout-Liste (`startWorkout`, `startCustom`, beide Resume-Zweige) laeuft
+  jeder Eintrag durch den Helfer `mitBasis`
+  (`{ ...e, basisExerciseId: e.basisExerciseId || e.exerciseId }`) — Override/
+  Resume behalten gespeicherte Werte, Quick-Add und Custom-Picker setzen die
+  Basis direkt. Der Wechsel-Ring ist `getRing(entry)` =
+  `[basisExerciseId, ...alternativen]`; Karten mit Ring-Laenge > 1 zeigen in
+  der Namenszeile einen Ring-Knopf (horizontales Pfeil-Icon) mit Punktreihe
+  darunter (ein Punkt je Position, aktiver Punkt in Akzentfarbe; nach freiem
+  Tausch ausserhalb des Rings liefert `getRingIndex` -1 und kein Punkt ist
+  aktiv). Tipp auf den Knopf und horizontales Wischen auf der Karte
+  (|dx| > 40 px und |dx| > 2|dy|, passive Touch-Listener, links = vor,
+  rechts = zurueck) rufen `cycleRing`: setzt `exerciseId` (ausserhalb des
+  Rings: Sprung zur Basis), dann `persistWorkoutExercises`,
+  `loadRecommendations`, `updateNotification` — derselbe Weg wie beim
+  bestehenden Tausch, dessen Modal unveraendert bleibt. Ein
+  Nachklick-Schutz (Zeitstempel `letzterWischUm`, 400 ms) faengt das click,
+  das manche WebViews nach einem Wisch noch feuern, in allen Klick-Zielen der
+  Karte ab (Rad, Detail, Tausch, Steigern, Ring-Knopf).
+  Kopier-Leitplanke umgesetzt: `persistWorkoutExercises` (workout store) und
+  der dauerhafte Tausch in `applySwap` kopieren `alternativen` als frisches
+  Array (`[...(e.alternativen || [])]`) — sonst DataCloneError, seit P9 dort
+  latent.
+- **P9:** Alternativen-Knopf + Auswahl-Modal im Tag-Editor der PlanningView
+  (Maximum 4, Basis nicht waehlbar); `alternativen` am Eintrag in
+  `day.exercises`; `kopiereUebungsEintrag` an allen drei Neuaufbau-Stellen.
 - **P8:** `src/components/tracking/ExerciseDetail.vue` (Detail-Modal:
   Bildwechsel 900ms, MuscleMap, gemeinsame Notiz, Notizfeld je Nutzer ueber
   useExerciseNotes, Speichern per Knopf UND beim Schliessen); Einstieg 1
@@ -43,9 +52,8 @@
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P10-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P10 weiter (Schnellwechsel im Workout,
-  Tippen + Wischen; der Ring ist `[basisExerciseId, ...alternativen]`).
+- **Pakete P11-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P11 weiter (Workout-Notiz und Zyklustag).
 - **Neue Pruefskripte in `.claude\pruefen.txt` aufnehmen** (interaktive
   Session, Paket-Laeufe duerfen dort nicht schreiben):
   `node ./scripts/musclemap-pruefen.mjs` und
@@ -68,10 +76,9 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P10**: Schnellwechsel im Workout (basisExerciseId beim Start,
-   Wechsel-Ring `[basis, ...alternativen]`, Wechsel-Symbol + Punktreihe,
-   Wisch-Geste, persistWorkoutExercises mit Kopier-Leitplanke — Kriterien im
-   Plan).
+1. **Autopilot P11**: Workout-Notiz und Zyklustag (Knopf-Zeile unter dem Kopf,
+   Notiz-Modal, Zyklus-Modal mit WheelPicker 1-45 + Entfernen, `note` und
+   `cycleDays` additiv am workoutLog — Kriterien im Plan).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -108,6 +115,26 @@
   - Worktree-Reste dieser Sitzung loeschen? Befehle stehen in weitermachen.md
 
 ## Stolperfallen (aktuell)
+- **`basisExerciseId` gehoert dem Workout-Log, nie dem Plan:** `mitBasis`
+  (TrackingView) setzt es nur in `workoutExercises`; der dauerhafte Tausch
+  (`applySwap`) schreibt es bewusst NICHT in `day.exercises`. Der Ring liest
+  `alternativen` aus dem Workout-Eintrag (beim Start aus dem Plan kopiert) —
+  Plan-Aenderungen an Alternativen wirken erst auf das naechste Workout.
+- **Wisch-Nachklick-Schutz nicht entfernen:** nach einem horizontalen Wisch
+  feuern manche WebViews noch ein click aufs Element unterm Finger.
+  `istWischNachklick()` (400 ms nach `letzterWischUm`) sitzt in
+  `openExerciseInput`, `openExerciseDetail`, `openSwap`, `toggleIncrease` und
+  `tapRing`. Der Zeitstempel wird bei JEDEM erkannten Horizontal-Wisch
+  gesetzt, auch ohne Alternativen — so oeffnet ein Wisch auf einer Karte ohne
+  Ring nichts aus Versehen.
+- **Touch-Listener der Karte sind `.passive`** — kein preventDefault, damit
+  vertikales Scrollen fluessig bleibt. Die Wisch-Schwelle (|dx| > 40 und
+  |dx| > 2|dy|) steht im Plan-Kriterium; wer sie aendert, aendert den Vertrag.
+- **Uebungslisten-Persistenz braucht tiefe Kopien:** `persistWorkoutExercises`
+  (workout store) und der dauerhafte Tausch in `applySwap` kopieren
+  `alternativen` als frisches Array
+  (`{ ...e, alternativen: [...(e.alternativen || [])] }`) — ein reaktives
+  Vue-Proxy-Array im Eintrag sprengt Dexie mit DataCloneError.
 - **Uebungslisten in der Planung NUR ueber `kopiereUebungsEintrag` neu bauen**
   (PlanningView): der Helfer kopiert generisch ALLE Felder plus `alternativen`
   als frisches Array. Wer wieder Felder hart aufzaehlt
@@ -115,11 +142,7 @@
   war der Zustand vor P9.
 - **`alternativen` ist optional:** alte Eintraege haben das Feld nicht, ueberall
   mit `(e.alternativen || [])` lesen. Neue Picker-Eintraege bekommen `[]`.
-  Die Auswahl-Reihenfolge im Modal ist die spaetere Ring-Reihenfolge (P10).
-- **Der Wechsel-Ring (P10) braucht tiefe Kopien:** beim Persistieren von
-  Uebungslisten `alternativen` mitkopieren
-  (`list.map(e => ({ ...e, alternativen: [...(e.alternativen || [])] }))`),
-  sonst DataCloneError.
+  Die Auswahl-Reihenfolge im Modal ist die Ring-Reihenfolge.
 - **ExerciseDetail speichert Notizen auch beim Schliessen** (watch auf
   modelValue false ruft speichereGeaenderte). Wer das Modal umbaut, darf diesen
   Pfad nicht entfernen — sonst gehen Eingaben verloren, wenn jemand nur per
@@ -172,6 +195,18 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 10 / P10: Schnellwechsel im Workout (Tippen + Wischen). Beleg: alle
+  fuenf pruefen.txt-Befehle gruen (Build 117 Module, TrackingView-Chunk
+  waechst von ~27.5 auf 29.68 kB — Ring-Logik und Wisch-Erkennung stecken
+  drin); Regressionscheck `musclemap-pruefen` und
+  `uebungsbilder-matching-test` weiter gruen. Im Code belegt: `mitBasis` an
+  allen vier Listen-Aufbau-Stellen plus Quick-Add/Custom-Picker mit direkter
+  Basis; `cycleRing` nutzt exakt den Tausch-Weg (persistWorkoutExercises ->
+  loadRecommendations -> updateNotification); `persistWorkoutExercises` und
+  `applySwap` kopieren `alternativen` als frisches Array (Leitplanke aus dem
+  Plan); Ring-Knopf mit Punktreihe nur bei `getRing(...).length > 1`;
+  `getRingIndex` -1 nach freiem Tausch -> kein aktiver Punkt, naechster
+  Wechsel springt zu `ring[0]` (Basis).
 - Lauf 9 / P9: Alternativen in der Planung. Beleg: alle fuenf pruefen.txt-
   Befehle gruen (Build 117 Module, PlanningView-Chunk waechst von ~10 auf
   13.81 kB — Modal und Logik stecken drin); zusaetzlich
@@ -205,6 +240,7 @@
   Loeschen per `Remove-Item` statt `git rm` (schreibende git-Befehle verboten).
 
 ### Fehlversuche (mit exaktem Grund)
+- Lauf 10: keine.
 - Lauf 9: keine.
 - Lauf 8: keine.
 - Lauf 7: keine.
@@ -219,6 +255,11 @@
   jeden `git grep` einzeln und ohne `cd`.
 
 ### Noch nicht probiert
+- Die Wisch-Geste selbst ist im Lauf nicht ausfuehrbar (Touch-Events brauchen
+  ein echtes Geraet oder eine Browser-Pane mit Touch-Emulation) — P10 ist
+  durch Build + Code-Weg belegt; Wischen gehoert auf die Handy-Checkliste des
+  Plans ("Nach dem Lauf", Punkt 4). Tipp auf das Wechsel-Symbol laesst sich
+  dagegen im Browser pruefen (interaktive Sichtpruefung vor dem Deploy).
 - Sichtpruefung des Alternativen-Modals im Browser (Knopf + Zaehler,
   Gruppierung "Gleiche Muskelgruppe zuerst", Maximum-Hinweis, Erhalt der
   Alternativen beim Hinzufuegen/Entfernen/Sets-Aendern gegen eine echte

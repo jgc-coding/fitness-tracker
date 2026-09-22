@@ -204,7 +204,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: `finishPicker`, `removeExerciseFromDay` und `updateExerciseSets` in PlanningView erhalten beim Neuaufbau der Liste vorhandene `alternativen` (Regressionsschutz: Uebungen hinzufuegen/entfernen/Sets aendern verliert keine Alternativen — im Code belegt, alle drei Stellen kopieren generisch alle Felder)
   - Kriterium: Eintraege ohne `alternativen` bleiben gueltig (alte Plaene laufen unveraendert)
   - Kriterium: pruefen.txt gruen
-- [ ] P10: Schnellwechsel im Workout (Tippen + Wischen)
+- [x] P10: Schnellwechsel im Workout (Tippen + Wischen)
   - Kriterium: Beim Workout-Start erhaelt jeder Eintrag in `workoutExercises` ein `basisExerciseId` (die geplante Uebung), falls noch nicht vorhanden (Resume/Override behaelt gespeicherte Werte); der Wechsel-Ring ist `[basisExerciseId, ...alternativen]`
   - Kriterium: Karten mit Ring-Laenge > 1 zeigen ein Wechsel-Symbol plus Punktreihe (ein Punkt je Ring-Position, aktiver Punkt markiert); Tipp auf das Symbol springt zur naechsten Ring-Position
   - Kriterium: Horizontales Wischen auf der Karte (Touch: |dx| > 40px und |dx| > 2x|dy|) wechselt vor/zurueck im Ring; vertikales Scrollen und normales Tippen bleiben unbeeintraechtigt; ohne Alternativen loest Wischen nichts aus
