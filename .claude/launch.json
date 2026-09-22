@@ -19,20 +19,6 @@
         "--host"
       ],
       "port": 4173
-    },
-    {
-      "name": "Vite Dev Server (Single)",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "vite",
-        "--config",
-        "vite.single.config.js",
-        "--host",
-        "--port",
-        "5175",
-        "--strictPort"
-      ],
-      "port": 5175
     }
   ]
 }
