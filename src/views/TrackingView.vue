@@ -81,8 +81,10 @@
         >
           <div class="exercise-row">
             <!-- Thumbnail links: Foto 0 der Uebung, ohne Bild die MuscleMap
-                 klein mit Grobgruppen-Markierung als Platzhalter -->
-            <div class="exercise-thumb">
+                 klein mit Grobgruppen-Markierung als Platzhalter.
+                 Tipp aufs Thumbnail oeffnet die Detailansicht, NICHT das
+                 Eingabe-Rad — darum @click.stop -->
+            <div class="exercise-thumb" @click.stop="openExerciseDetail(planExercise.exerciseId)">
               <img
                 v-if="getThumbUrl(planExercise.exerciseId)"
                 :src="getThumbUrl(planExercise.exerciseId)"
@@ -159,6 +161,9 @@
     <!-- Nutzer-Auswahl erneut oeffnen (Chip-Zeile); Aenderung waehrend eines
          aktiven Workouts landet als userIds am workoutLog -->
     <UserSelectModal v-model="showUserSelect" @confirm="onActiveUsersChanged" />
+
+    <!-- Uebungs-Detailansicht: grosses Bild, MuscleMap, Notizen je Nutzer -->
+    <ExerciseDetail v-model="showExerciseDetail" :exercise="detailExercise" />
 
     <!-- Wheel Picker Modal for exercise input -->
     <Modal v-model="showWheelPicker" :title="activeExerciseName">
@@ -315,6 +320,7 @@ import { useRoute } from 'vue-router'
 import TopBar from '../components/layout/TopBar.vue'
 import Modal from '../components/shared/Modal.vue'
 import UserSelectModal from '../components/shared/UserSelectModal.vue'
+import ExerciseDetail from '../components/tracking/ExerciseDetail.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
 import MuscleMap from '../components/shared/MuscleMap.vue'
 import { useWorkoutStore } from '../stores/workout.js'
@@ -529,6 +535,17 @@ function getThumbUrl(exerciseId) {
 // Grobgruppe fuer den MuscleMap-Platzhalter, wenn kein Foto zugeordnet ist
 function getMuscleGroupId(exerciseId) {
   return getExerciseById(exerciseId)?.muscleGroup || ''
+}
+
+// Detailansicht (Tipp aufs Thumbnail — das Rad bleibt dem Karten-Tipp)
+const showExerciseDetail = ref(false)
+const detailExercise = ref(null)
+
+function openExerciseDetail(exerciseId) {
+  const ex = getExerciseById(exerciseId)
+  if (!ex) return
+  detailExercise.value = ex
+  showExerciseDetail.value = true
 }
 
 function getSavedValue(exerciseId, userId, field) {
