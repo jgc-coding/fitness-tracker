@@ -3,10 +3,10 @@
 **Prozess-Stufe: Produkt** (taeglich in Benutzung — Versionierung, CHANGELOG, Regressionscheck und Done-Gate gelten voll)
 
 ## Projektbeschreibung
-PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer ein Paar (Lisa & Gab).
-Beide trainieren denselben Plan mit individuellen Gewichten/Wiederholungen. Offline-first
-auf Android, Daten lokal in IndexedDB, deployed auf GitHub Pages. Dazu der Reiter „Laufen"
-(Laufplaner, siehe unten).
+PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer drei Personen
+(Lisa, Gab & Ben). Alle trainieren denselben Plan mit individuellen
+Gewichten/Wiederholungen. Offline-first auf Android, Daten lokal in IndexedDB,
+deployed auf GitHub Pages. Dazu der Reiter „Laufen" (Laufplaner, siehe unten).
 
 ## Tech-Stack
 - **Frontend:** Vue 3 (Composition API) + Vite 6, Vue Router 4 (Lazy Loading), Pinia
@@ -20,7 +20,7 @@ auf Android, Daten lokal in IndexedDB, deployed auf GitHub Pages. Dazu der Reite
 
 ## Design-Tokens (`src/styles/variables.css`)
 Hintergrund `#f3f6f7` · Akzent `#911f2f` · Text `#1e1f23` ·
-User 1 Lisa `#911f2f` (rot) · User 2 Gab `#2c5f8a` (blau)
+User 1 Lisa `#911f2f` (rot) · User 2 Gab `#2c5f8a` (blau) · User 3 Ben `#2f7d4f` (gruen)
 
 ## Dateistruktur (nur, was der Dateiname nicht verraet)
 ```
@@ -40,7 +40,7 @@ src/
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
-scripts/                 check-drift, laufplan-pruefen, laufplan-vorgaben, pace-modell
+scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf
                          Vertragstests: laufplan-merge-test, runmatch-test, pace-modell-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
@@ -53,32 +53,9 @@ Views (6 Reiter), Router, Stores `auth`/`plans`/`workout`, `styles/`, `main.js` 
 ## Befehle
 ```bash
 npm run dev       # Entwicklungsserver (Port 5173)
-npm run build     # Produktions-Build nach /dist
+npm run build     # Produktions-Build nach /dist — so laeuft der Deploy
 npm run preview   # Build lokal testen (Port 4173)
-
-npm run dev:single     # Single-Variante — ACHTUNG: gleicher Default-Port 5173 wie
-                       # `npm run dev`. Laeuft beides, antwortet still die Haupt-App.
-                       # Abhilfe: `-- --port 5175 --strictPort`
-npm run build:single   # Build nach /dist/single
-npm run check:drift    # Prueft, ob src/ und single/src/ synchron sind
-npm run build:all      # check:drift + beide Apps bauen — so laeuft der Deploy
 ```
-
-## FitTrack Single (unabhaengige Variante)
-Eigenstaendige Variante fuer **eine** Person in `single/` (eigene `index.html` + Kopie
-von `src/`, Build-Config `vite.single.config.js`, Base-Path `/fitness-tracker/single/`,
-eigene PWA). Kein Firebase, kein Cloud-Sync, eigene IndexedDB `FitnessTrackerSingle`,
-`USERS` nur `user1` (Dual-User-UI ausgeblendet). `deploy.yml` baut beide Apps in
-dieselbe Pages-Artifact; die Haupt-App hat dafuer nur eine `navigateFallbackDenylist`
-fuer `/single/`, damit sich die Service-Worker nicht stoeren.
-
-- **Doppel-Wartung:** Jede Aenderung an einer geteilten Datei MUSS in beide Kopien
-  (`cp src/X single/src/X`). `check:drift` erzwingt das vor jedem Build; bewusste
-  Ausnahmen stehen in `scripts/check-drift.mjs`.
-- **`check:drift` rot, obwohl `git status` sauber?** Zeilenenden: `core.autocrlf=true`
-  laesst einzelne Dateien im Arbeitsbaum als CRLF liegen, waehrend Git beide Kopien
-  identisch fuehrt (der Vergleich ist bytegenau). Heilung: Datei loeschen und mit
-  `git checkout -- single/src/` neu holen.
 
 ## Architektur: Kraft-Training
 - **Offline-first:** Alle Reads aus IndexedDB. Writes gehen in IndexedDB und (wenn
@@ -112,8 +89,8 @@ fuer `/single/`, damit sich die Service-Worker nicht stoeren.
   sortieren danach, die Tausch-Liste gruppiert "gleiche Muskelgruppe zuerst".
 - **Quick-Log aus der Notification:** Die App legt je Nutzer eine Warteschlange
   fertiger setLog-Datensaetze in `notification.data` (buildNotificationQuickLog); der
-  Service Worker schreibt sie bei Knopfdruck direkt in IndexedDB (Haupt-App zusaetzlich
-  in die syncQueue) — funktioniert ohne offene App.
+  Service Worker schreibt sie bei Knopfdruck direkt in IndexedDB (zusaetzlich in die
+  syncQueue) — funktioniert ohne offene App.
 - **Nur ZWEI Notification-Knoepfe (Android-Limit):** Platz 1 Quick-Log des
   Standard-Nutzers (leere Warteschlange -> naechster Nutzer rueckt nach), Platz 2 fest
   "Workout beenden" (setzt completedAt, `data.workoutLogId`); danach meldet der SW
@@ -174,7 +151,7 @@ fuer `/single/`, damit sich die Service-Worker nicht stoeren.
 
 ## Deploy und Umgebung
 - **Base-Path** `/fitness-tracker/` in Vite, Router und PWA-Manifest.
-- **Default-User:** Lisa (user1), Gab (user2).
+- **Default-User:** Lisa (user1), Gab (user2), Ben (user3).
 - **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version** — der
   Service Worker liefert bis dahin den alten Stand aus. Zum Live-Pruefen im Browser:
   Service Worker abmelden, Caches leeren, dann von der Wurzel `/fitness-tracker/`

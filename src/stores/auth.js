@@ -8,8 +8,8 @@ import { pushRecord } from '../services/syncService.js'
 // auf Lisas Handy soll Lisa vorausgewaehlt sein, auf Gabs Handy Gab. Deshalb
 // localStorage statt db.meta — die meta-Tabelle wird mit der Cloud abgeglichen,
 // beide Handys wuerden sich den Wert also gegenseitig ueberschreiben.
-// Der Schluessel traegt den DB-Namen, weil Haupt-App und FitTrack Single
-// dieselbe Origin und damit denselben localStorage teilen.
+// Der Schluessel traegt den DB-Namen, damit sich mehrere Apps derselben
+// Origin den localStorage nicht in die Quere kommen.
 const DEFAULT_USER_KEY = `${db.name}:defaultUserId`
 
 export const useAuthStore = defineStore('auth', () => {
@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Privater Modus oder gesperrter Speicher: Vorauswahl bleibt der erste Nutzer
       console.warn('[FitTrack] [WARN] Standard-Nutzer nicht lesbar:', e)
     }
-    // Unbekannte Id (Backup vom anderen Geraet, Single-App): erster Nutzer
+    // Unbekannte Id (z.B. Backup vom anderen Geraet): erster Nutzer
     defaultUserId.value = users.value.some(u => u.id === stored) ? stored : users.value[0].id
   }
 

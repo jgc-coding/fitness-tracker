@@ -1,9 +1,8 @@
 /*
  * Kern des Puls-zu-Tempo-Modells: laden, schaetzen, vorhersagen.
  *
- * Liegt bewusst unter scripts/lib und NICHT unter src/: Es liest Garmin-CSV und
- * laeuft nur in Node. In src/ muesste es nach single/src/ gespiegelt werden und
- * wuerde ungenutzt in beide App-Bundles wandern.
+ * Liegt bewusst unter scripts/lib und NICHT unter src/: Es liest Garmin-CSV,
+ * laeuft nur in Node und wuerde in src/ ungenutzt ins App-Bundle wandern.
  *
  * Genutzt von scripts/pace-modell.mjs (Bericht) und
  * scripts/laufplan-vorgaben.mjs (traegt die Vorgaben in einen Plan ein).
