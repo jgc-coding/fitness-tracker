@@ -1,6 +1,6 @@
 <template>
   <div class="year-view">
-    <!-- Person waehlen (in FitTrack Single ausgeblendet) -->
+    <!-- Person waehlen -->
     <div v-if="users.length > 1" class="user-toggle">
       <button
         v-for="user in users"

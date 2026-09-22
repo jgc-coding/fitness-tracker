@@ -145,7 +145,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
 
 ## Pakete
 
-- [ ] P1: Single-Variante entfernt, drei Nutzer im Fundament
+- [x] P1: Single-Variante entfernt, drei Nutzer im Fundament
   - Kriterium: Ordner `single/` und Datei `vite.single.config.js` existieren nicht mehr; `scripts/check-drift.mjs` existiert nicht mehr
   - Kriterium: `package.json` enthaelt keine Skripte `dev:single`, `build:single`, `preview:single`, `check:drift`, `build:all` mehr; `.github/workflows/deploy.yml` ruft stattdessen `npm run build` auf (Kommentar zur Zwei-App-Auslieferung dort entfernt)
   - Kriterium: `vite.config.js` enthaelt keine `navigateFallbackDenylist` fuer `/single/` mehr; `public/sw-custom.js` prueft in `isOwnClient` nicht mehr auf `single/`

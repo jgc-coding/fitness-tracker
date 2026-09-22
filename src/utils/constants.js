@@ -21,8 +21,10 @@ export const EQUIPMENT_TYPES = [
 ]
 
 export const USERS = [
-  { id: 'user1', name: 'user1', color: 'var(--color-user1)', bgColor: 'var(--color-user1-bg)' },
-  { id: 'user2', name: 'user2', color: 'var(--color-user2)', bgColor: 'var(--color-user2-bg)' }
+  // zyklus: true blendet die Zyklustag-Erfassung ein (nur fuer user1 gewollt)
+  { id: 'user1', name: 'user1', color: 'var(--color-user1)', bgColor: 'var(--color-user1-bg)', zyklus: true },
+  { id: 'user2', name: 'user2', color: 'var(--color-user2)', bgColor: 'var(--color-user2-bg)' },
+  { id: 'user3', name: 'user3', color: 'var(--color-user3)', bgColor: 'var(--color-user3-bg)' }
 ]
 
 export const PLAN_TYPES = [

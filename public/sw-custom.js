@@ -47,11 +47,10 @@ self.addEventListener('notificationclick', (event) => {
 })
 
 // Match strictly against this SW's scope. The old `includes('/fitness-tracker')`
-// also matched plain browser tabs and windows of the standalone Single app
-// under /fitness-tracker/single/ and could focus the wrong window.
+// also matched plain browser tabs outside the app scope and could focus the
+// wrong window.
 function isOwnClient(url) {
-  const APP_SCOPE = self.registration.scope // e.g. https://host/fitness-tracker/
-  return url.startsWith(APP_SCOPE) && !url.startsWith(APP_SCOPE + 'single/')
+  return url.startsWith(self.registration.scope) // e.g. https://host/fitness-tracker/
 }
 
 async function focusOrOpenApp() {
@@ -238,7 +237,7 @@ async function writeSetLog(dbName, set) {
       const record = Object.assign({}, set, { id: genId(), createdAt: now, updatedAt: now })
       store.put(record)
       // Cloud-Nachschub ueber die Retry-Queue: die App pusht beim naechsten
-      // Start/Fokus (in der Single-App bleibt die Queue folgenlos liegen).
+      // Start/Fokus.
       tx.objectStore('syncQueue').add({
         collection: 'setLogs',
         recordId: record.id,

@@ -7,18 +7,18 @@
       <div class="card settings-card">
         <h2 class="settings-title">Benutzer</h2>
         <div
-          v-for="user in authStore.users"
+          v-for="(user, index) in authStore.users"
           :key="user.id"
           class="settings-row"
         >
           <label :style="{ borderLeftColor: user.color }" class="user-label">
-            <span class="user-label-id">{{ user.id === 'user1' ? 'Benutzer 1' : 'Benutzer 2' }}</span>
+            <span class="user-label-id">{{ 'Benutzer ' + (index + 1) }}</span>
             <input
               type="text"
               :value="user.name"
               @change="updateName(user.id, $event)"
               class="form-input"
-              :placeholder="user.id === 'user1' ? 'Name Benutzer 1' : 'Name Benutzer 2'"
+              :placeholder="'Name Benutzer ' + (index + 1)"
             />
           </label>
         </div>

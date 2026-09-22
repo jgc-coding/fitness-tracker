@@ -21,11 +21,6 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        // The standalone "FitTrack Single" variant is served from the
-        // /fitness-tracker/single/ subpath. Make sure this app's SPA
-        // navigation fallback never hijacks those routes with this app's
-        // index.html when both are installed in the same browser.
-        navigateFallbackDenylist: [/^\/fitness-tracker\/single\//],
         // Inject our notificationclick handler into the generated SW so tapping
         // the workout notification opens/focuses the app (see public/sw-custom.js).
         importScripts: ['sw-custom.js'],
