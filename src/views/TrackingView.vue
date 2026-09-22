@@ -79,47 +79,67 @@
           :class="{ 'exercise-active': activeExerciseIndex === index }"
           @click="openExerciseInput(index)"
         >
-          <div class="exercise-name-row">
-            <h3 class="exercise-name">
-              {{ getExerciseName(planExercise.exerciseId) }}<span
-                v-if="getExerciseNotes(planExercise.exerciseId)"
-                class="exercise-notes-inline"
-              > ({{ getExerciseNotes(planExercise.exerciseId) }})</span>
-            </h3>
-            <button class="btn-icon" @click.stop="openSwap(index)">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
-            </button>
-          </div>
+          <div class="exercise-row">
+            <!-- Thumbnail links: Foto 0 der Uebung, ohne Bild die MuscleMap
+                 klein mit Grobgruppen-Markierung als Platzhalter -->
+            <div class="exercise-thumb">
+              <img
+                v-if="getThumbUrl(planExercise.exerciseId)"
+                :src="getThumbUrl(planExercise.exerciseId)"
+                alt=""
+                class="thumb-foto"
+              />
+              <MuscleMap
+                v-else
+                :fallback-group="getMuscleGroupId(planExercise.exerciseId)"
+                :size="44"
+              />
+            </div>
 
-          <!-- Compact display of current values per user.
-               Layout nach Anzahl: 1 volle Breite, 2 nebeneinander, 3 untereinander -->
-          <div class="exercise-values" :class="'users-' + authStore.activeUsers.length">
-            <div v-for="user in authStore.activeUsers" :key="user.id" class="user-value" :style="{ borderLeftColor: user.color }">
-              <span class="user-value-name">{{ user.name }}</span>
-              <span class="user-value-data">
-                <template v-if="getSavedValue(planExercise.exerciseId, user.id, 'weight')">
-                  {{ getSavedValue(planExercise.exerciseId, user.id, 'weight') }}kg <span class="value-reps">x {{ getSavedValue(planExercise.exerciseId, user.id, 'reps') }}</span>
-                </template>
-                <template v-else-if="recommendations[planExercise.exerciseId]?.[user.id]">
-                  <span class="rec-hint">{{ recommendations[planExercise.exerciseId][user.id].weight }}kg</span>
-                  <!-- Wdh der letzten Einheit. {{ ' ' }} statt Leerzeichen: Vue streicht
-                       Leerraum am Rand eines template, und nur dort darf umbrochen werden -->
-                  <template v-if="getLastReps(planExercise.exerciseId, user.id) != null">
-                    {{ ' ' }}<span class="rec-hint value-reps">x {{ getLastReps(planExercise.exerciseId, user.id) }}</span>
-                  </template>
-                  <span v-if="increaseFlags[planExercise.exerciseId]?.[user.id]" class="increase-hint">&#8593;</span>
-                </template>
-                <template v-else>--</template>
-              </span>
-              <button
-                class="increase-icon-btn"
-                :class="{ active: increaseToggles[planExercise.exerciseId]?.[user.id] }"
-                :style="{ '--user-color': user.color }"
-                :title="`${user.name}: Gewicht beim nächsten Mal steigern`"
-                @click.stop="toggleIncrease(planExercise.exerciseId, user.id)"
-              >
-                <img src="/logo.svg" alt="" class="increase-icon-logo" />
-              </button>
+            <div class="exercise-main">
+              <div class="exercise-name-row">
+                <h3 class="exercise-name">
+                  {{ getExerciseName(planExercise.exerciseId) }}<span
+                    v-if="getExerciseNotes(planExercise.exerciseId)"
+                    class="exercise-notes-inline"
+                  > ({{ getExerciseNotes(planExercise.exerciseId) }})</span>
+                </h3>
+                <button class="btn-icon" @click.stop="openSwap(index)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                </button>
+              </div>
+
+              <!-- Compact display of current values per user.
+                   Layout nach Anzahl: 1 volle Breite, 2 nebeneinander, 3 untereinander -->
+              <div class="exercise-values" :class="'users-' + authStore.activeUsers.length">
+                <div v-for="user in authStore.activeUsers" :key="user.id" class="user-value" :style="{ borderLeftColor: user.color }">
+                  <span class="user-value-name">{{ user.name }}</span>
+                  <span class="user-value-data">
+                    <template v-if="getSavedValue(planExercise.exerciseId, user.id, 'weight')">
+                      {{ getSavedValue(planExercise.exerciseId, user.id, 'weight') }}kg <span class="value-reps">x {{ getSavedValue(planExercise.exerciseId, user.id, 'reps') }}</span>
+                    </template>
+                    <template v-else-if="recommendations[planExercise.exerciseId]?.[user.id]">
+                      <span class="rec-hint">{{ recommendations[planExercise.exerciseId][user.id].weight }}kg</span>
+                      <!-- Wdh der letzten Einheit. {{ ' ' }} statt Leerzeichen: Vue streicht
+                           Leerraum am Rand eines template, und nur dort darf umbrochen werden -->
+                      <template v-if="getLastReps(planExercise.exerciseId, user.id) != null">
+                        {{ ' ' }}<span class="rec-hint value-reps">x {{ getLastReps(planExercise.exerciseId, user.id) }}</span>
+                      </template>
+                      <span v-if="increaseFlags[planExercise.exerciseId]?.[user.id]" class="increase-hint">&#8593;</span>
+                    </template>
+                    <template v-else>--</template>
+                  </span>
+                  <button
+                    class="increase-icon-btn"
+                    :class="{ active: increaseToggles[planExercise.exerciseId]?.[user.id] }"
+                    :style="{ '--user-color': user.color }"
+                    :title="`${user.name}: Gewicht beim nächsten Mal steigern`"
+                    @click.stop="toggleIncrease(planExercise.exerciseId, user.id)"
+                  >
+                    <img src="/logo.svg" alt="" class="increase-icon-logo" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -296,6 +316,7 @@ import TopBar from '../components/layout/TopBar.vue'
 import Modal from '../components/shared/Modal.vue'
 import UserSelectModal from '../components/shared/UserSelectModal.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
+import MuscleMap from '../components/shared/MuscleMap.vue'
 import { useWorkoutStore } from '../stores/workout.js'
 import { usePlansStore } from '../stores/plans.js'
 import { useAuthStore } from '../stores/auth.js'
@@ -304,6 +325,8 @@ import { useHistory } from '../composables/useHistory.js'
 import { isDeloadWeek, formatDate, getToday } from '../utils/dateHelpers.js'
 import { MUSCLE_GROUPS } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
+import { bildPfad, eintragFuerKey } from '../utils/uebungsBilder.js'
+import bildKatalog from '../data/uebungskatalog.json'
 import {
   requestNotificationPermission,
   isNotificationSupported,
@@ -494,6 +517,18 @@ function getExerciseNotes(exerciseId) {
 
 function getMuscleLabel(id) {
   return MUSCLE_GROUPS.find(m => m.id === id)?.label || id
+}
+
+// Foto 0 der Uebung — nur wenn der gespeicherte imageKey im Manifest existiert,
+// sonst null (kein kaputtes Bild-Icon bei verwaisten Keys).
+function getThumbUrl(exerciseId) {
+  const key = getExerciseById(exerciseId)?.imageKey
+  return eintragFuerKey(bildKatalog, key) ? bildPfad(key, 0) : null
+}
+
+// Grobgruppe fuer den MuscleMap-Platzhalter, wenn kein Foto zugeordnet ist
+function getMuscleGroupId(exerciseId) {
+  return getExerciseById(exerciseId)?.muscleGroup || ''
 }
 
 function getSavedValue(exerciseId, userId, field) {
@@ -1026,6 +1061,33 @@ onUnmounted(() => {
 
 .exercise-card:active {
   box-shadow: var(--shadow-md);
+}
+
+.exercise-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.exercise-thumb {
+  flex-shrink: 0;
+  width: 44px;
+  padding-top: 4px;
+}
+
+.thumb-foto {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+}
+
+.exercise-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .exercise-name-row {

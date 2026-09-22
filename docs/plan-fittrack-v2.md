@@ -185,7 +185,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: Props: `primary` (Array), `secondary` (Array), `fallbackGroup` (Grobgruppen-Id) und `size`; primaer kraeftig eingefaerbt (Akzentrot), sekundaer hell, Rest neutral grau; ohne primary/secondary greift die Grobgruppen-Zuordnung: chest->[chest], back->[lats,middle_back,lower_back,traps], shoulders->[shoulders], legs->[quadriceps,hamstrings,glutes,calves,abductors,adductors], arms->[biceps,triceps,forearms], core->[abdominals,obliques], full_body->alle (hell)
   - Kriterium: `scripts/musclemap-pruefen.mjs` liest die .vue-Datei und prueft, dass alle 18 `data-muscle`-Ids vorkommen und die Grobgruppen-Tabelle nur bekannte Ids nennt; Lauf ist gruen
   - Kriterium: pruefen.txt gruen
-- [ ] P7: Bilder in Karten und Katalog, automatische Zuordnung
+- [x] P7: Bilder in Karten und Katalog, automatische Zuordnung
   - Kriterium: Neues Hilfsmodul (z.B. `src/utils/uebungsBilder.js`): Manifest-Zugriff, Pfad-Aufloesung mit Vite-Base, Namens-Matching (klein schreiben, Anfuehrungszeichen/Doppelpunkte entfernen, Mehrfach-Leerzeichen glaetten, Abgleich gegen `aliasse`) — als reine Funktionen
   - Kriterium: `scripts/uebungsbilder-matching-test.mjs` prueft das Matching als Vertrag: alle 31 Katalognamen aus der Plan-Tabelle treffen ihren Key, drei Fantasienamen treffen nichts; Lauf ist gruen
   - Kriterium: Uebungen tragen optional `imageKey`; CatalogView-Formulare (Neu + Bearbeiten) haben ein Auswahlfeld "Bild" (Manifest-Eintraege mit Anzeigename + Option "kein Bild") mit kleiner Vorschau des gewaehlten Bilds

@@ -25,13 +25,16 @@ if (typeof window !== 'undefined' && !window.__fitnessExercisesListenerRegistere
   })
 }
 
-async function addExercise(name, muscleGroup, equipment, notes = '') {
+async function addExercise(name, muscleGroup, equipment, notes = '', imageKey = null) {
   const exercise = {
     id: generateId(),
     name,
     muscleGroup,
     equipment,
     notes,
+    // Verweis in den Bild-Katalog (uebungskatalog.json) — null statt undefined,
+    // weil Firestore undefined-Felder beim pushRecord ablehnt.
+    imageKey: imageKey || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }

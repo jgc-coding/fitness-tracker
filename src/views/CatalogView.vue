@@ -91,6 +91,14 @@
         <label>Notizen (optional)</label>
         <input v-model="newExerciseNotes" type="text" class="form-input" placeholder="z.B. langsame Ausfuehrung" />
       </div>
+      <div class="form-group">
+        <label>Bild</label>
+        <select v-model="newExerciseImage" class="form-input">
+          <option value="">Kein Bild</option>
+          <option v-for="eintrag in bildKatalog" :key="eintrag.key" :value="eintrag.key">{{ eintrag.name }}</option>
+        </select>
+        <img v-if="newExerciseImage" :src="vorschauUrl(newExerciseImage)" alt="Bild-Vorschau" class="bild-vorschau" />
+      </div>
       <button
         class="btn btn-primary btn-block"
         @click="saveNewExercise"
@@ -122,6 +130,14 @@
         <label>Notizen</label>
         <input v-model="editNotes" type="text" class="form-input" />
       </div>
+      <div class="form-group">
+        <label>Bild</label>
+        <select v-model="editImageKey" class="form-input">
+          <option value="">Kein Bild</option>
+          <option v-for="eintrag in bildKatalog" :key="eintrag.key" :value="eintrag.key">{{ eintrag.name }}</option>
+        </select>
+        <img v-if="editImageKey" :src="vorschauUrl(editImageKey)" alt="Bild-Vorschau" class="bild-vorschau" />
+      </div>
       <button class="btn btn-primary btn-block" @click="saveEditExercise" style="margin-bottom: var(--space-sm)">
         Speichern
       </button>
@@ -140,6 +156,8 @@ import Modal from '../components/shared/Modal.vue'
 import { useExercises } from '../composables/useExercises.js'
 import { MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
+import { bildPfad } from '../utils/uebungsBilder.js'
+import bildKatalog from '../data/uebungskatalog.json'
 import { db } from '../db/dexie.js'
 
 const { exercises, loading, loadExercises, addExercise, updateExercise, deleteExercise, filterExercises } = useExercises()
@@ -156,6 +174,7 @@ const newExerciseName = ref('')
 const newExerciseMuscle = ref('')
 const newExerciseEquipment = ref('')
 const newExerciseNotes = ref('')
+const newExerciseImage = ref('')
 
 const showEditExercise = ref(false)
 const editId = ref(null)
@@ -163,6 +182,11 @@ const editName = ref('')
 const editMuscle = ref('')
 const editEquipmentVal = ref('')
 const editNotes = ref('')
+const editImageKey = ref('')
+
+function vorschauUrl(key) {
+  return bildPfad(key, 0)
+}
 
 const filteredExercises = computed(() => {
   return filterExercises(filterMuscle.value || null, filterEquipment.value || null, search.value)
@@ -178,11 +202,12 @@ function getEquipmentLabel(id) {
 
 async function saveNewExercise() {
   if (!newExerciseName.value || !newExerciseMuscle.value || !newExerciseEquipment.value) return
-  await addExercise(newExerciseName.value, newExerciseMuscle.value, newExerciseEquipment.value, newExerciseNotes.value)
+  await addExercise(newExerciseName.value, newExerciseMuscle.value, newExerciseEquipment.value, newExerciseNotes.value, newExerciseImage.value || null)
   newExerciseName.value = ''
   newExerciseMuscle.value = ''
   newExerciseEquipment.value = ''
   newExerciseNotes.value = ''
+  newExerciseImage.value = ''
   showAddExercise.value = false
 }
 
@@ -192,6 +217,7 @@ function editExercise(ex) {
   editMuscle.value = ex.muscleGroup
   editEquipmentVal.value = ex.equipment
   editNotes.value = ex.notes || ''
+  editImageKey.value = ex.imageKey || ''
   showEditExercise.value = true
 }
 
@@ -201,7 +227,8 @@ async function saveEditExercise() {
     name: editName.value,
     muscleGroup: editMuscle.value,
     equipment: editEquipmentVal.value,
-    notes: editNotes.value
+    notes: editNotes.value,
+    imageKey: editImageKey.value || null
   })
   showEditExercise.value = false
 }
@@ -334,5 +361,13 @@ onMounted(() => loadExercises())
 
 .danger-text {
   color: var(--color-danger);
+}
+
+.bild-vorschau {
+  display: block;
+  margin-top: var(--space-sm);
+  width: 96px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }
 </style>
