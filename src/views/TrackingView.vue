@@ -78,6 +78,8 @@
           class="card exercise-card"
           :class="{ 'exercise-active': activeExerciseIndex === index }"
           @click="openExerciseInput(index)"
+          @touchstart.passive="onCardTouchStart"
+          @touchend.passive="onCardTouchEnd($event, index)"
         >
           <div class="exercise-row">
             <!-- Thumbnail links: Foto 0 der Uebung, ohne Bild die MuscleMap
@@ -106,6 +108,26 @@
                     class="exercise-notes-inline"
                   > ({{ getExerciseNotes(planExercise.exerciseId) }})</span>
                 </h3>
+                <!-- Schnellwechsel-Ring (nur mit hinterlegten Alternativen):
+                     Tipp springt zur naechsten Ring-Position, die Punktreihe
+                     zeigt die aktuelle. Nach einem freien Tausch ausserhalb
+                     des Rings ist kein Punkt aktiv (getRingIndex -1). -->
+                <button
+                  v-if="getRing(planExercise).length > 1"
+                  class="btn-icon ring-btn"
+                  title="Alternative wechseln"
+                  @click.stop="tapRing(index)"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
+                  <span class="ring-dots">
+                    <span
+                      v-for="(ringId, pos) in getRing(planExercise)"
+                      :key="pos"
+                      class="ring-dot"
+                      :class="{ active: pos === getRingIndex(planExercise) }"
+                    ></span>
+                  </span>
+                </button>
                 <button class="btn-icon" @click.stop="openSwap(index)">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
                 </button>
@@ -542,6 +564,7 @@ const showExerciseDetail = ref(false)
 const detailExercise = ref(null)
 
 function openExerciseDetail(exerciseId) {
+  if (istWischNachklick()) return
   const ex = getExerciseById(exerciseId)
   if (!ex) return
   detailExercise.value = ex
@@ -595,7 +618,77 @@ async function loadRecommendations() {
   }
 }
 
+// --- Schnellwechsel-Ring (P10): Basis-Uebung plus geplante Alternativen ---
+
+// Beim Aufbau der Workout-Liste bekommt jeder Eintrag seine Basis (die
+// geplante Uebung); Resume/Override behalten einen gespeicherten Wert.
+function mitBasis(list) {
+  return list.map(e => ({ ...e, basisExerciseId: e.basisExerciseId || e.exerciseId }))
+}
+
+// Der Wechsel-Ring: [Basis, ...Alternativen]. Laenge 1 heisst: kein Schnellwechsel.
+function getRing(entry) {
+  if (!entry) return []
+  return [entry.basisExerciseId || entry.exerciseId, ...(entry.alternativen || [])]
+}
+
+// Position der aktuellen Uebung im Ring; -1 nach freiem Tausch auf eine
+// Uebung ausserhalb (die Punktreihe zeigt dann keinen aktiven Punkt).
+function getRingIndex(entry) {
+  return getRing(entry).indexOf(entry.exerciseId)
+}
+
+async function cycleRing(index, dir = 1) {
+  const entry = workoutExercises.value[index]
+  const ring = getRing(entry)
+  if (ring.length <= 1) return
+  const pos = ring.indexOf(entry.exerciseId)
+  // Ausserhalb des Rings (freier Tausch): der naechste Wechsel springt zur Basis
+  const nextId = pos < 0 ? ring[0] : ring[(pos + dir + ring.length) % ring.length]
+  if (nextId === entry.exerciseId) return
+  workoutExercises.value[index] = { ...entry, exerciseId: nextId }
+  // Gleicher Weg wie beim Tausch: Abweichung am Log sichern, Empfehlungen
+  // und Notification nachziehen
+  await workoutStore.persistWorkoutExercises(workoutExercises.value)
+  await loadRecommendations()
+  updateNotification()
+}
+
+function tapRing(index) {
+  if (istWischNachklick()) return
+  cycleRing(index, 1)
+}
+
+// Wisch-Erkennung auf der Karte: horizontal (|dx| > 40 px und |dx| > 2|dy|)
+// wechselt im Ring; vertikales Scrollen bleibt unberuehrt (passive Listener,
+// kein preventDefault). Manche WebViews feuern nach einem Wisch trotzdem noch
+// ein click auf das Element unterm Finger — der Zeitstempel faengt diesen
+// Nachklick in allen Klick-Zielen der Karte ab.
+const touchStart = { x: 0, y: 0 }
+let letzterWischUm = 0
+
+function istWischNachklick() {
+  return Date.now() - letzterWischUm < 400
+}
+
+function onCardTouchStart(e) {
+  touchStart.x = e.touches[0].clientX
+  touchStart.y = e.touches[0].clientY
+}
+
+function onCardTouchEnd(e, index) {
+  const dx = e.changedTouches[0].clientX - touchStart.x
+  const dy = e.changedTouches[0].clientY - touchStart.y
+  if (Math.abs(dx) <= 40 || Math.abs(dx) <= 2 * Math.abs(dy)) return
+  letzterWischUm = Date.now()
+  // Ohne Alternativen loest Wischen nichts aus (nur der Nachklick-Schutz greift)
+  if (getRing(workoutExercises.value[index]).length <= 1) return
+  // Wisch nach links = vorwaerts im Ring, nach rechts = zurueck
+  cycleRing(index, dx < 0 ? 1 : -1)
+}
+
 function openExerciseInput(index) {
+  if (istWischNachklick()) return
   activeExerciseIndex.value = index
   const ex = workoutExercises.value[index]
   // Standard-Nutzer vorausgewaehlt (pro Geraet); nicht aktiv -> erster aktiver
@@ -654,6 +747,7 @@ async function savePickerValues() {
 }
 
 async function toggleIncrease(exerciseId, userId) {
+  if (istWischNachklick()) return
   const result = await workoutStore.toggleIncreaseNextTime(exerciseId, userId)
   if (!increaseToggles[exerciseId]) increaseToggles[exerciseId] = {}
   increaseToggles[exerciseId][userId] = result
@@ -792,7 +886,7 @@ async function startWorkout(day) {
   // Ein heute schon begonnener Tag kann Abweichungen (Tausch/Quick-Add) am Log
   // tragen — die gewinnen gegen die Plan-Liste.
   const aw = workoutStore.activeWorkout
-  workoutExercises.value = [...(aw?.exercises?.length ? aw.exercises : day.exercises)]
+  workoutExercises.value = mitBasis(aw?.exercises?.length ? aw.exercises : day.exercises)
   await loadRecommendations()
   await requestNotificationPermission()
   updateNotification()
@@ -821,6 +915,7 @@ const canSwapPermanently = computed(() => {
 })
 
 function openSwap(index) {
+  if (istWischNachklick()) return
   swapIndex.value = index
   swapSearch.value = ''
   swapTargetId.value = null
@@ -840,10 +935,13 @@ async function applySwap(permanent) {
 
     if (permanent && canSwapPermanently.value) {
       const day = currentDay.value
-      // Jeden Eintrag flach kopieren: reaktive Vue-Proxys kann IndexedDB
-      // nicht klonen (DataCloneError beim put).
+      // Jeden Eintrag kopieren, `alternativen` als frisches Array: reaktive
+      // Vue-Proxys kann IndexedDB nicht klonen (DataCloneError beim put).
+      // basisExerciseId gehoert dem Workout-Log, nicht dem Plan — nicht mitschreiben.
       const updated = day.exercises.map((e, i) =>
-        i === swapIndex.value ? { ...e, exerciseId: newExerciseId } : { ...e }
+        i === swapIndex.value
+          ? { ...e, exerciseId: newExerciseId, alternativen: [...(e.alternativen || [])] }
+          : { ...e, alternativen: [...(e.alternativen || [])] }
       )
       await plansStore.updateTrainingDay(day.id, { exercises: updated })
       // updateTrainingDay ersetzt das Objekt im Store — Referenz nachziehen
@@ -860,6 +958,7 @@ async function applySwap(permanent) {
 async function quickAddExercise(exercise) {
   workoutExercises.value.push({
     exerciseId: exercise.id,
+    basisExerciseId: exercise.id,
     sets: 3,
     notes: ''
   })
@@ -887,7 +986,7 @@ async function startCustom() {
   if (customSelectedIds.value.length === 0) return
   showCustomPicker.value = false
   // Preserve picker order; default to 2 sets like the planning picker does.
-  const dayExercises = customSelectedIds.value.map(id => ({ exerciseId: id, sets: 2, notes: '' }))
+  const dayExercises = customSelectedIds.value.map(id => ({ exerciseId: id, basisExerciseId: id, sets: 2, notes: '' }))
   await workoutStore.startCustomWorkout(dayExercises)
   currentDay.value = { title: 'Individuelles Training', exercises: dayExercises }
   workoutExercises.value = [...dayExercises]
@@ -923,13 +1022,13 @@ onMounted(async () => {
     if (aw.isCustom) {
       // Individuelle Trainings liegen seit v1.2.0 in der DB und ueberleben Reloads
       currentDay.value = { title: aw.title || 'Individuelles Training', exercises: aw.exercises || [] }
-      workoutExercises.value = [...(aw.exercises || [])]
+      workoutExercises.value = mitBasis(aw.exercises || [])
     } else {
       const day = plansStore.trainingDays.find(d => d.id === aw.trainingDayId)
       // Abweichungen vom Plan (Tausch/Quick-Add) liegen am Log und gewinnen;
       // Fallback auf die Plan-Liste. Ohne Tag (geloescht) traegt das Log die Liste.
       currentDay.value = day || { title: 'Workout', exercises: aw.exercises || [] }
-      workoutExercises.value = [...(aw.exercises?.length ? aw.exercises : (day?.exercises || []))]
+      workoutExercises.value = mitBasis(aw.exercises?.length ? aw.exercises : (day?.exercises || []))
     }
     await loadRecommendations()
   }
@@ -1140,6 +1239,35 @@ onUnmounted(() => {
 
 .btn-icon:active {
   background: var(--color-bg);
+}
+
+/* Schnellwechsel-Knopf: Symbol mit Punktreihe darunter (ein Punkt je
+   Ring-Position, aktiver Punkt in Akzentfarbe). Statische Farben, kein
+   color-mix (alte Android-WebViews). */
+.ring-btn {
+  flex-direction: column;
+  gap: 2px;
+  width: auto;
+  min-width: 36px;
+  height: 36px;
+  padding: 2px 4px;
+}
+
+.ring-dots {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+
+.ring-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.ring-dot.active {
+  background: var(--color-accent);
 }
 
 .exercise-values {
