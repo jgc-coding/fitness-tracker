@@ -59,6 +59,18 @@
           <span class="workout-date">{{ formattedDate }}</span>
         </div>
 
+        <!-- Wer trainiert: antippbare Chip-Zeile, Tipp oeffnet den Dialog -->
+        <button class="user-chips" @click="showUserSelect = true">
+          <span
+            v-for="user in authStore.activeUsers"
+            :key="user.id"
+            class="user-chip"
+            :style="{ borderColor: user.color, color: user.color, background: user.bgColor }"
+          >
+            {{ user.name }}
+          </span>
+        </button>
+
         <!-- Exercise list -->
         <div
           v-for="(planExercise, index) in workoutExercises"
@@ -122,6 +134,10 @@
         </button>
       </div>
     </div>
+
+    <!-- Nutzer-Auswahl erneut oeffnen (Chip-Zeile); Aenderung waehrend eines
+         aktiven Workouts landet als userIds am workoutLog -->
+    <UserSelectModal v-model="showUserSelect" @confirm="onActiveUsersChanged" />
 
     <!-- Wheel Picker Modal for exercise input -->
     <Modal v-model="showWheelPicker" :title="activeExerciseName">
@@ -276,6 +292,7 @@ import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import TopBar from '../components/layout/TopBar.vue'
 import Modal from '../components/shared/Modal.vue'
+import UserSelectModal from '../components/shared/UserSelectModal.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
 import { useWorkoutStore } from '../stores/workout.js'
 import { usePlansStore } from '../stores/plans.js'
@@ -303,6 +320,7 @@ const { exercises, loadExercises, getExerciseById } = useExercises()
 const { getLatestWeight, shouldIncreaseWeight } = useHistory()
 
 const showDaySelector = ref(false)
+const showUserSelect = ref(false)
 const showSwapModal = ref(false)
 const showQuickAdd = ref(false)
 const showWheelPicker = ref(false)
@@ -578,6 +596,15 @@ async function toggleIncrease(exerciseId, userId) {
   const result = await workoutStore.toggleIncreaseNextTime(exerciseId, userId)
   if (!increaseToggles[exerciseId]) increaseToggles[exerciseId] = {}
   increaseToggles[exerciseId][userId] = result
+}
+
+// Bestaetigte Nutzer-Auswahl aus der Chip-Zeile: der Store ist schon
+// aktualisiert (UserSelectModal), hier bleibt nur, die Besetzung am laufenden
+// Workout-Log nachzuziehen — gespeicherte Saetze bleiben unangetastet.
+async function onActiveUsersChanged(userIds) {
+  if (workoutStore.isWorkoutActive) {
+    await workoutStore.updateWorkoutUsers(userIds)
+  }
 }
 
 async function enableNotifications() {
@@ -947,7 +974,25 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.user-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
   margin-bottom: var(--space-md);
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.user-chip {
+  padding: 2px var(--space-sm);
+  border: 1.5px solid;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 .workout-header h2 {
