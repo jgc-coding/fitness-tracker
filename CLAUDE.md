@@ -252,6 +252,12 @@ npm run preview   # Build lokal testen (Port 4173)
   Service Worker liefert bis dahin den alten Stand aus. Zum Live-Pruefen im Browser:
   Service Worker abmelden, Caches leeren, dann von der Wurzel `/fitness-tracker/`
   starten; ohne Service Worker enden Deeplinks wie `/settings` bei GitHub Pages im 404.
+  Ohne Browser belegt: das ausgelieferte `assets/SettingsView-*.js` (Name steht im
+  Hauptskript aus `index.html`) enthaelt die Versionsnummer.
+- **Die Browser-Pane registriert auf `http://*.localhost` keine Service Worker** —
+  auch ein Minimal-SW scheitert dort mit "unknown error when fetching the script"
+  (Gegenprobe 22.09.2026). Diese Konsolenfehler sind kein App-Fehler; Offline-/PWA-
+  Verhalten nur am Handy pruefen.
 - **Browser-Tests mit Testdaten nur auf einer frischen Adresse** wie
   `http://reps-test.localhost:5173/fitness-tracker/` (jede `*.localhost`-Subdomain ist
   eine eigene Herkunft ohne Anmeldung). `localhost` und `127.0.0.1` koennen aus einer
