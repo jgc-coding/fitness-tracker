@@ -77,11 +77,17 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   // Merkt Abweichungen von der Plan-Liste (Tausch, Quick-Add, Schnellwechsel)
   // am aktiven Workout-Log, damit sie Tab-Wechsel und App-Neustart ueberleben.
-  // `alternativen` als frisches Array mitkopieren: ein reaktives Vue-Proxy-Array
-  // im Eintrag sprengt sonst das Dexie-update mit DataCloneError.
+  // `alternativen`, `userExerciseIds` und `bevorzugt` als frische Kopien
+  // mitkopieren: reaktive Vue-Proxys im Eintrag sprengen sonst das
+  // Dexie-update mit DataCloneError.
   async function persistWorkoutExercises(list) {
     if (!activeWorkout.value) return
-    const exercises = list.map(e => ({ ...e, alternativen: [...(e.alternativen || [])] }))
+    const exercises = list.map(e => ({
+      ...e,
+      alternativen: [...(e.alternativen || [])],
+      userExerciseIds: { ...(e.userExerciseIds || {}) },
+      bevorzugt: { ...(e.bevorzugt || {}) }
+    }))
     const updatedAt = new Date().toISOString()
     activeWorkout.value.exercises = exercises
     activeWorkout.value.updatedAt = updatedAt

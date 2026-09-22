@@ -48,6 +48,8 @@ src/
     exportData.js        CSV mit UTF-8-BOM, JSON-Backup (Import ist merge-only)
     uebungsBilder.js     Manifest-Zugriff + Namens-Matching (reine Funktionen,
                          Manifest kommt als Parameter)
+    uebungsRing.js       Schnellwechsel-Ring + Standard-Uebung je Nutzer
+                         (reine Funktionen)
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
@@ -58,7 +60,7 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          holen, idempotent)
                          Vertragstests: laufplan-merge-test, runmatch-test,
                          pace-modell-test, musclemap-pruefen,
-                         uebungsbilder-matching-test
+                         uebungsbilder-matching-test, uebungsring-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
                          garmin-anbindung, plan-fittrack-v2
@@ -154,19 +156,33 @@ npm run preview   # Build lokal testen (Port 4173)
   MuscleMap mit Grobgruppen-Markierung. Das Namens-Matching ist per Vertrag
   getestet (`scripts/uebungsbilder-matching-test.mjs` — zuerst Test, dann
   Regeln), die 18 Muskel-Ids per `scripts/musclemap-pruefen.mjs`.
-- **Alternativen-Ring:** In der Planung traegt ein Eintrag in `day.exercises`
-  optional `alternativen` (Array aus exerciseId, hartes Maximum 4);
-  Uebungslisten dort NUR ueber `kopiereUebungsEintrag` neu bauen (kopiert
-  generisch alle Felder — harte Feldaufzaehlung verliert die Alternativen).
-  Im Workout ist der Ring `[basisExerciseId, ...alternativen]`;
-  `basisExerciseId` gehoert dem Workout-Log (Helfer `mitBasis`), nie dem Plan.
-  Wechsel per Tipp aufs Wechsel-Symbol ODER horizontalem Wischen
-  (|dx| > 40px und |dx| > 2|dy|, passive Listener) — jeder Wechsel laeuft den
-  Tausch-Weg (persistWorkoutExercises, Empfehlungen, Notification). Ein
+- **Alternativen-Ring mit Standard-Uebung JE NUTZER:** In der Planung traegt
+  ein Eintrag in `day.exercises` optional `alternativen` (Array aus
+  exerciseId, hartes Maximum 4) und `bevorzugt` ({ userId: exerciseId } —
+  die gemerkte Standard-Uebung je Nutzer, gesynct); Uebungslisten dort NUR
+  ueber `kopiereUebungsEintrag` neu bauen (kopiert generisch alle Felder —
+  harte Feldaufzaehlung verliert Alternativen und Standards).
+  Im Workout ist der Ring `[basisExerciseId, ...alternativen]`, und JEDER
+  Nutzer hat darin seine eigene aktive Uebung: `userExerciseIds`
+  ({ userId: exerciseId }, nur Abweichungen) am Workout-Eintrag, aufgeloest
+  ueber `aktiveUebungId` — Regeln als reine Funktionen in
+  `utils/uebungsRing.js`, Vertrag in `scripts/uebungsring-test.mjs` (zuerst
+  Test, dann Regeln). `basisExerciseId` und `userExerciseIds` gehoeren dem
+  Workout-Log (Helfer `mitBasis`, belegt Standards aus `bevorzugt` vor),
+  nie dem Plan. Der Karten-Kopf zeigt die Uebung des bevorzugten Nutzers
+  (`kopfId`); Wechsel je Nutzer per Tipp auf die Wechsel-Zeile seines
+  Bereichs ODER horizontalem Wischen (|dx| > 40px und |dx| > 2|dy|, passive
+  Listener; auf einem `.user-value` wechselt dessen Nutzer, sonst der
+  bevorzugte). Der Stern in der Wechsel-Zeile schreibt `bevorzugt` per
+  updateTrainingDay in den Plan (Toggle). Saetze, Empfehlungen, Rad und
+  Notification laufen ueberall ueber `aktiveId(eintrag, userId)`. Der freie
+  Tausch bleibt eine Karten-Entscheidung: er setzt `exerciseId` und LEERT
+  `userExerciseIds`. Jeder Wechsel laeuft den Tausch-Weg
+  (persistWorkoutExercises, Empfehlungen, Notification). Ein
   400ms-Nachklick-Schutz (`istWischNachklick`) faengt das click ab, das
   WebViews nach einem Wisch feuern — nicht entfernen. Beim Persistieren
-  `alternativen` als frisches Array kopieren
-  (`{ ...e, alternativen: [...(e.alternativen || [])] }`), sonst DataCloneError.
+  `alternativen`, `userExerciseIds` und `bevorzugt` als frische Kopien
+  schreiben (sonst DataCloneError).
 
 ## Architektur: Laufplaner
 - **Claude plant, die App zeigt und haelt fest.** Plaene entstehen NICHT in der App,

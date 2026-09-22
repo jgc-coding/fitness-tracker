@@ -94,20 +94,21 @@
           @touchend.passive="onCardTouchEnd($event, index)"
         >
           <div class="exercise-row">
-            <!-- Thumbnail links: Foto 0 der Uebung, ohne Bild die MuscleMap
-                 klein mit Grobgruppen-Markierung als Platzhalter.
+            <!-- Thumbnail links: Foto 0 der KOPF-Uebung (die aktive Uebung des
+                 bevorzugten Nutzers — auf Lisas Handy traegt die Karte Lisas
+                 Uebung), ohne Bild die MuscleMap klein als Platzhalter.
                  Tipp aufs Thumbnail oeffnet die Detailansicht, NICHT das
                  Eingabe-Rad — darum @click.stop -->
-            <div class="exercise-thumb" @click.stop="openExerciseDetail(planExercise.exerciseId)">
+            <div class="exercise-thumb" @click.stop="openExerciseDetail(kopfId(planExercise))">
               <img
-                v-if="getThumbUrl(planExercise.exerciseId)"
-                :src="getThumbUrl(planExercise.exerciseId)"
+                v-if="getThumbUrl(kopfId(planExercise))"
+                :src="getThumbUrl(kopfId(planExercise))"
                 alt=""
                 class="thumb-foto"
               />
               <MuscleMap
                 v-else
-                :fallback-group="getMuscleGroupId(planExercise.exerciseId)"
+                :fallback-group="getMuscleGroupId(kopfId(planExercise))"
                 :size="44"
               />
             </div>
@@ -115,31 +116,11 @@
             <div class="exercise-main">
               <div class="exercise-name-row">
                 <h3 class="exercise-name">
-                  {{ getExerciseName(planExercise.exerciseId) }}<span
-                    v-if="getExerciseNotes(planExercise.exerciseId)"
+                  {{ getExerciseName(kopfId(planExercise)) }}<span
+                    v-if="getExerciseNotes(kopfId(planExercise))"
                     class="exercise-notes-inline"
-                  > ({{ getExerciseNotes(planExercise.exerciseId) }})</span>
+                  > ({{ getExerciseNotes(kopfId(planExercise)) }})</span>
                 </h3>
-                <!-- Schnellwechsel-Ring (nur mit hinterlegten Alternativen):
-                     Tipp springt zur naechsten Ring-Position, die Punktreihe
-                     zeigt die aktuelle. Nach einem freien Tausch ausserhalb
-                     des Rings ist kein Punkt aktiv (getRingIndex -1). -->
-                <button
-                  v-if="getRing(planExercise).length > 1"
-                  class="btn-icon ring-btn"
-                  title="Alternative wechseln"
-                  @click.stop="tapRing(index)"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
-                  <span class="ring-dots">
-                    <span
-                      v-for="(ringId, pos) in getRing(planExercise)"
-                      :key="pos"
-                      class="ring-dot"
-                      :class="{ active: pos === getRingIndex(planExercise) }"
-                    ></span>
-                  </span>
-                </button>
                 <button class="btn-icon" @click.stop="openSwap(index)">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
                 </button>
@@ -148,32 +129,52 @@
               <!-- Compact display of current values per user.
                    Layout nach Anzahl: 1 volle Breite, 2 nebeneinander, 3 untereinander -->
               <div class="exercise-values" :class="'users-' + authStore.activeUsers.length">
-                <div v-for="user in authStore.activeUsers" :key="user.id" class="user-value" :style="{ borderLeftColor: user.color }">
+                <div v-for="user in authStore.activeUsers" :key="user.id" class="user-value" :data-user-id="user.id" :style="{ borderLeftColor: user.color }">
                   <span class="user-value-name">{{ user.name }}</span>
                   <span class="user-value-data">
-                    <template v-if="getSavedValue(planExercise.exerciseId, user.id, 'weight')">
-                      {{ getSavedValue(planExercise.exerciseId, user.id, 'weight') }}kg <span class="value-reps">x {{ getSavedValue(planExercise.exerciseId, user.id, 'reps') }}</span>
+                    <template v-if="getSavedValue(aktiveId(planExercise, user.id), user.id, 'weight')">
+                      {{ getSavedValue(aktiveId(planExercise, user.id), user.id, 'weight') }}kg <span class="value-reps">x {{ getSavedValue(aktiveId(planExercise, user.id), user.id, 'reps') }}</span>
                     </template>
-                    <template v-else-if="recommendations[planExercise.exerciseId]?.[user.id]">
-                      <span class="rec-hint">{{ recommendations[planExercise.exerciseId][user.id].weight }}kg</span>
+                    <template v-else-if="recommendations[aktiveId(planExercise, user.id)]?.[user.id]">
+                      <span class="rec-hint">{{ recommendations[aktiveId(planExercise, user.id)][user.id].weight }}kg</span>
                       <!-- Wdh der letzten Einheit. {{ ' ' }} statt Leerzeichen: Vue streicht
                            Leerraum am Rand eines template, und nur dort darf umbrochen werden -->
-                      <template v-if="getLastReps(planExercise.exerciseId, user.id) != null">
-                        {{ ' ' }}<span class="rec-hint value-reps">x {{ getLastReps(planExercise.exerciseId, user.id) }}</span>
+                      <template v-if="getLastReps(aktiveId(planExercise, user.id), user.id) != null">
+                        {{ ' ' }}<span class="rec-hint value-reps">x {{ getLastReps(aktiveId(planExercise, user.id), user.id) }}</span>
                       </template>
-                      <span v-if="increaseFlags[planExercise.exerciseId]?.[user.id]" class="increase-hint">&#8593;</span>
+                      <span v-if="increaseFlags[aktiveId(planExercise, user.id)]?.[user.id]" class="increase-hint">&#8593;</span>
                     </template>
                     <template v-else>--</template>
                   </span>
                   <button
                     class="increase-icon-btn"
-                    :class="{ active: increaseToggles[planExercise.exerciseId]?.[user.id] }"
+                    :class="{ active: increaseToggles[aktiveId(planExercise, user.id)]?.[user.id] }"
                     :style="{ '--user-color': user.color }"
                     :title="`${user.name}: Gewicht beim nächsten Mal steigern`"
-                    @click.stop="toggleIncrease(planExercise.exerciseId, user.id)"
+                    @click.stop="toggleIncrease(aktiveId(planExercise, user.id), user.id)"
                   >
                     <img src="/logo.svg" alt="" class="increase-icon-logo" />
                   </button>
+                  <!-- Schnellwechsel JE NUTZER (nur mit hinterlegten Alternativen):
+                       Tipp aufs Symbol springt zur naechsten Ring-Uebung DIESES
+                       Nutzers, der Name zeigt seine aktive Uebung. Der Stern
+                       merkt sie als seinen Standard im Plan (erneuter Tipp
+                       entfernt den Standard); Wischen auf dem Bereich wechselt
+                       ebenfalls nur diesen Nutzer. -->
+                  <div v-if="getRing(planExercise).length > 1" class="user-ring-row">
+                    <button class="user-ring-btn" :title="`${user.name}: Alternative wechseln`" @click.stop="tapRingUser(index, user.id)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
+                      <span class="user-ring-name">{{ getExerciseName(aktiveId(planExercise, user.id)) }}</span>
+                    </button>
+                    <button
+                      v-if="kannStandardMerken(index)"
+                      class="user-star-btn"
+                      :class="{ active: istStandard(planExercise, user.id) }"
+                      :style="{ '--user-color': user.color }"
+                      :title="`${user.name}: aktive Uebung als Standard merken`"
+                      @click.stop="merkeStandard(index, user.id)"
+                    >&#9733;</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -399,6 +400,14 @@ import { isDeloadWeek, formatDate, getToday } from '../utils/dateHelpers.js'
 import { MUSCLE_GROUPS } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
 import { bildPfad, eintragFuerKey } from '../utils/uebungsBilder.js'
+import {
+  ringFuer,
+  aktiveUebungId,
+  naechsteImRing,
+  mitNutzerUebung,
+  vorbelegungAusBevorzugt,
+  toggleBevorzugt
+} from '../utils/uebungsRing.js'
 import bildKatalog from '../data/uebungskatalog.json'
 import {
   requestNotificationPermission,
@@ -472,7 +481,7 @@ function searchFilter(list, term) {
 // "Geraet belegt"-Tausch fast immer das Gesuchte), dann alle anderen.
 const swapSections = computed(() => {
   const current = swapIndex.value >= 0
-    ? getExerciseById(workoutExercises.value[swapIndex.value]?.exerciseId)
+    ? getExerciseById(kopfId(workoutExercises.value[swapIndex.value]))
     : null
   const list = searchFilter(exercises.value, swapSearch.value)
   if (!current) return [{ label: '', items: [...list].sort(byLastUsedThenName) }]
@@ -514,10 +523,12 @@ const filteredCustomExercises = computed(() =>
   [...searchFilter(exercises.value, customSearch.value)].sort(byLastUsedThenName)
 )
 
+// Uebung des im Rad gewaehlten Nutzers — Titel und Schrittweite wechseln
+// mit dem Nutzer-Tab (jeder traegt fuer SEINE aktive Uebung ein)
 const activeExerciseName = computed(() => {
   if (activeExerciseIndex.value < 0) return ''
   const ex = workoutExercises.value[activeExerciseIndex.value]
-  return ex ? getExerciseName(ex.exerciseId) : ''
+  return ex ? getExerciseName(aktiveId(ex, pickerUserId.value)) : ''
 })
 
 // Determine if exercise uses 1.25kg steps (barbell or machine_weight)
@@ -525,7 +536,7 @@ const useDecimalSteps = computed(() => {
   if (activeExerciseIndex.value < 0) return false
   const ex = workoutExercises.value[activeExerciseIndex.value]
   if (!ex) return false
-  const exercise = getExerciseById(ex.exerciseId)
+  const exercise = getExerciseById(aktiveId(ex, pickerUserId.value))
   if (!exercise) return false
   return exercise.equipment === 'barbell' || exercise.equipment === 'machine_weight'
 })
@@ -555,19 +566,19 @@ const repsValues = computed(() => {
 const pickerRecommendation = computed(() => {
   if (activeExerciseIndex.value < 0) return null
   const ex = workoutExercises.value[activeExerciseIndex.value]
-  return recommendations[ex?.exerciseId]?.[pickerUserId.value] || null
+  return ex ? (recommendations[aktiveId(ex, pickerUserId.value)]?.[pickerUserId.value] || null) : null
 })
 
 const pickerShouldIncrease = computed(() => {
   if (activeExerciseIndex.value < 0) return false
   const ex = workoutExercises.value[activeExerciseIndex.value]
-  return increaseFlags[ex?.exerciseId]?.[pickerUserId.value] || false
+  return ex ? (increaseFlags[aktiveId(ex, pickerUserId.value)]?.[pickerUserId.value] || false) : false
 })
 
 const pickerLastReps = computed(() => {
   if (activeExerciseIndex.value < 0) return null
   const ex = workoutExercises.value[activeExerciseIndex.value]
-  return ex ? getLastReps(ex.exerciseId, pickerUserId.value) : null
+  return ex ? getLastReps(aktiveId(ex, pickerUserId.value), pickerUserId.value) : null
 })
 
 // Vorauswahl im Rad und erster Notification-Knopf: der Standard-Nutzer des
@@ -639,25 +650,28 @@ function getWeightStep(exerciseId) {
 
 async function loadRecommendations() {
   for (const ex of workoutExercises.value) {
-    if (!recommendations[ex.exerciseId]) recommendations[ex.exerciseId] = {}
-    if (!increaseFlags[ex.exerciseId]) increaseFlags[ex.exerciseId] = {}
-
+    // Je Nutzer SEINE aktive Uebung (Schnellwechsel-Ring) — der Schluessel in
+    // recommendations/increaseFlags ist immer die Uebung, die er wirklich macht
     for (const user of authStore.activeUsers) {
-      const latest = await getLatestWeight(ex.exerciseId, user.id)
+      const exId = aktiveId(ex, user.id)
+      if (!recommendations[exId]) recommendations[exId] = {}
+      if (!increaseFlags[exId]) increaseFlags[exId] = {}
 
-      const shouldInc = await shouldIncreaseWeight(ex.exerciseId, user.id)
-      increaseFlags[ex.exerciseId][user.id] = shouldInc
+      const latest = await getLatestWeight(exId, user.id)
+
+      const shouldInc = await shouldIncreaseWeight(exId, user.id)
+      increaseFlags[exId][user.id] = shouldInc
 
       if (latest) {
         // Steigern-Merker wirkt direkt auf den Vorschlag: Schrittweite aufschlagen,
         // der Pfeil im UI zeigt dann nur noch an, DASS erhoeht wurde.
         const weight = shouldInc
-          ? Math.round((latest.weight + getWeightStep(ex.exerciseId)) * 100) / 100
+          ? Math.round((latest.weight + getWeightStep(exId)) * 100) / 100
           : latest.weight
         // latest traegt die Wdh dieses Satzes mit — getLastReps liest sie von
         // hier. Ein Eintrag, ein Paar: das Rad startet mit dem, was die Karte
         // zeigt, und ein leeres Abfrageergebnis kann kein halbes Paar hinterlassen.
-        recommendations[ex.exerciseId][user.id] = { ...latest, weight }
+        recommendations[exId][user.id] = { ...latest, weight }
       }
     }
   }
@@ -715,35 +729,89 @@ async function removeCycleDay() {
   showCycleModal.value = false
 }
 
-// --- Schnellwechsel-Ring (P10): Basis-Uebung plus geplante Alternativen ---
+// --- Schnellwechsel-Ring (P10 + Standard je Nutzer): Regeln in
+// --- utils/uebungsRing.js, Vertrag in scripts/uebungsring-test.mjs ---
 
 // Beim Aufbau der Workout-Liste bekommt jeder Eintrag seine Basis (die
-// geplante Uebung); Resume/Override behalten einen gespeicherten Wert.
+// geplante Uebung); Resume/Override behalten gespeicherte Werte. Die im Plan
+// gemerkten Standard-Uebungen (`bevorzugt`) werden beim ersten Aufbau in
+// `userExerciseIds` ueberfuehrt — ein gespeichertes Objekt (Resume) gewinnt.
 function mitBasis(list) {
-  return list.map(e => ({ ...e, basisExerciseId: e.basisExerciseId || e.exerciseId }))
+  return list.map(e => {
+    const eintrag = { ...e, basisExerciseId: e.basisExerciseId || e.exerciseId }
+    if (!eintrag.userExerciseIds) eintrag.userExerciseIds = vorbelegungAusBevorzugt(eintrag)
+    return eintrag
+  })
 }
 
-// Der Wechsel-Ring: [Basis, ...Alternativen]. Laenge 1 heisst: kein Schnellwechsel.
+// Ring der Karte (fuers v-if der Wechsel-Zeile)
 function getRing(entry) {
-  if (!entry) return []
-  return [entry.basisExerciseId || entry.exerciseId, ...(entry.alternativen || [])]
+  return ringFuer(entry)
 }
 
-// Position der aktuellen Uebung im Ring; -1 nach freiem Tausch auf eine
-// Uebung ausserhalb (die Punktreihe zeigt dann keinen aktiven Punkt).
-function getRingIndex(entry) {
-  return getRing(entry).indexOf(entry.exerciseId)
+// Aktive Uebung eines Nutzers an dieser Karte
+function aktiveId(entry, userId) {
+  return aktiveUebungId(entry, userId)
 }
 
-async function cycleRing(index, dir = 1) {
+// Kopf der Karte (Titel, Thumbnail, Detailansicht): die Uebung des
+// bevorzugten Nutzers — auf Lisas Handy traegt die Karte Lisas Uebung.
+function kopfId(entry) {
+  return aktiveUebungId(entry, preferredUserId.value)
+}
+
+// Stern-Zustand: ist die aktive Uebung des Nutzers sein gemerkter Standard?
+function istStandard(entry, userId) {
+  return (entry.bevorzugt || {})[userId] === aktiveId(entry, userId)
+}
+
+// Standards lassen sich nur fuer echte Plan-Positionen merken — nicht fuer
+// Quick-Adds und nicht im individuellen Training (wie beim dauerhaften Tausch).
+function kannStandardMerken(index) {
+  const day = currentDay.value
+  if (!day?.id || workoutStore.activeWorkout?.isCustom) return false
+  return planPositionFuer(index) >= 0
+}
+
+// Plan-Position eines Workout-Eintrags: ueber den Index (solange er in der
+// Plan-Liste liegt und die Basis stimmt), sonst ueber die Basis-Uebung.
+function planPositionFuer(index) {
+  const day = currentDay.value
   const entry = workoutExercises.value[index]
-  const ring = getRing(entry)
-  if (ring.length <= 1) return
-  const pos = ring.indexOf(entry.exerciseId)
-  // Ausserhalb des Rings (freier Tausch): der naechste Wechsel springt zur Basis
-  const nextId = pos < 0 ? ring[0] : ring[(pos + dir + ring.length) % ring.length]
-  if (nextId === entry.exerciseId) return
-  workoutExercises.value[index] = { ...entry, exerciseId: nextId }
+  if (!day?.exercises || !entry) return -1
+  if (index < day.exercises.length && day.exercises[index].exerciseId === entry.basisExerciseId) return index
+  return day.exercises.findIndex(e => e.exerciseId === entry.basisExerciseId)
+}
+
+// Stern: aktive Uebung des Nutzers als seinen Standard im PLAN merken
+// (erneuter Tipp entfernt ihn). Gesynct — gilt damit auf allen Geraeten.
+async function merkeStandard(index, userId) {
+  if (istWischNachklick()) return
+  const entry = workoutExercises.value[index]
+  const day = currentDay.value
+  const planIndex = planPositionFuer(index)
+  if (!entry || planIndex < 0 || !day?.id) return
+  const neu = toggleBevorzugt(day.exercises[planIndex].bevorzugt, userId, aktiveId(entry, userId))
+  // Kopier-Leitplanke wie beim dauerhaften Tausch; basisExerciseId und
+  // userExerciseIds gehoeren dem Workout-Log, nicht dem Plan
+  const updated = day.exercises.map((e, i) => ({
+    ...e,
+    alternativen: [...(e.alternativen || [])],
+    bevorzugt: i === planIndex ? neu : { ...(e.bevorzugt || {}) }
+  }))
+  await plansStore.updateTrainingDay(day.id, { exercises: updated })
+  // updateTrainingDay ersetzt das Objekt im Store — Referenz nachziehen
+  currentDay.value = plansStore.trainingDays.find(d => d.id === day.id) || day
+  // Stern sofort sichtbar und nach Resume erhalten: auch am Workout-Eintrag
+  workoutExercises.value[index] = { ...entry, bevorzugt: neu }
+  await workoutStore.persistWorkoutExercises(workoutExercises.value)
+}
+
+async function cycleRingUser(index, userId, dir = 1) {
+  const entry = workoutExercises.value[index]
+  const nextId = naechsteImRing(entry, userId, dir)
+  if (!nextId) return
+  workoutExercises.value[index] = mitNutzerUebung(entry, userId, nextId)
   // Gleicher Weg wie beim Tausch: Abweichung am Log sichern, Empfehlungen
   // und Notification nachziehen
   await workoutStore.persistWorkoutExercises(workoutExercises.value)
@@ -751,9 +819,9 @@ async function cycleRing(index, dir = 1) {
   updateNotification()
 }
 
-function tapRing(index) {
+function tapRingUser(index, userId) {
   if (istWischNachklick()) return
-  cycleRing(index, 1)
+  cycleRingUser(index, userId, 1)
 }
 
 // Wisch-Erkennung auf der Karte: horizontal (|dx| > 40 px und |dx| > 2|dy|)
@@ -780,8 +848,12 @@ function onCardTouchEnd(e, index) {
   letzterWischUm = Date.now()
   // Ohne Alternativen loest Wischen nichts aus (nur der Nachklick-Schutz greift)
   if (getRing(workoutExercises.value[index]).length <= 1) return
+  // Wisch auf einem Nutzer-Bereich wechselt DESSEN Uebung; ausserhalb (Kopf)
+  // die des bevorzugten Nutzers. target ist das Element des Fingerkontakts.
+  const bereich = e.target?.closest?.('.user-value')
+  const userId = bereich?.dataset?.userId || preferredUserId.value
   // Wisch nach links = vorwaerts im Ring, nach rechts = zurueck
-  cycleRing(index, dx < 0 ? 1 : -1)
+  cycleRingUser(index, userId, dx < 0 ? 1 : -1)
 }
 
 function openExerciseInput(index) {
@@ -791,16 +863,18 @@ function openExerciseInput(index) {
   // Standard-Nutzer vorausgewaehlt (pro Geraet); nicht aktiv -> erster aktiver
   pickerUserId.value = preferredUserId.value
 
-  // Pre-fill with saved value or recommendation
-  const saved = workoutStore.getSetsForExercise(ex.exerciseId, pickerUserId.value).find(s => s.setNumber === 1)
+  // Pre-fill with saved value or recommendation — fuer die aktive Uebung
+  // DIESES Nutzers (Schnellwechsel-Ring)
+  const exId = aktiveId(ex, pickerUserId.value)
+  const saved = workoutStore.getSetsForExercise(exId, pickerUserId.value).find(s => s.setNumber === 1)
   if (saved) {
     pickerWeight.value = saved.weight
     pickerReps.value = saved.reps
   } else {
-    const rec = recommendations[ex.exerciseId]?.[pickerUserId.value]
+    const rec = recommendations[exId]?.[pickerUserId.value]
     // ?? statt ||: 0 kg (Koerpergewichtsuebung) ist ein gueltiger Wert
     pickerWeight.value = rec?.weight ?? 20
-    pickerReps.value = getLastReps(ex.exerciseId, pickerUserId.value) ?? 10
+    pickerReps.value = getLastReps(exId, pickerUserId.value) ?? 10
   }
 
   showWheelPicker.value = true
@@ -810,28 +884,32 @@ function openExerciseInput(index) {
 watch(pickerUserId, (userId) => {
   if (activeExerciseIndex.value < 0) return
   const ex = workoutExercises.value[activeExerciseIndex.value]
-  const saved = workoutStore.getSetsForExercise(ex.exerciseId, userId).find(s => s.setNumber === 1)
+  const exId = aktiveId(ex, userId)
+  const saved = workoutStore.getSetsForExercise(exId, userId).find(s => s.setNumber === 1)
   if (saved) {
     pickerWeight.value = saved.weight
     pickerReps.value = saved.reps
   } else {
-    const rec = recommendations[ex.exerciseId]?.[userId]
+    const rec = recommendations[exId]?.[userId]
     pickerWeight.value = rec?.weight ?? 20
-    pickerReps.value = getLastReps(ex.exerciseId, userId) ?? 10
+    pickerReps.value = getLastReps(exId, userId) ?? 10
   }
 })
 
 async function savePickerValues() {
   const ex = workoutExercises.value[activeExerciseIndex.value]
-  await workoutStore.saveSet(ex.exerciseId, pickerUserId.value, 1, pickerWeight.value, pickerReps.value)
+  // Der Satz gehoert zur aktiven Uebung DES NUTZERS — Lisas Latzug-Satz
+  // landet bei Latzug, Gabs Klimmzug-Satz bei Klimmzug
+  await workoutStore.saveSet(aktiveId(ex, pickerUserId.value), pickerUserId.value, 1, pickerWeight.value, pickerReps.value)
 
-  // Auto-Wechsel: reihum zum naechsten AKTIVEN Nutzer ohne gespeicherten Satz.
-  // Bei einem aktiven Nutzer laeuft die Schleife leer, das Rad schliesst sich.
+  // Auto-Wechsel: reihum zum naechsten AKTIVEN Nutzer ohne gespeicherten Satz
+  // (gemessen an SEINER aktiven Uebung). Bei einem aktiven Nutzer laeuft die
+  // Schleife leer, das Rad schliesst sich.
   const active = authStore.activeUsers
   const startIdx = active.findIndex(u => u.id === pickerUserId.value)
   for (let i = 1; i < active.length; i++) {
     const candidate = active[(startIdx + i + active.length) % active.length]
-    const candidateSaved = workoutStore.getSetsForExercise(ex.exerciseId, candidate.id).find(s => s.setNumber === 1)
+    const candidateSaved = workoutStore.getSetsForExercise(aktiveId(ex, candidate.id), candidate.id).find(s => s.setNumber === 1)
     if (!candidateSaved) {
       pickerUserId.value = candidate.id
       return
@@ -908,16 +986,18 @@ function buildNotificationQuickLog() {
     userNames[user.id] = user.name
     const queue = []
     for (const ex of workoutExercises.value) {
-      const saved = workoutStore.getSetsForExercise(ex.exerciseId, user.id).find(s => s.setNumber === 1)
+      // Warteschlange je Nutzer ueber SEINE aktive Uebung (Schnellwechsel-Ring)
+      const exId = aktiveId(ex, user.id)
+      const saved = workoutStore.getSetsForExercise(exId, user.id).find(s => s.setNumber === 1)
       if (saved) continue
-      const rec = recommendations[ex.exerciseId]?.[user.id]
+      const rec = recommendations[exId]?.[user.id]
       const weight = rec?.weight ?? 20
-      const reps = getLastReps(ex.exerciseId, user.id) ?? 10
+      const reps = getLastReps(exId, user.id) ?? 10
       queue.push({
-        label: `${getExerciseName(ex.exerciseId)} ${weight}kg x${reps}`,
+        label: `${getExerciseName(exId)} ${weight}kg x${reps}`,
         set: {
           workoutLogId: aw.id,
-          exerciseId: ex.exerciseId,
+          exerciseId: exId,
           userId: user.id,
           setNumber: 1,
           weight,
@@ -954,7 +1034,8 @@ function updateNotification() {
     authStore.activeUsers,
     recommendations,
     getSavedValue,
-    getLastReps
+    getLastReps,
+    aktiveId
   )
   const { actions, data } = buildNotificationQuickLog()
   showWorkoutNotification(currentDay.value.title, lines, { actions, data })
@@ -1000,7 +1081,9 @@ const swapTargetId = ref(null)
 const swapOriginalName = computed(() => {
   if (swapIndex.value < 0) return ''
   const ex = workoutExercises.value[swapIndex.value]
-  return ex ? getExerciseName(ex.exerciseId) : ''
+  // Der freie Tausch ist eine Karten-Entscheidung — angezeigt wird die
+  // Kopf-Uebung (Sicht des bevorzugten Nutzers)
+  return ex ? getExerciseName(kopfId(ex)) : ''
 })
 
 // "Dauerhaft" gibt es nur fuer Uebungen, die wirklich im Plan-Tag stehen —
@@ -1025,20 +1108,23 @@ async function applySwap(permanent) {
   if (swapIndex.value >= 0 && swapIndex.value < workoutExercises.value.length) {
     workoutExercises.value[swapIndex.value] = {
       ...workoutExercises.value[swapIndex.value],
-      exerciseId: newExerciseId
+      exerciseId: newExerciseId,
+      // Freier Tausch ist eine Karten-Entscheidung fuer ALLE: individuelle
+      // Ring-Staende werden zurueckgesetzt, jeder folgt der neuen Uebung
+      userExerciseIds: {}
     }
     // Abweichung am Workout-Log sichern — sonst ist sie nach Tab-Wechsel/Reload weg
     await workoutStore.persistWorkoutExercises(workoutExercises.value)
 
     if (permanent && canSwapPermanently.value) {
       const day = currentDay.value
-      // Jeden Eintrag kopieren, `alternativen` als frisches Array: reaktive
-      // Vue-Proxys kann IndexedDB nicht klonen (DataCloneError beim put).
+      // Jeden Eintrag kopieren, `alternativen`/`bevorzugt` als frische Kopien:
+      // reaktive Vue-Proxys kann IndexedDB nicht klonen (DataCloneError beim put).
       // basisExerciseId gehoert dem Workout-Log, nicht dem Plan — nicht mitschreiben.
       const updated = day.exercises.map((e, i) =>
         i === swapIndex.value
-          ? { ...e, exerciseId: newExerciseId, alternativen: [...(e.alternativen || [])] }
-          : { ...e, alternativen: [...(e.alternativen || [])] }
+          ? { ...e, exerciseId: newExerciseId, alternativen: [...(e.alternativen || [])], bevorzugt: { ...(e.bevorzugt || {}) } }
+          : { ...e, alternativen: [...(e.alternativen || [])], bevorzugt: { ...(e.bevorzugt || {}) } }
       )
       await plansStore.updateTrainingDay(day.id, { exercises: updated })
       // updateTrainingDay ersetzt das Objekt im Store — Referenz nachziehen
@@ -1375,30 +1461,57 @@ onUnmounted(() => {
 /* Schnellwechsel-Knopf: Symbol mit Punktreihe darunter (ein Punkt je
    Ring-Position, aktiver Punkt in Akzentfarbe). Statische Farben, kein
    color-mix (alte Android-WebViews). */
-.ring-btn {
-  flex-direction: column;
-  gap: 2px;
-  width: auto;
-  min-width: 36px;
-  height: 36px;
-  padding: 2px 4px;
-}
-
-.ring-dots {
+/* Schnellwechsel-Zeile JE NUTZER: Symbol + aktive Uebung, rechts der Stern
+   zum Merken des Standards. Volle Breite unterhalb der Wertezeile
+   (flex-basis 100% + wrap am .user-value). Statische Farben, kein color-mix. */
+.user-ring-row {
+  flex-basis: 100%;
   display: flex;
-  gap: 3px;
-  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: 2px;
+  min-width: 0;
 }
 
-.ring-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--color-border);
+.user-ring-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-light);
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
-.ring-dot.active {
-  background: var(--color-accent);
+.user-ring-btn svg {
+  flex-shrink: 0;
+}
+
+.user-ring-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-star-btn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-border);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.user-star-btn.active {
+  color: var(--user-color);
+  border-color: var(--user-color);
 }
 
 .exercise-values {
@@ -1416,6 +1529,9 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   align-items: center;
+  /* wrap: die Schnellwechsel-Zeile (.user-ring-row) rutscht als volle
+     Breite unter Name + Werte */
+  flex-wrap: wrap;
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
   border-left: 3px solid;

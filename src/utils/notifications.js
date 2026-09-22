@@ -73,23 +73,29 @@ export function dismissWorkoutNotification() {
 
 // getLastReps kommt aus der TrackingView: dieselbe Quelle wie Karte und Rad,
 // damit der Sperrbildschirm dieselben Wdh zeigt.
-export function buildExerciseLines(workoutExercises, getExerciseName, users, recommendations, getSavedValue, getLastReps) {
+export function buildExerciseLines(workoutExercises, getExerciseName, users, recommendations, getSavedValue, getLastReps, getUserExerciseId) {
   const lines = []
+  // Aktive Uebung je Nutzer (Schnellwechsel-Ring); ohne die Funktion gilt
+  // fuer alle die Karten-Uebung wie bisher.
+  const idFuer = getUserExerciseId || ((ex) => ex.exerciseId)
 
   for (const ex of workoutExercises) {
-    const name = getExerciseName(ex.exerciseId)
     const userParts = []
+    const namen = []
 
     for (const user of users) {
-      const savedWeight = getSavedValue(ex.exerciseId, user.id, 'weight')
-      const savedReps = getSavedValue(ex.exerciseId, user.id, 'reps')
+      const exId = idFuer(ex, user.id)
+      const name = getExerciseName(exId)
+      if (!namen.includes(name)) namen.push(name)
+      const savedWeight = getSavedValue(exId, user.id, 'weight')
+      const savedReps = getSavedValue(exId, user.id, 'reps')
 
       if (savedWeight) {
         userParts.push(`${user.name}: ${savedWeight}kg x${savedReps}`)
       } else {
-        const rec = recommendations[ex.exerciseId]?.[user.id]
+        const rec = recommendations[exId]?.[user.id]
         if (rec) {
-          const reps = getLastReps(ex.exerciseId, user.id)
+          const reps = getLastReps(exId, user.id)
           userParts.push(`${user.name}: ~${rec.weight}kg${reps != null ? ` x${reps}` : ''}`)
         } else {
           userParts.push(`${user.name}: --`)
@@ -97,7 +103,9 @@ export function buildExerciseLines(workoutExercises, getExerciseName, users, rec
       }
     }
 
-    lines.push(`${name}`)
+    // Machen Nutzer verschiedene Uebungen an dieser Position, nennt die
+    // Kopfzeile alle (z.B. "Latzug / Chin Up")
+    lines.push(namen.length ? namen.join(' / ') : getExerciseName(ex.exerciseId))
     lines.push(`  ${userParts.join(' | ')}`)
   }
 

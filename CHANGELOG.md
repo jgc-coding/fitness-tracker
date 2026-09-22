@@ -50,6 +50,19 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   Katalog kommt sie ueber Settings -> "Standard-Uebungen laden". Zusaetzlich
   matchen "Unterer Ruecken"/"Unterer Rücken" jetzt als Namens-Aliasse das
   bestehende Hyperextension-Bild ("lower back").
+- **Standard-Uebung je Nutzer im Alternativen-Ring** (Nachtrag 22.09.2026):
+  Jeder Nutzer hat an einer Uebungsposition seine EIGENE aktive Uebung —
+  Lisas Bereich der Karte kann Latzug zeigen, waehrend Gab Klimmzuege macht.
+  Der Wechsler sitzt jetzt als eigene Zeile im Nutzer-Bereich (Tipp aufs
+  Symbol oder Wischen auf dem eigenen Bereich wechselt nur diesen Nutzer);
+  der Stern daneben merkt die aktive Uebung als persoenlichen Standard im
+  Plan (gesynct, gilt auf allen Geraeten) — damit startet der Nutzer kuenftig
+  automatisch, erneuter Stern-Tipp entfernt den Standard. Saetze,
+  Empfehlungen, Rad-Titel und Sperrbildschirm-Knoepfe folgen je Nutzer
+  seiner Uebung; der freie Tausch bleibt eine gemeinsame Karten-Entscheidung
+  und setzt individuelle Staende zurueck. Regeln per Vertragstest abgesichert
+  (`scripts/uebungsring-test.mjs`, jetzt Teil des Pruef-Gates wie
+  matching- und musclemap-Test).
 
 ### Entscheidungen (Gabriel, 2026-09-22)
 - **Ben startet frisch** — keine Uebernahme seiner Daten aus der Single-App.
