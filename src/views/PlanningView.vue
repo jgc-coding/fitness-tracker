@@ -116,6 +116,12 @@
                     max="10"
                   />
                   <span class="sets-label">Sets</span>
+                  <button
+                    class="btn-icon small alt-btn"
+                    :class="{ 'has-alts': (ex.alternativen || []).length > 0 }"
+                    @click="openAlternativenPicker(day, idx)"
+                    title="Alternativen hinterlegen"
+                  >⇄<span v-if="(ex.alternativen || []).length" class="alt-count">{{ ex.alternativen.length }}</span></button>
                   <button class="btn-icon small" @click="removeExerciseFromDay(day, idx)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
@@ -221,6 +227,47 @@
       <div class="picker-footer">
         <button class="btn btn-primary btn-block" @click="finishPicker">
           Fertig ({{ pickerSelectedIds.length }} ausgewaehlt)
+        </button>
+      </div>
+    </Modal>
+
+    <!-- Alternativen Picker Modal (P9) -->
+    <Modal v-model="showAltPicker" :title="altTitle" fullHeight>
+      <input
+        v-model="altSearch"
+        type="text"
+        placeholder="Uebung suchen..."
+        class="search-input"
+      />
+      <div class="alt-hint" :class="{ 'at-max': altSelectedIds.length >= MAX_ALTERNATIVEN }">
+        {{ altSelectedIds.length >= MAX_ALTERNATIVEN
+          ? 'Maximum erreicht (4 Alternativen) — erst eine abwaehlen'
+          : `${altSelectedIds.length} von ${MAX_ALTERNATIVEN} Alternativen ausgewaehlt` }}
+      </div>
+      <div class="swap-list">
+        <template v-for="group in groupedAltExercises" :key="group.label">
+          <div v-if="group.label" class="swap-group-header">{{ group.label }}</div>
+          <button
+            v-for="ex in group.items"
+            :key="ex.id"
+            class="swap-item"
+            :class="{
+              'is-selected': altSelectedIds.includes(ex.id),
+              'is-disabled': !altSelectedIds.includes(ex.id) && altSelectedIds.length >= MAX_ALTERNATIVEN
+            }"
+            @click="toggleAlternative(ex)"
+          >
+            <span class="swap-check">
+              <svg v-if="altSelectedIds.includes(ex.id)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+            <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
+          </button>
+        </template>
+      </div>
+      <div class="picker-footer">
+        <button class="btn btn-primary btn-block" @click="finishAltPicker">
+          Fertig ({{ altSelectedIds.length }} ausgewaehlt)
         </button>
       </div>
     </Modal>
@@ -413,26 +460,112 @@ async function finishPicker() {
   const newExercises = pickerSelectedIds.value.map(id => {
     const existing = (currentDay?.exercises || []).find(e => e.exerciseId === id)
     if (existing) {
-      return { exerciseId: existing.exerciseId, sets: existing.sets, notes: existing.notes || '' }
+      return kopiereUebungsEintrag(existing)
     }
-    return { exerciseId: id, sets: 2, notes: '' }
+    return { exerciseId: id, sets: 2, notes: '', alternativen: [] }
   })
 
   await plansStore.updateTrainingDay(dayId, { exercises: newExercises })
   await plansStore.loadPlans()
 }
 
+// Flache Kopie eines Eintrags aus day.exercises: generisch ALLE Felder
+// uebernehmen (ein hart aufgezaehltes Feld ginge beim naechsten neuen Feld
+// still verloren), `alternativen` als eigenes Array (Vue-Proxys sprengen
+// sonst Dexie-put mit DataCloneError)
+function kopiereUebungsEintrag(e) {
+  return { ...e, alternativen: [...(e.alternativen || [])] }
+}
+
 async function removeExerciseFromDay(day, index) {
   const updatedExercises = day.exercises
     .filter((_, i) => i !== index)
-    .map(e => ({ exerciseId: e.exerciseId, sets: e.sets, notes: e.notes || '' }))
+    .map(kopiereUebungsEintrag)
   await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
 }
 
 async function updateExerciseSets(day, index, event) {
-  const updatedExercises = [...day.exercises]
-  updatedExercises[index] = { ...updatedExercises[index], sets: Number(event.target.value) }
+  const updatedExercises = day.exercises.map(kopiereUebungsEintrag)
+  updatedExercises[index].sets = Number(event.target.value)
   await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
+}
+
+// Alternativen je Uebungszeile (P9): Array aus exerciseId am Eintrag,
+// hartes Maximum 4, gespeichert ueber updateTrainingDay wie im Bestand
+const MAX_ALTERNATIVEN = 4
+const showAltPicker = ref(false)
+const altDayId = ref(null)
+const altIndex = ref(null)
+const altBaseExerciseId = ref(null)
+const altSearch = ref('')
+const altSelectedIds = ref([])
+
+const altTitle = computed(() => {
+  return altBaseExerciseId.value
+    ? `Alternativen: ${getExerciseName(altBaseExerciseId.value)}`
+    : 'Alternativen'
+})
+
+const groupedAltExercises = computed(() => {
+  const base = getExerciseById(altBaseExerciseId.value)
+  const search = altSearch.value.toLowerCase()
+  const items = exercises.value.filter(e =>
+    e.id !== altBaseExerciseId.value &&
+    (!search || e.name.toLowerCase().includes(search))
+  )
+  const nameSort = (a, b) => toTitleCase(a.name).localeCompare(toTitleCase(b.name), 'de')
+  const same = items.filter(e => base && e.muscleGroup === base.muscleGroup).sort(nameSort)
+  const rest = items.filter(e => !base || e.muscleGroup !== base.muscleGroup).sort(nameSort)
+  const result = []
+  if (same.length) {
+    result.push({ label: `Gleiche Muskelgruppe (${getMuscleLabel(base.muscleGroup)})`, items: same })
+  }
+  if (rest.length) {
+    result.push({ label: same.length ? 'Weitere Uebungen' : '', items: rest })
+  }
+  return result
+})
+
+function openAlternativenPicker(day, index) {
+  const entry = day.exercises[index]
+  if (!entry) return
+  altDayId.value = day.id
+  altIndex.value = index
+  altBaseExerciseId.value = entry.exerciseId
+  altSearch.value = ''
+  altSelectedIds.value = [...(entry.alternativen || [])]
+  showAltPicker.value = true
+}
+
+function toggleAlternative(exercise) {
+  if (altSelectedIds.value.includes(exercise.id)) {
+    altSelectedIds.value = altSelectedIds.value.filter(id => id !== exercise.id)
+  } else if (altSelectedIds.value.length < MAX_ALTERNATIVEN) {
+    altSelectedIds.value = [...altSelectedIds.value, exercise.id]
+  }
+  // Beim vollen Maximum passiert bewusst nichts — der Hinweis ueber der
+  // Liste zeigt den Grund (hartes Maximum 4)
+}
+
+async function finishAltPicker() {
+  const dayId = altDayId.value
+  const index = altIndex.value
+  showAltPicker.value = false
+  if (dayId === null || index === null) return
+
+  // Read current day from store (fresh reference, not stale)
+  const currentDay = plansStore.trainingDays.find(d => d.id === dayId)
+  const list = currentDay?.exercises || []
+  if (!list[index]) return
+
+  // Check if anything actually changed
+  const oldIds = (list[index].alternativen || []).join(',')
+  const newIds = altSelectedIds.value.join(',')
+  if (oldIds === newIds) return
+
+  const updatedExercises = list.map(kopiereUebungsEintrag)
+  updatedExercises[index].alternativen = [...altSelectedIds.value]
+  await plansStore.updateTrainingDay(dayId, { exercises: updatedExercises })
 }
 
 onMounted(async () => {
@@ -609,6 +742,45 @@ onMounted(async () => {
 .btn-icon.small {
   width: 28px;
   height: 28px;
+}
+
+.alt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: auto;
+  min-width: 28px;
+  padding: 0 var(--space-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.alt-btn.has-alts {
+  color: var(--color-accent);
+}
+
+.alt-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.alt-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding: var(--space-xs) var(--space-md);
+  margin-bottom: var(--space-sm);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.alt-hint.at-max {
+  color: var(--color-danger);
+  background: #fdecea; /* statisch statt color-mix (alte Android-WebViews) */
+}
+
+.swap-item.is-disabled {
+  opacity: 0.45;
 }
 
 .btn-icon.danger {
