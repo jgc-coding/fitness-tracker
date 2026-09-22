@@ -1,5 +1,8 @@
 # Schnellpruefung fuer das Done-Gate (eine Zeile = ein Befehl, # = Kommentar)
 node ./scripts/laufplan-pruefen.mjs ./docs/laufplan-beispiel.json
+node ./scripts/uebungsbilder-matching-test.mjs
+node ./scripts/musclemap-pruefen.mjs
+node ./scripts/uebungsring-test.mjs
 node ./scripts/laufplan-merge-test.mjs
 node ./scripts/runmatch-test.mjs
 node ./scripts/pace-modell-test.mjs

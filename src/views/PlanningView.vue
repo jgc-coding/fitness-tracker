@@ -462,7 +462,7 @@ async function finishPicker() {
     if (existing) {
       return kopiereUebungsEintrag(existing)
     }
-    return { exerciseId: id, sets: 2, notes: '', alternativen: [] }
+    return { exerciseId: id, sets: 2, notes: '', alternativen: [], bevorzugt: {} }
   })
 
   await plansStore.updateTrainingDay(dayId, { exercises: newExercises })
@@ -471,10 +471,10 @@ async function finishPicker() {
 
 // Flache Kopie eines Eintrags aus day.exercises: generisch ALLE Felder
 // uebernehmen (ein hart aufgezaehltes Feld ginge beim naechsten neuen Feld
-// still verloren), `alternativen` als eigenes Array (Vue-Proxys sprengen
-// sonst Dexie-put mit DataCloneError)
+// still verloren), `alternativen` als eigenes Array und `bevorzugt` als
+// eigenes Objekt (Vue-Proxys sprengen sonst Dexie-put mit DataCloneError)
 function kopiereUebungsEintrag(e) {
-  return { ...e, alternativen: [...(e.alternativen || [])] }
+  return { ...e, alternativen: [...(e.alternativen || [])], bevorzugt: { ...(e.bevorzugt || {}) } }
 }
 
 async function removeExerciseFromDay(day, index) {
