@@ -1,9 +1,24 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 5, Paket P5)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 6, Paket P6)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
   deployt.
+- **P6 ist umgesetzt:** `src/components/shared/MuscleMap.vue` zeichnet
+  Vorder- und Rueckseite als Inline-SVG (ein `<svg>` mit zwei Gruppen,
+  viewBox 210x156); jede Muskelregion ist ein Shape mit `data-muscle`,
+  alle 18 Ids vorhanden (neck/traps/shoulders/forearms auf beiden Seiten,
+  chest/biceps/abdominals/obliques/quadriceps/abductors/adductors vorn,
+  triceps/lats/middle_back/lower_back/glutes/hamstrings/calves hinten).
+  Props `primary`/`secondary` (Arrays), `fallbackGroup`, `size` (Breite in
+  px, Hoehe folgt dem Seitenverhaeltnis). Faerbung: primaer
+  `var(--color-accent)`, sekundaer statisch #e0aeb5, Rest #d7dadc,
+  Silhouetten-Teile (Kopf/Haende/Knie/Fuesse/Schienbeine) #ccd1d4 — kein
+  color-mix. Ohne primary/secondary greift `GROBGRUPPEN`
+  (chest/back/shoulders/legs/arms/core wie im Plan, `full_body` = alle
+  Muskeln nur hell). `scripts/musclemap-pruefen.mjs` prueft 18 Ids +
+  Grobgruppen-Tabelle und ist gruen; die Komponente wird erst in P7/P8
+  eingebunden und ist darum noch in keinem Build-Chunk (Absicht).
 - **P5 ist umgesetzt:** `src/data/uebungskatalog.json` (Top-Level-Array,
   30 Eintraege nach der fixen Plan-Tabelle; je Eintrag `key`, `name`,
   `bilder` (2 relative webp-Pfade), `primaer`/`sekundaer` als Arrays
@@ -49,9 +64,13 @@
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P6-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P6 weiter (MuscleMap.vue mit 18 `data-muscle`-Ids,
-  Pruefskript `musclemap-pruefen.mjs`).
+- **Pakete P7-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P7 weiter (Bilder in Karten und Katalog,
+  Hilfsmodul `uebungsBilder.js`, Matching-Test).
+- **Neue Pruefskripte in `.claude\pruefen.txt` aufnehmen** (interaktive
+  Session, Paket-Laeufe duerfen dort nicht schreiben): mindestens
+  `node ./scripts/musclemap-pruefen.mjs`; P7 bringt zusaetzlich
+  `uebungsbilder-matching-test.mjs`.
 - **`.claude\launch.json` enthaelt noch die Konfiguration "Vite Dev Server
   (Single)"**, die auf die geloeschte `vite.single.config.js` zeigt. Ein
   Paket-Lauf darf unter `.claude\` nicht schreiben — bitte in einer
@@ -70,9 +89,11 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P6**: MuscleMap-Komponente (zwei Silhouetten als Inline-SVG,
-   alle 18 Muskel-Ids, Grobgruppen-Fallback) plus `musclemap-pruefen.mjs`
-   (Kriterien im Plan).
+1. **Autopilot P7**: Hilfsmodul `src/utils/uebungsBilder.js` (Manifest-Zugriff,
+   Pfad-Aufloesung mit Vite-Base, Namens-Matching als reine Funktionen),
+   Vertragstest `uebungsbilder-matching-test.mjs`, Bild-Auswahlfeld im
+   Katalog, Auto-Zuordnung in Settings, Thumbnail bzw. kleine MuscleMap
+   auf der Tracking-Karte (Kriterien im Plan).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -109,6 +130,15 @@
   - Worktree-Reste dieser Sitzung loeschen? Befehle stehen in weitermachen.md
 
 ## Stolperfallen (aktuell)
+- **MuscleMap ist noch unverdrahtet:** kein Import im Code, darum prueft
+  `npm run build` die Datei NICHT. Bis P7 sie einbindet, sichern nur
+  `scripts/musclemap-pruefen.mjs` (Ids + Grobgruppen) und ein
+  SFC-Kompilier-Check die Komponente ab; wer sie aendert, laesst
+  mindestens das Pruefskript laufen.
+- **`fallbackGroup` erwartet die Grobgruppen-Ids aus `constants.js`
+  (MUSCLE_GROUPS)** — `full_body` faerbt bewusst nur hell (sekundaer),
+  alle anderen Gruppen kraeftig. Sind `primary`/`secondary` gesetzt (auch
+  nur eins von beiden), wird `fallbackGroup` komplett ignoriert.
 - **Das Bild-Manifest ist ein Top-Level-Array** (kein Wrapper-Objekt);
   `primaer` und `sekundaer` sind Arrays — sie passen damit direkt auf die
   MuscleMap-Props `primary`/`secondary` aus P6. Die `aliasse` stehen klein
@@ -153,6 +183,15 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 6 / P6: Muskel-Grafik MuscleMap. Beleg:
+  `node ./scripts/musclemap-pruefen.mjs` meldet "data-muscle-Ids gefunden:
+  18 von 18", "Grobgruppen-Tabelle: 7 Gruppen erwartet, 17 Muskel-Ids
+  genannt" (die 18. Referenz ist `full_body: ALLE_MUSKELN`, bewusst ohne
+  Duplikat-Liste) und "alles gruen" (Exit 0); ein Scratchpad-Skript mit
+  `@vue/compiler-sfc` (parse + compileScript + compileTemplate) bestaetigt
+  "kompiliert fehlerfrei". Alle fuenf pruefen.txt-Befehle gruen
+  (`npm run build` 110 Module, 3.44s — MuscleMap absichtlich noch in
+  keinem Chunk, siehe Stolperfalle).
 - Lauf 5 / P5: Bild-Manifest, Foto-Download, Precache. Beleg:
   `src/data/uebungskatalog.json` hat 30 Eintraege (31 Aliasse, zwei davon an
   Seated_Cable_Rows); `node ./scripts/uebungsbilder-holen.mjs` lief zweimal —
@@ -204,6 +243,7 @@
   Loeschungen sauber als `D`.
 
 ### Fehlversuche (mit exaktem Grund)
+- Lauf 6: keine.
 - Lauf 5: keine (Netzzugriff auf raw.githubusercontent.com lief im ersten
   Versuch durch).
 - Lauf 4: eine PowerShell-Kette `Copy-Item ...; node --check ...; if ($?)`
@@ -217,6 +257,10 @@
   einzeln und ohne `cd`.
 
 ### Noch nicht probiert
+- Sichtpruefung der MuscleMap im Browser (stimmen Proportionen und
+  Faerbung optisch?) — das Pruefskript belegt nur Ids und Tabelle, nicht
+  die Optik; gehoert in die interaktive Pruefung vor dem Deploy
+  (spaetestens mit P7, wenn die Grafik auf der Tracking-Karte auftaucht).
 - Sichtpruefung der 60 Fotos (zeigt jedes Bild wirklich die richtige
   Uebung?) — die Keys stammen fix aus der Plan-Tabelle, alle Downloads
   liefen mit HTTP 200, aber den Bildinhalt hat niemand angesehen; gehoert

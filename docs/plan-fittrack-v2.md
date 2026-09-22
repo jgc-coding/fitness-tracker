@@ -180,7 +180,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: Das Skript wurde ausgefuehrt; ein node-Einzeiler belegt: Anzahl der webp-Dateien unter `public/uebungsbilder/` == 2 x Anzahl der Manifest-Eintraege
   - Kriterium: `vite.config.js` globPatterns enthaelt `webp` (Fotos sind offline verfuegbar)
   - Kriterium: pruefen.txt gruen
-- [ ] P6: Muskel-Grafik MuscleMap
+- [x] P6: Muskel-Grafik MuscleMap
   - Kriterium: `src/components/shared/MuscleMap.vue` zeichnet zwei schematische Koerper-Silhouetten (Vorderseite + Rueckseite) als Inline-SVG; jede Muskelregion ist ein Pfad/Shape mit `data-muscle`-Attribut; insgesamt sind alle 18 Ids vorhanden: neck, traps, shoulders, chest, biceps, triceps, forearms, abdominals, obliques, lats, middle_back, lower_back, glutes, abductors, adductors, quadriceps, hamstrings, calves
   - Kriterium: Props: `primary` (Array), `secondary` (Array), `fallbackGroup` (Grobgruppen-Id) und `size`; primaer kraeftig eingefaerbt (Akzentrot), sekundaer hell, Rest neutral grau; ohne primary/secondary greift die Grobgruppen-Zuordnung: chest->[chest], back->[lats,middle_back,lower_back,traps], shoulders->[shoulders], legs->[quadriceps,hamstrings,glutes,calves,abductors,adductors], arms->[biceps,triceps,forearms], core->[abdominals,obliques], full_body->alle (hell)
   - Kriterium: `scripts/musclemap-pruefen.mjs` liest die .vue-Datei und prueft, dass alle 18 `data-muscle`-Ids vorkommen und die Grobgruppen-Tabelle nur bekannte Ids nennt; Lauf ist gruen
