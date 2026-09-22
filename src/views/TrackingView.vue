@@ -91,9 +91,10 @@
             </button>
           </div>
 
-          <!-- Compact display of current values per user -->
-          <div class="exercise-values">
-            <div v-for="user in authStore.users" :key="user.id" class="user-value" :style="{ borderLeftColor: user.color }">
+          <!-- Compact display of current values per user.
+               Layout nach Anzahl: 1 volle Breite, 2 nebeneinander, 3 untereinander -->
+          <div class="exercise-values" :class="'users-' + authStore.activeUsers.length">
+            <div v-for="user in authStore.activeUsers" :key="user.id" class="user-value" :style="{ borderLeftColor: user.color }">
               <span class="user-value-name">{{ user.name }}</span>
               <span class="user-value-data">
                 <template v-if="getSavedValue(planExercise.exerciseId, user.id, 'weight')">
@@ -145,7 +146,7 @@
         <!-- User tabs -->
         <div class="user-tabs">
           <button
-            v-for="user in authStore.users"
+            v-for="user in authStore.activeUsers"
             :key="user.id"
             class="user-tab"
             :class="{ active: pickerUserId === user.id }"
@@ -186,9 +187,10 @@
           Speichern
         </button>
 
-        <!-- Switch to other user hint -->
-        <p class="picker-hint">
-          Tippe auf den anderen Namen um fuer {{ otherUserName }} einzutragen.
+        <!-- Nutzer-Wechsel-Hinweis: nutzerzahl-neutral, bei nur einem aktiven
+             Nutzer gibt es nichts zu wechseln -->
+        <p v-if="authStore.activeUsers.length > 1" class="picker-hint">
+          Tippe oben auf einen Namen, um fuer diese Person einzutragen.
         </p>
       </div>
     </Modal>
@@ -472,9 +474,13 @@ const pickerLastReps = computed(() => {
   return ex ? getLastReps(ex.exerciseId, pickerUserId.value) : null
 })
 
-const otherUserName = computed(() => {
-  const other = authStore.users.find(u => u.id !== pickerUserId.value)
-  return other?.name || ''
+// Vorauswahl im Rad und erster Notification-Knopf: der Standard-Nutzer des
+// Geraets — ist er heute nicht aktiv, der erste aktive Nutzer.
+const preferredUserId = computed(() => {
+  const active = authStore.activeUsers
+  return active.some(u => u.id === authStore.defaultUserId)
+    ? authStore.defaultUserId
+    : (active[0]?.id || authStore.defaultUserId)
 })
 
 function getExerciseName(exerciseId) {
@@ -516,7 +522,7 @@ async function loadRecommendations() {
     if (!recommendations[ex.exerciseId]) recommendations[ex.exerciseId] = {}
     if (!increaseFlags[ex.exerciseId]) increaseFlags[ex.exerciseId] = {}
 
-    for (const user of authStore.users) {
+    for (const user of authStore.activeUsers) {
       const latest = await getLatestWeight(ex.exerciseId, user.id)
 
       const shouldInc = await shouldIncreaseWeight(ex.exerciseId, user.id)
@@ -540,8 +546,8 @@ async function loadRecommendations() {
 function openExerciseInput(index) {
   activeExerciseIndex.value = index
   const ex = workoutExercises.value[index]
-  // Standard-Nutzer aus den Einstellungen ist vorausgewaehlt (pro Geraet)
-  pickerUserId.value = authStore.defaultUserId
+  // Standard-Nutzer vorausgewaehlt (pro Geraet); nicht aktiv -> erster aktiver
+  pickerUserId.value = preferredUserId.value
 
   // Pre-fill with saved value or recommendation
   const saved = workoutStore.getSetsForExercise(ex.exerciseId, pickerUserId.value).find(s => s.setNumber === 1)
@@ -577,12 +583,15 @@ async function savePickerValues() {
   const ex = workoutExercises.value[activeExerciseIndex.value]
   await workoutStore.saveSet(ex.exerciseId, pickerUserId.value, 1, pickerWeight.value, pickerReps.value)
 
-  // Auto-switch to other user if they haven't entered yet
-  const otherUser = authStore.users.find(u => u.id !== pickerUserId.value)
-  if (otherUser) {
-    const otherSaved = workoutStore.getSetsForExercise(ex.exerciseId, otherUser.id).find(s => s.setNumber === 1)
-    if (!otherSaved) {
-      pickerUserId.value = otherUser.id
+  // Auto-Wechsel: reihum zum naechsten AKTIVEN Nutzer ohne gespeicherten Satz.
+  // Bei einem aktiven Nutzer laeuft die Schleife leer, das Rad schliesst sich.
+  const active = authStore.activeUsers
+  const startIdx = active.findIndex(u => u.id === pickerUserId.value)
+  for (let i = 1; i < active.length; i++) {
+    const candidate = active[(startIdx + i + active.length) % active.length]
+    const candidateSaved = workoutStore.getSetsForExercise(ex.exerciseId, candidate.id).find(s => s.setNumber === 1)
+    if (!candidateSaved) {
+      pickerUserId.value = candidate.id
       return
     }
   }
@@ -604,6 +613,10 @@ async function toggleIncrease(exerciseId, userId) {
 async function onActiveUsersChanged(userIds) {
   if (workoutStore.isWorkoutActive) {
     await workoutStore.updateWorkoutUsers(userIds)
+    // Ein neu dazugekommener Nutzer braucht seine Empfehlungen, und die
+    // Notification darf nur noch die aktive Besetzung zeigen.
+    await loadRecommendations()
+    updateNotification()
   }
 }
 
@@ -642,10 +655,11 @@ function buildNotificationQuickLog() {
   if (!aw) return { actions: [], data: null }
   const queues = {}
   const userNames = {}
-  // Standard-Nutzer zuerst: er bekommt den einen Quick-Log-Knopf
+  // Nur AKTIVE Nutzer, bevorzugter zuerst: er bekommt den einen
+  // Quick-Log-Knopf (Standard-Nutzer, wenn aktiv — sonst der erste aktive)
   const orderedUsers = [
-    ...authStore.users.filter(u => u.id === authStore.defaultUserId),
-    ...authStore.users.filter(u => u.id !== authStore.defaultUserId)
+    ...authStore.activeUsers.filter(u => u.id === preferredUserId.value),
+    ...authStore.activeUsers.filter(u => u.id !== preferredUserId.value)
   ]
   for (const user of orderedUsers) {
     userNames[user.id] = user.name
@@ -694,7 +708,7 @@ function updateNotification() {
   const lines = buildExerciseLines(
     workoutExercises.value,
     getExerciseName,
-    authStore.users,
+    authStore.activeUsers,
     recommendations,
     getSavedValue,
     getLastReps
@@ -1052,6 +1066,12 @@ onUnmounted(() => {
 .exercise-values {
   display: flex;
   gap: var(--space-sm);
+}
+
+/* Drei aktive Nutzer: Zeilen untereinander — nebeneinander waere auf
+   Handybreite zu schmal. 1 Nutzer fuellt die Zeile (flex: 1), 2 wie bisher. */
+.exercise-values.users-3 {
+  flex-direction: column;
 }
 
 .user-value {
