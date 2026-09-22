@@ -160,7 +160,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: `startWorkout` und `startCustomWorkout` schreiben `userIds: [...activeUserIds]` an den workoutLog; `resumeTodaysWorkout` uebernimmt vorhandene `aw.userIds` in `activeUserIds` (Fallback: gespeicherte Auswahl)
   - Kriterium: TrackingView zeigt eine antippbare Chip-Zeile mit den aktiven Nutzernamen (Nutzerfarben); Tipp oeffnet den Dialog erneut; Aenderung waehrend eines aktiven Workouts aktualisiert `userIds` am workoutLog (bestehende Saetze bleiben unangetastet)
   - Kriterium: pruefen.txt gruen
-- [ ] P3: Tracking-Anzeige fuer 1 bis 3 aktive Nutzer
+- [x] P3: Tracking-Anzeige fuer 1 bis 3 aktive Nutzer
   - Kriterium: Uebungskarten, Empfehlungs-Laden (`loadRecommendations`), Rad-Tabs, Notification-Warteschlangen (`buildNotificationQuickLog`) und `buildExerciseLines` arbeiten ueber `activeUsers` statt `users` — inaktive Nutzer tauchen im Workout nirgends auf
   - Kriterium: Karten-Layout nach Anzahl: 1 Nutzer volle Breite, 2 nebeneinander (wie bisher), 3 untereinander (CSS-Klasse nach `activeUsers.length`, keine neuen modernen CSS-Features)
   - Kriterium: Auto-Wechsel nach dem Speichern im Rad geht der Reihe nach zum naechsten AKTIVEN Nutzer ohne gespeicherten Satz (funktioniert fuer 1, 2 und 3; bei 1 Nutzer kein Wechsel, Hinweistext ausgeblendet); der Hinweistext unter dem Rad ist nutzerzahl-neutral formuliert
