@@ -211,7 +211,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: Jeder Wechsel setzt `exerciseId`, ruft `persistWorkoutExercises` (Kopier-Leitplanke!), laedt Empfehlungen neu und aktualisiert die Notification — wie beim bestehenden Tausch; das bestehende Tausch-Modal (freier Tausch) bleibt unveraendert erreichbar
   - Kriterium: Nach einem freien Tausch auf eine Uebung AUSSERHALB des Rings zeigt die Punktreihe keinen aktiven Punkt; der naechste Tipp springt zur Basis-Uebung
   - Kriterium: pruefen.txt gruen
-- [ ] P11: Workout-Notiz und Zyklustag
+- [x] P11: Workout-Notiz und Zyklustag
   - Kriterium: Im aktiven Workout gibt es unter dem Kopf (Titel/Datum) eine Zeile mit Knopf "Notiz" (immer) und Knopf "Zyklustag" (nur wenn ein aktiver Nutzer `zyklus: true` traegt); vorhandene Werte sind am Knopf erkennbar (z.B. "Notiz ✓" / "Zyklustag 17")
   - Kriterium: Notiz-Modal mit Textfeld; Speichern schreibt `note` an den workoutLog (updatedAt + pushRecord); erneutes Oeffnen zeigt den gespeicherten Text; Resume nach Reload ebenfalls
   - Kriterium: Zyklus-Modal nutzt den bestehenden WheelPicker mit Werten 1 bis 45 plus separatem "Entfernen"-Knopf; Speichern schreibt `cycleDays: { [userId]: Zahl }` fuer den Zyklus-Nutzer an den workoutLog (Objekt mergen, nicht ersetzen), Entfernen loescht nur diesen Schluessel

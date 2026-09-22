@@ -59,6 +59,18 @@
           <span class="workout-date">{{ formattedDate }}</span>
         </div>
 
+        <!-- Workout-Notiz und Zyklustag (P11): vorhandene Werte sind am
+             Knopf erkennbar ("Notiz ✓" / "Zyklustag 17"). Der Zyklus-Knopf
+             erscheint nur, wenn ein aktiver Nutzer zyklus: true traegt. -->
+        <div class="workout-meta">
+          <button class="btn btn-secondary meta-btn" @click="openNoteModal">
+            Notiz{{ workoutNote ? ' ✓' : '' }}
+          </button>
+          <button v-if="zyklusUser" class="btn btn-secondary meta-btn" @click="openCycleModal">
+            Zyklustag{{ currentCycleDay != null ? ' ' + currentCycleDay : '' }}
+          </button>
+        </div>
+
         <!-- Wer trainiert: antippbare Chip-Zeile, Tipp oeffnet den Dialog -->
         <button class="user-chips" @click="showUserSelect = true">
           <span
@@ -240,6 +252,39 @@
           Tippe oben auf einen Namen, um fuer diese Person einzutragen.
         </p>
       </div>
+    </Modal>
+
+    <!-- Workout-Notiz (P11): Freitext am workoutLog -->
+    <Modal v-model="showNoteModal" title="Workout-Notiz">
+      <textarea
+        v-model="noteDraft"
+        class="note-textarea"
+        rows="5"
+        placeholder="Notiz zum heutigen Training..."
+      ></textarea>
+      <button class="btn btn-primary btn-block" @click="saveNote">Speichern</button>
+    </Modal>
+
+    <!-- Zyklustag (P11): WheelPicker 1-45 fuer den Zyklus-Nutzer;
+         Entfernen loescht nur dessen Schluessel in cycleDays -->
+    <Modal v-model="showCycleModal" :title="zyklusUser ? `Zyklustag — ${zyklusUser.name}` : 'Zyklustag'">
+      <div class="cycle-wheel">
+        <WheelPicker
+          :modelValue="cycleDraft"
+          @update:modelValue="cycleDraft = $event"
+          :values="cycleValues"
+          label="Zyklustag"
+          unit="Tag"
+        />
+      </div>
+      <button class="btn btn-primary btn-block" @click="saveCycleDay">Speichern</button>
+      <button
+        class="btn btn-secondary btn-block"
+        style="margin-top: var(--space-sm)"
+        @click="removeCycleDay"
+      >
+        Entfernen
+      </button>
     </Modal>
 
     <!-- Day Selector Modal -->
@@ -616,6 +661,58 @@ async function loadRecommendations() {
       }
     }
   }
+}
+
+// --- Workout-Notiz und Zyklustag (P11): beide Felder liegen am workoutLog ---
+
+const showNoteModal = ref(false)
+const showCycleModal = ref(false)
+const noteDraft = ref('')
+const cycleDraft = ref(1)
+
+// Additiv gelesen: alte workoutLogs ohne note/cycleDays bleiben gueltig
+const workoutNote = computed(() => workoutStore.activeWorkout?.note || '')
+
+// Der Zyklus-Nutzer: der aktive Nutzer mit zyklus: true (siehe constants.js)
+const zyklusUser = computed(() => authStore.activeUsers.find(u => u.zyklus) || null)
+
+const currentCycleDay = computed(() => {
+  const uid = zyklusUser.value?.id
+  const days = workoutStore.activeWorkout?.cycleDays
+  return uid && days && days[uid] != null ? days[uid] : null
+})
+
+const cycleValues = computed(() => {
+  const vals = []
+  for (let d = 1; d <= 45; d++) vals.push(d)
+  return vals
+})
+
+function openNoteModal() {
+  noteDraft.value = workoutNote.value
+  showNoteModal.value = true
+}
+
+async function saveNote() {
+  await workoutStore.updateWorkoutNote(noteDraft.value.trim())
+  showNoteModal.value = false
+}
+
+function openCycleModal() {
+  cycleDraft.value = currentCycleDay.value ?? 1
+  showCycleModal.value = true
+}
+
+async function saveCycleDay() {
+  if (!zyklusUser.value) return
+  await workoutStore.setCycleDay(zyklusUser.value.id, cycleDraft.value)
+  showCycleModal.value = false
+}
+
+async function removeCycleDay() {
+  if (!zyklusUser.value) return
+  await workoutStore.setCycleDay(zyklusUser.value.id, null)
+  showCycleModal.value = false
 }
 
 // --- Schnellwechsel-Ring (P10): Basis-Uebung plus geplante Alternativen ---
@@ -1140,6 +1237,40 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-sm);
+}
+
+/* Notiz- und Zyklustag-Knoepfe unter dem Kopf (P11) */
+.workout-meta {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.meta-btn {
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-sm);
+}
+
+.note-textarea {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: var(--space-md);
+}
+
+.note-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* Das Rad allein in der Modal-Mitte, schmaler als die Gewicht/Wdh-Reihe */
+.cycle-wheel {
+  max-width: 160px;
+  margin: 0 auto var(--space-md);
 }
 
 .user-chips {
