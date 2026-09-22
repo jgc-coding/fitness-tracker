@@ -3,6 +3,66 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.0.0] — 2026-09-22
+
+Aus der Zwei-Personen-App wird eine Drei-Personen-App (Lisa, Gab & Ben) mit
+Nutzerwahl beim Start. Dazu Uebungsfotos mit Muskel-Grafik, Notizen je Nutzer,
+Alternativ-Uebungen mit Schnellwechsel, Workout-Notiz, Zyklustag und ein
+Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
+`docs/plan-fittrack-v2.md` (Pakete P1-P13).
+
+### Features
+- **Dritter Nutzer Ben** (gruen) mit eigenen Gewichten/Wiederholungen — derselbe
+  gemeinsame Plan wie bisher.
+- **Startdialog "Wer trainiert?":** Beim App-Start (ausser ein heutiges Workout
+  laeuft noch) waehlt man 1 bis 3 aktive Nutzer; die Auswahl ist geraete-lokal
+  gespeichert und im Workout ueber eine antippbare Chip-Zeile aenderbar. Karten,
+  Rad, Empfehlungen und Sperrbildschirm-Knoepfe zeigen nur aktive Nutzer; das
+  Karten-Layout passt sich an (1 volle Breite, 2 nebeneinander, 3 untereinander).
+- **Uebungsfotos und Muskel-Grafik:** 60 Fotos (2 je Uebung, im Repo, offline
+  verfuegbar) plus eine selbst gezeichnete Koerper-Silhouette (MuscleMap) mit
+  markierten Muskeln. Thumbnail auf der Tracking-Karte und im Katalog; in den
+  Einstellungen ordnet "Bilder automatisch zuordnen" die Fotos den
+  Katalog-Uebungen per Namensabgleich zu.
+- **Uebungs-Detailansicht:** Tipp aufs Thumbnail (Tracking oder Katalog) oeffnet
+  grosses Bild mit Bewegungs-Eindruck (Wechsel der zwei Fotos), MuscleMap,
+  gemeinsame Uebungs-Notiz und ein eigenes Notizfeld je Nutzer (gesynct,
+  workout-unabhaengig).
+- **Alternativ-Uebungen:** In der Planung lassen sich je Uebung bis zu 4
+  Alternativen hinterlegen. Im Workout wechselt man per Tipp aufs
+  Wechsel-Symbol oder horizontalem Wischen auf der Karte durch den Ring
+  (Basis + Alternativen, Punktreihe zeigt die Position); das bestehende
+  Tausch-Modal bleibt fuer den freien Tausch.
+- **Workout-Notiz und Zyklustag:** Im aktiven Workout eine Notiz zum Training
+  und (nur fuer Lisa) das Zyklustag-Rad 1-45; beides haengt am
+  Workout-Protokoll und wird gesynct.
+- **History mit Tages-Detail:** Datums-Kopfzellen sind antippbar und zeigen
+  alle Trainings des Tages (Titel, Teilnehmer, Notiz, Zyklustag); Notiz und
+  Zyklustag sind dort nachtraeglich editierbar. Tage mit Notiz oder Zyklustag
+  tragen einen kleinen Punkt.
+
+### Entscheidungen (Gabriel, 2026-09-22)
+- **Ben startet frisch** — keine Uebernahme seiner Daten aus der Single-App.
+- **Bildquelle ist `yuhonas/free-exercise-db`** (GitHub, gemeinfrei); die Fotos
+  werden einmal per Skript geholt und liegen dann im Repo — zur Laufzeit wird
+  nichts von fremden Servern geladen. Die Muskel-Grafik ist selbst gebaut.
+- **Alternativen-Bedienung: Tippen UND Wischen** (beides, nicht eins von beiden).
+
+### Entfernt
+- **Die Single-Variante ist komplett entfernt** (Ordner `single/`, eigener
+  Build, Drift-Waechter). ACHTUNG: `/fitness-tracker/single/` ist nach dem
+  naechsten Deploy weg — Bens Backup vorher exportieren.
+
+### Technik
+- Dexie-Schema v4 (additiv, verlustfrei): neue Tabelle `exerciseNotes` fuer
+  die Notizen je Nutzer je Uebung; haengt an Sync und JSON-Backup. Alle
+  weiteren Felder (`userIds`, `note`, `cycleDays`, `alternativen`,
+  `basisExerciseId`, `imageKey`) sind optional — alte Datensaetze und ein
+  Handy mit v1.8.1 bleiben gueltig.
+- Neue Vertragstests im Done-Gate-Umfeld: `scripts/musclemap-pruefen.mjs`
+  (18 Muskel-Ids) und `scripts/uebungsbilder-matching-test.mjs`
+  (Namensabgleich aller 31 Katalognamen).
+
 ## [1.8.1] — 2026-09-16
 
 Ein Fehler aus dem Training (Gabriel): Nach einem Uebungstausch fehlte die

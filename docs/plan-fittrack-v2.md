@@ -223,7 +223,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: Datums-Kopfzellen mit vorhandener Notiz oder Zyklustag tragen eine kleine Punkt-Markierung
   - Kriterium: Die Spreadsheet-Darstellung selbst (Zeilen, Max-Spalte, Scroll-Verhalten) bleibt unveraendert
   - Kriterium: pruefen.txt gruen
-- [ ] P13: Version 2.0.0, CHANGELOG, Doku
+- [x] P13: Version 2.0.0, CHANGELOG, Doku
   - Kriterium: `package.json` Version ist `2.0.0` (Single Source of Truth, Settings zeigt sie automatisch)
   - Kriterium: CHANGELOG.md hat einen 2.0.0-Block (Datum, Features in Stichpunkten, Entscheidungen: Ben frisch, Bildquelle free-exercise-db, Tippen+Wischen; Hinweis: Single-Variante entfernt, /single/ ist nach dem naechsten Deploy weg)
   - Kriterium: Projekt-CLAUDE.md beschreibt den neuen Stand: drei Nutzer + Nutzerwahl (geraete-lokal), exerciseNotes (Dexie v4), Bild-Manifest + uebungsbilder-holen, Alternativen-Ring, Notiz/Zyklustag am workoutLog — als Architektur-Beschreibung, ohne Status-Woerter wie "geplant" oder "offen"

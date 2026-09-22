@@ -25,27 +25,43 @@ User 1 Lisa `#911f2f` (rot) · User 2 Gab `#2c5f8a` (blau) · User 3 Ben `#2f7d4
 ## Dateistruktur (nur, was der Dateiname nicht verraet)
 ```
 src/
-  db/dexie.js            Schema v3: exercises, plans, trainingDays, workoutLogs,
-                         setLogs, syncQueue, meta, deletions, runPlans, runSessions
+  db/dexie.js            Schema v4: exercises, plans, trainingDays, workoutLogs,
+                         setLogs, syncQueue, meta, deletions, runPlans,
+                         runSessions, exerciseNotes
   services/syncService.js  Login, Firestore-Listener, Reconcile, Tombstones, Retry-Queue
   stores/running.js      Laufplaene, Laeufe, Import/Merge, Status-Export
   composables/useHistory.js  Spreadsheet-Daten, letzte Werte, Steigerungslogik
-  components/shared/     Modal (Android-Back schliesst!), EmptyState, WheelPicker
+  composables/useExerciseNotes.js  Notiz je Nutzer je Uebung (deterministische Id,
+                         Leeren = text '', nie loeschen)
+  components/shared/     Modal (Android-Back schliesst!), EmptyState, WheelPicker,
+                         UserSelectModal (Startdialog), MuscleMap (Inline-SVG,
+                         18 data-muscle-Ids, Grobgruppen-Fallback)
+  components/tracking/ExerciseDetail.vue  Detailansicht: Bildwechsel ~900ms,
+                         MuscleMap, Notizfeld je Nutzer
+  data/uebungskatalog.json  Bild-Manifest: key, bilder, primaer/sekundaer
+                         (Muskel-Ids), aliasse (Katalognamen)
   utils/
     runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
     runPlanMerge.js      Merge-Regeln des Imports (reine Funktion)
     runMatch.js          Zuordnung Aktivitaet -> geplanter Lauf (reine Funktion)
     intervalsApi.js      Abruf und Umrechnung von intervals.icu (Browser + Node)
     exportData.js        CSV mit UTF-8-BOM, JSON-Backup (Import ist merge-only)
+    uebungsBilder.js     Manifest-Zugriff + Namens-Matching (reine Funktionen,
+                         Manifest kommt als Parameter)
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
+public/uebungsbilder/    2 webp je Manifest-Key (400px, im Repo, precached)
 scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
-                         (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf
-                         Vertragstests: laufplan-merge-test, runmatch-test, pace-modell-test
+                         (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf,
+                         uebungsbilder-holen (Fotos einmalig von free-exercise-db
+                         holen, idempotent)
+                         Vertragstests: laufplan-merge-test, runmatch-test,
+                         pace-modell-test, musclemap-pruefen,
+                         uebungsbilder-matching-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
-                         garmin-anbindung
+                         garmin-anbindung, plan-fittrack-v2
 ```
 Views (6 Reiter), Router, Stores `auth`/`plans`/`workout`, `styles/`, `main.js` und
 `App.vue` heissen wie ihr Inhalt.
@@ -103,6 +119,51 @@ npm run preview   # Build lokal testen (Port 4173)
   `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History, am Notification-Knopf.
   Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und beide Handys wuerden sich
   den Wert gegenseitig ueberschreiben.
+- **Nutzerwahl ist ebenfalls GERAETE-lokal:** Der Startdialog "Wer trainiert?"
+  (UserSelectModal, entfaellt bei heutigem unfertigem Workout) setzt
+  `activeUserIds` im auth store (localStorage, Fallback `['user1','user2']`, nie
+  leer); im Workout aenderbar ueber die Chip-Zeile. Das Workout kennt nur
+  `activeUsers` (Karten-Layout nach Anzahl, Auto-Wechsel reihum,
+  Notification-Warteschlangen); `authStore.users` (alle drei) gehoert in
+  History, Settings und die Notizfelder der Detailansicht. `startWorkout`
+  stempelt `userIds` an den workoutLog; Resume uebernimmt sie zurueck.
+- **Notiz und Zyklustag haengen am workoutLog** (`note` String, `cycleDays`
+  Objekt `{ userId: Zahl }`, beide optional — ueberall mit Fallback lesen).
+  Der Zyklustag-Knopf erscheint nur, wenn ein aktiver Nutzer `zyklus: true`
+  traegt (constants.js, nur Lisa). `cycleDays` wird IMMER als flache Kopie
+  gemergt (ein Schluessel gesetzt/geloescht), nie ersetzt. Im aktiven Workout
+  schreiben die Store-Funktionen (`updateWorkoutNote`, `setCycleDay`); das
+  nachtraegliche Editieren im Tages-Modal der History laeuft ueber einen
+  eigenen Weg (`patchLog`, HistoryView), weil die Store-Funktionen am aktiven
+  Workout haengen.
+- **Notizen je Nutzer je Uebung liegen in `exerciseNotes`** (Dexie v4, additiv;
+  in SYNCED, IMPORT_TABLES und JSON-Export). Schreiben NUR ueber
+  `useExerciseNotes`: deterministische Id `exerciseId + '_' + userId`,
+  Leeren schreibt `text: ''` statt zu loeschen (sonst braeuchte es Tombstones).
+  Die Detailansicht speichert auch beim Schliessen (Android-Back) — nur
+  Geaendertes wird gepusht.
+- **Uebungsbilder kommen aus dem Repo, nie von fremden Servern:** Das Manifest
+  `src/data/uebungskatalog.json` verbindet Katalognamen (`aliasse`) mit Fotos
+  (`public/uebungsbilder/<key>/0|1.webp`, einmalig geholt per
+  `scripts/uebungsbilder-holen.mjs`) und Muskeln (`primaer`/`sekundaer` fuer
+  die MuscleMap). Uebungen tragen optional `imageKey` (nie `undefined`, immer
+  `null` — Firestore lehnt undefined ab); ohne Bild zeigt die Karte die
+  MuscleMap mit Grobgruppen-Markierung. Das Namens-Matching ist per Vertrag
+  getestet (`scripts/uebungsbilder-matching-test.mjs` — zuerst Test, dann
+  Regeln), die 18 Muskel-Ids per `scripts/musclemap-pruefen.mjs`.
+- **Alternativen-Ring:** In der Planung traegt ein Eintrag in `day.exercises`
+  optional `alternativen` (Array aus exerciseId, hartes Maximum 4);
+  Uebungslisten dort NUR ueber `kopiereUebungsEintrag` neu bauen (kopiert
+  generisch alle Felder — harte Feldaufzaehlung verliert die Alternativen).
+  Im Workout ist der Ring `[basisExerciseId, ...alternativen]`;
+  `basisExerciseId` gehoert dem Workout-Log (Helfer `mitBasis`), nie dem Plan.
+  Wechsel per Tipp aufs Wechsel-Symbol ODER horizontalem Wischen
+  (|dx| > 40px und |dx| > 2|dy|, passive Listener) — jeder Wechsel laeuft den
+  Tausch-Weg (persistWorkoutExercises, Empfehlungen, Notification). Ein
+  400ms-Nachklick-Schutz (`istWischNachklick`) faengt das click ab, das
+  WebViews nach einem Wisch feuern — nicht entfernen. Beim Persistieren
+  `alternativen` als frisches Array kopieren
+  (`{ ...e, alternativen: [...(e.alternativen || [])] }`), sonst DataCloneError.
 
 ## Architektur: Laufplaner
 - **Claude plant, die App zeigt und haelt fest.** Plaene entstehen NICHT in der App,
