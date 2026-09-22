@@ -27,14 +27,11 @@ export const useAuthStore = defineStore('auth', () => {
   const activeUsers = computed(() =>
     users.value.filter(u => activeUserIds.value.includes(u.id))
   )
-  // Vorauswahl NUR fuer den Startdialog: letzte Auswahl plus Standard-Nutzer
-  // dieses Geraets — der eigene Nutzer ist beim App-Start immer schon angehakt
-  // und bleibt im Dialog abwaehlbar. Der Chip-Weg im Workout nutzt das bewusst
-  // nicht, dort zaehlt allein die aktuelle Besetzung. Reihenfolge wie in USERS.
-  const startVorauswahl = computed(() => {
-    const ids = new Set([...activeUserIds.value, defaultUserId.value])
-    return users.value.map(u => u.id).filter(id => ids.has(id))
-  })
+  // Vorauswahl NUR fuer den Startdialog: immer genau der Standard-Nutzer
+  // dieses Geraets (Entscheidung Gabriel 22.09.2026) — Mittrainierende werden
+  // im Dialog je Training dazugehakt. Der Chip-Weg im Workout nutzt das
+  // bewusst nicht, dort zaehlt allein die aktuelle Besetzung.
+  const startVorauswahl = computed(() => [defaultUserId.value])
 
   async function updateUserName(userId, name) {
     const user = users.value.find(u => u.id === userId)

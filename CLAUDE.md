@@ -122,10 +122,10 @@ npm run preview   # Build lokal testen (Port 4173)
 - **Nutzerwahl ist ebenfalls GERAETE-lokal:** Der Startdialog "Wer trainiert?"
   (UserSelectModal, entfaellt bei heutigem unfertigem Workout) setzt
   `activeUserIds` im auth store (localStorage, Fallback ohne gespeicherte
-  Auswahl: `[defaultUserId]`, nie leer). Vorausgewaehlt ist die letzte Auswahl
-  PLUS der Standard-Nutzer (`startVorauswahl` — nur im Startdialog; die
-  Chip-Zeile im Workout zeigt allein die aktuelle Besetzung); im Workout
-  aenderbar ueber die Chip-Zeile. Das Workout kennt nur
+  Auswahl: `[defaultUserId]`, nie leer). Vorausgewaehlt ist immer genau der
+  Standard-Nutzer (`startVorauswahl` — nur im Startdialog; die Chip-Zeile im
+  Workout zeigt allein die aktuelle Besetzung); im Workout aenderbar ueber
+  die Chip-Zeile. Das Workout kennt nur
   `activeUsers` (Karten-Layout nach Anzahl, Auto-Wechsel reihum,
   Notification-Warteschlangen); `authStore.users` (alle drei) gehoert in
   History, Settings und die Notizfelder der Detailansicht. `startWorkout`
