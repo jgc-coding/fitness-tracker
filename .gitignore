@@ -20,6 +20,9 @@ privat/
 # sie schon selbst aus (.git/info/exclude), aber Werkzeuge wie Lint/Suche nicht.
 .claude/worktrees/
 
+# Autopilot-Laufzeitdaten (Logs, Status, Lock)
+.claude/autopilot/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
