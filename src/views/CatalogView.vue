@@ -51,6 +51,12 @@
           class="card exercise-item"
           @click="editExercise(ex)"
         >
+          <!-- Tipp aufs Thumbnail oeffnet die Detailansicht (@click.stop),
+               die Zeile selbst oeffnet weiter das Bearbeiten-Formular -->
+          <div class="exercise-thumb" @click.stop="openDetail(ex)">
+            <img v-if="thumbUrl(ex)" :src="thumbUrl(ex)" alt="" class="thumb-foto" />
+            <MuscleMap v-else :fallback-group="ex.muscleGroup || ''" :size="40" />
+          </div>
           <div class="exercise-info">
             <h3 class="exercise-name">{{ toTitleCase(ex.name) }}</h3>
             <div class="exercise-tags">
@@ -145,6 +151,9 @@
         Loeschen
       </button>
     </Modal>
+
+    <!-- Uebungs-Detailansicht: grosses Bild, MuscleMap, Notizen je Nutzer -->
+    <ExerciseDetail v-model="showDetail" :exercise="detailExercise" />
   </div>
 </template>
 
@@ -153,10 +162,12 @@ import { ref, computed, onMounted } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
+import MuscleMap from '../components/shared/MuscleMap.vue'
+import ExerciseDetail from '../components/tracking/ExerciseDetail.vue'
 import { useExercises } from '../composables/useExercises.js'
 import { MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
-import { bildPfad } from '../utils/uebungsBilder.js'
+import { bildPfad, eintragFuerKey } from '../utils/uebungsBilder.js'
 import bildKatalog from '../data/uebungskatalog.json'
 import { db } from '../db/dexie.js'
 
@@ -186,6 +197,21 @@ const editImageKey = ref('')
 
 function vorschauUrl(key) {
   return bildPfad(key, 0)
+}
+
+// Foto 0 fuer das Zeilen-Thumbnail — nur bei gueltigem imageKey im Manifest,
+// sonst null (dann zeigt die Zeile die MuscleMap als Platzhalter).
+function thumbUrl(ex) {
+  return eintragFuerKey(bildKatalog, ex.imageKey) ? bildPfad(ex.imageKey, 0) : null
+}
+
+// Detailansicht (Tipp aufs Thumbnail — Bearbeiten bleibt dem Zeilen-Tipp)
+const showDetail = ref(false)
+const detailExercise = ref(null)
+
+function openDetail(ex) {
+  detailExercise.value = ex
+  showDetail.value = true
 }
 
 const filteredExercises = computed(() => {
@@ -296,8 +322,29 @@ onMounted(() => loadExercises())
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-sm);
   cursor: pointer;
   transition: box-shadow 0.15s;
+}
+
+.exercise-thumb {
+  flex-shrink: 0;
+  width: 40px;
+}
+
+.thumb-foto {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+}
+
+.exercise-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .exercise-item:active {

@@ -192,7 +192,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: SettingsView-Knopf "Bilder automatisch zuordnen": setzt `imageKey` NUR bei Uebungen ohne Wert (idempotent), meldet "X zugeordnet, Y ohne Bild", schreibt per updateExercise (inkl. pushRecord)
   - Kriterium: Tracking-Karte zeigt links ein kleines Thumbnail (~40px, Foto 0.webp); ohne Bild stattdessen die MuscleMap klein mit Grobgruppen-Markierung als Platzhalter
   - Kriterium: pruefen.txt gruen
-- [ ] P8: Uebungs-Detailansicht mit Notizen je Nutzer
+- [x] P8: Uebungs-Detailansicht mit Notizen je Nutzer
   - Kriterium: Neues Modal (z.B. `src/components/tracking/ExerciseDetail.vue`): grosses Bild, das bei zwei vorhandenen Fotos automatisch alle ~900ms zwischen Position 0 und 1 wechselt (Bewegungs-Eindruck); darunter MuscleMap (primaer/sekundaer aus dem Manifest, sonst Grobgruppe); darunter die gemeinsame Uebungs-Notiz (bestehendes `notes`-Feld, nur Anzeige)
   - Kriterium: Je Nutzer ein eigenes Notizfeld (alle drei Nutzer, Nutzerfarbe am Rand, Standard-Nutzer zuoberst), gespeichert ueber das exerciseNotes-Composable aus P4 (Speichern-Knopf oder beim Schliessen; danach gepusht)
   - Kriterium: Einstieg 1: Tipp auf das Thumbnail der Tracking-Karte oeffnet die Detailansicht und NICHT das Eingabe-Rad (Klick-Weiterleitung gestoppt); Karten-Tipp ausserhalb des Thumbnails oeffnet weiterhin das Rad
