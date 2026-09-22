@@ -198,7 +198,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: Einstieg 1: Tipp auf das Thumbnail der Tracking-Karte oeffnet die Detailansicht und NICHT das Eingabe-Rad (Klick-Weiterleitung gestoppt); Karten-Tipp ausserhalb des Thumbnails oeffnet weiterhin das Rad
   - Kriterium: Einstieg 2: im Katalog oeffnet ein Tipp auf das Thumbnail/Bild-Symbol der Zeile dieselbe Detailansicht; das Bearbeiten-Verhalten des Katalogs bleibt unveraendert
   - Kriterium: pruefen.txt gruen
-- [ ] P9: Alternativen in der Planung hinterlegen
+- [x] P9: Alternativen in der Planung hinterlegen
   - Kriterium: Im Tag-Editor der PlanningView hat jede Uebungszeile einen kleinen Alternativen-Knopf mit Zaehler (z.B. "⇄ 2"); er oeffnet ein Auswahl-Modal (Suche, gleiche Muskelgruppe zuerst, Mehrfachauswahl, hartes Maximum 4 mit sichtbarem Hinweis)
   - Kriterium: Die Auswahl wird als `alternativen` (Array aus exerciseId) am Eintrag in `day.exercises` gespeichert (updateTrainingDay, flache Kopien, pushRecord-Weg wie im Bestand)
   - Kriterium: `finishPicker`, `removeExerciseFromDay` und `updateExerciseSets` in PlanningView erhalten beim Neuaufbau der Liste vorhandene `alternativen` (Regressionsschutz: Uebungen hinzufuegen/entfernen/Sets aendern verliert keine Alternativen — im Code belegt, alle drei Stellen kopieren generisch alle Felder)
