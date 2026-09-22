@@ -1,9 +1,21 @@
-# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 3, Paket P3)
+# Weitermachen — Stand 2026-09-22 (Autopilot-Lauf 4, Paket P4)
 
 ## Stand
 - **Autopilot arbeitet `docs/plan-fittrack-v2.md` ab (v2.0.0, ohne-clean: kein
   Push, kein Deploy).** Live bleibt v1.8.1, bis Gabriel nach der Pruefung bewusst
   deployt.
+- **P4 ist umgesetzt:** Dexie v4 mit neuer Tabelle `exerciseNotes`
+  (`db.version(4).stores({ exerciseNotes: 'id, exerciseId, userId' })`,
+  additiv, bestehende Versionen unveraendert). Neues Composable
+  `src/composables/useExerciseNotes.js`: `loadNotesForExercise` (Map
+  userId -> Datensatz), `getNote`, `saveNote` mit deterministischer Id
+  `exerciseId + '_' + userId`, createdAt bleibt erhalten, updatedAt neu,
+  danach `pushRecord`; Leeren schreibt `text: ''` statt zu loeschen (kein
+  Tombstone noetig). `exerciseNotes` steht in `SYNCED` (syncService), in
+  `IMPORT_TABLES`, in `exportToJSON` und in der Sync-Event-Liste am Ende von
+  `importFromJSON` (exportData). KEINE UI-Aenderung — das Composable wird
+  erst in P8 (Uebungs-Detailansicht) eingebunden und ist darum noch in
+  keinem Build-Chunk enthalten (Absicht, kein Fehler).
 - **P3 ist umgesetzt:** TrackingView arbeitet vollstaendig ueber
   `authStore.activeUsers` statt `authStore.users` (Karten-Werte, Rad-Tabs,
   `loadRecommendations`, `buildNotificationQuickLog`, Aufruf von
@@ -24,9 +36,10 @@
 - v1.8.1 ist weiterhin der Live-Stand (Tag `v1.8.1`, Details siehe CHANGELOG).
 
 ## Offen
-- **Pakete P4-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
-  Autopilot-Lauf macht bei P4 weiter (Dexie v4 mit `exerciseNotes`, Sync- und
-  Backup-Erweiterung, KEINE UI-Aenderung in dem Paket).
+- **Pakete P5-P13 des Plans** (`docs/plan-fittrack-v2.md`) — naechster
+  Autopilot-Lauf macht bei P5 weiter (Bild-Manifest `uebungskatalog.json`,
+  Download-Skript `uebungsbilder-holen.mjs`, Precache; braucht Internet fuer
+  raw.githubusercontent.com, sonst gewollter Stopp).
 - **`.claude\launch.json` enthaelt noch die Konfiguration "Vite Dev Server
   (Single)"**, die auf die geloeschte `vite.single.config.js` zeigt. Ein
   Paket-Lauf darf unter `.claude\` nicht schreiben — bitte in einer
@@ -45,9 +58,8 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Autopilot P4**: Dexie v4 mit `exerciseNotes` (additiv), Composable
-   `useExerciseNotes`, `SYNCED`/`IMPORT_TABLES`/`exportToJSON` erweitern
-   (Kriterien im Plan).
+1. **Autopilot P5**: Bild-Manifest, Foto-Download-Skript, Precache
+   (Kriterien im Plan; Bild-Zuordnungstabelle steht fix im Plan, nicht raten).
 2. Vorgaben nachrechnen, sobald echte Laeufe da sind (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -84,6 +96,9 @@
   - Worktree-Reste dieser Sitzung loeschen? Befehle stehen in weitermachen.md
 
 ## Stolperfallen (aktuell)
+- **Notizen je Nutzer laufen NUR ueber `useExerciseNotes`** (deterministische
+  Id, `pushRecord`, Leeren = `text: ''`). Wer in P8 die Detailansicht baut,
+  loescht nie einen exerciseNotes-Datensatz — sonst braucht es Tombstones.
 - **Es gibt keine `single/`-Kopie mehr** — kein `cp src/X single/src/X`, kein
   check:drift. Aeltere Notizen, die das noch verlangen, sind ueberholt.
 - **TrackingView kennt nur noch aktive Nutzer:** Wer dort neue Anzeigen baut,
@@ -114,6 +129,16 @@
 ## Autopilot-Protokoll
 
 ### Funktioniert (mit Beleg)
+- Lauf 4 / P4: Dexie v4 mit exerciseNotes, Sync und Backup erweitert.
+  Beleg: `git grep -n "exerciseNotes" -- src/db/dexie.js
+  src/services/syncService.js src/utils/exportData.js` zeigt den
+  v4-Schemaeintrag (eine Zeile, Kommentar "additiv, verlustfrei" direkt
+  darueber), den `SYNCED`-Eintrag `{ name: 'exerciseNotes', keyField: 'id' }`,
+  `IMPORT_TABLES`, `exportToJSON` und die Sync-Event-Liste;
+  `src/composables/useExerciseNotes.js` existiert (Syntax per
+  `node --check` an einer .mjs-Kopie belegt, Exit 0). Keine UI-Datei
+  angefasst. Alle fuenf pruefen.txt-Befehle gruen (`npm run build`
+  110 Module, 3.88s).
 - Lauf 3 / P3: Tracking-Anzeige fuer 1 bis 3 aktive Nutzer.
   Beleg: `git grep -n "authStore.users" -- src/views/TrackingView.vue` liefert
   keine Treffer mehr; Karten-Werte, Rad-Tabs, `loadRecommendations`,
@@ -146,6 +171,9 @@
   Loeschungen sauber als `D`.
 
 ### Fehlversuche (mit exaktem Grund)
+- Lauf 4: eine PowerShell-Kette `Copy-Item ...; node --check ...; if ($?)`
+  wurde von der Sandbox als Mehrfach-Operation verweigert. Loesung: Kopie
+  per Write-Tool, `node --check` als Einzelbefehl.
 - Lauf 3: keine.
 - Lauf 2: keine.
 - Lauf 1: `git grep` mit vorangestelltem `cd` bzw. mit `echo "rc=$?"`-Kette
@@ -154,6 +182,9 @@
   einzeln und ohne `cd`.
 
 ### Noch nicht probiert
+- Funktionstest des Composables gegen eine echte IndexedDB (laut Plan erst
+  in der interaktiven Browser-Pruefung nach allen Paketen; bis P8 gibt es
+  keine UI, die es aufruft).
 - `.claude\launch.json` bereinigen (Schreiben unter `.claude\` ist dem
   Paket-Lauf verboten — interaktive Session noetig).
 - Browser-Test des Startdialogs, der Chip-Zeile und der neuen 1/2/3-Layouts
