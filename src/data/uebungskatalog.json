@@ -1,0 +1,518 @@
+[
+  {
+    "key": "Hack_Squat",
+    "name": "Hack Squat",
+    "bilder": [
+      "uebungsbilder/Hack_Squat/0.webp",
+      "uebungsbilder/Hack_Squat/1.webp"
+    ],
+    "primaer": [
+      "quadriceps"
+    ],
+    "sekundaer": [
+      "calves",
+      "glutes",
+      "hamstrings"
+    ],
+    "aliasse": [
+      "hack squat"
+    ]
+  },
+  {
+    "key": "Leg_Press",
+    "name": "Leg Press",
+    "bilder": [
+      "uebungsbilder/Leg_Press/0.webp",
+      "uebungsbilder/Leg_Press/1.webp"
+    ],
+    "primaer": [
+      "quadriceps"
+    ],
+    "sekundaer": [
+      "calves",
+      "glutes",
+      "hamstrings"
+    ],
+    "aliasse": [
+      "leg press"
+    ]
+  },
+  {
+    "key": "Lying_Leg_Curls",
+    "name": "Lying Leg Curls",
+    "bilder": [
+      "uebungsbilder/Lying_Leg_Curls/0.webp",
+      "uebungsbilder/Lying_Leg_Curls/1.webp"
+    ],
+    "primaer": [
+      "hamstrings"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "leg curl"
+    ]
+  },
+  {
+    "key": "Barbell_Hip_Thrust",
+    "name": "Barbell Hip Thrust",
+    "bilder": [
+      "uebungsbilder/Barbell_Hip_Thrust/0.webp",
+      "uebungsbilder/Barbell_Hip_Thrust/1.webp"
+    ],
+    "primaer": [
+      "glutes"
+    ],
+    "sekundaer": [
+      "calves",
+      "hamstrings"
+    ],
+    "aliasse": [
+      "hip thrusts"
+    ]
+  },
+  {
+    "key": "Thigh_Abductor",
+    "name": "Thigh Abductor",
+    "bilder": [
+      "uebungsbilder/Thigh_Abductor/0.webp",
+      "uebungsbilder/Thigh_Abductor/1.webp"
+    ],
+    "primaer": [
+      "abductors"
+    ],
+    "sekundaer": [
+      "glutes"
+    ],
+    "aliasse": [
+      "bad girl"
+    ]
+  },
+  {
+    "key": "Thigh_Adductor",
+    "name": "Thigh Adductor",
+    "bilder": [
+      "uebungsbilder/Thigh_Adductor/0.webp",
+      "uebungsbilder/Thigh_Adductor/1.webp"
+    ],
+    "primaer": [
+      "adductors"
+    ],
+    "sekundaer": [
+      "glutes",
+      "hamstrings"
+    ],
+    "aliasse": [
+      "good girl"
+    ]
+  },
+  {
+    "key": "Seated_Leg_Curl",
+    "name": "Seated Leg Curl",
+    "bilder": [
+      "uebungsbilder/Seated_Leg_Curl/0.webp",
+      "uebungsbilder/Seated_Leg_Curl/1.webp"
+    ],
+    "primaer": [
+      "hamstrings"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "seated leg curl"
+    ]
+  },
+  {
+    "key": "Leg_Extensions",
+    "name": "Leg Extensions",
+    "bilder": [
+      "uebungsbilder/Leg_Extensions/0.webp",
+      "uebungsbilder/Leg_Extensions/1.webp"
+    ],
+    "primaer": [
+      "quadriceps"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "seated leg extension"
+    ]
+  },
+  {
+    "key": "Standing_Calf_Raises",
+    "name": "Standing Calf Raises",
+    "bilder": [
+      "uebungsbilder/Standing_Calf_Raises/0.webp",
+      "uebungsbilder/Standing_Calf_Raises/1.webp"
+    ],
+    "primaer": [
+      "calves"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "calve raises"
+    ]
+  },
+  {
+    "key": "Dumbbell_Lunges",
+    "name": "Dumbbell Lunges",
+    "bilder": [
+      "uebungsbilder/Dumbbell_Lunges/0.webp",
+      "uebungsbilder/Dumbbell_Lunges/1.webp"
+    ],
+    "primaer": [
+      "quadriceps"
+    ],
+    "sekundaer": [
+      "calves",
+      "glutes",
+      "hamstrings"
+    ],
+    "aliasse": [
+      "lunges"
+    ]
+  },
+  {
+    "key": "Dumbbell_Bench_Press",
+    "name": "Dumbbell Bench Press",
+    "bilder": [
+      "uebungsbilder/Dumbbell_Bench_Press/0.webp",
+      "uebungsbilder/Dumbbell_Bench_Press/1.webp"
+    ],
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders",
+      "triceps"
+    ],
+    "aliasse": [
+      "db bench press"
+    ]
+  },
+  {
+    "key": "Incline_Dumbbell_Press",
+    "name": "Incline Dumbbell Press",
+    "bilder": [
+      "uebungsbilder/Incline_Dumbbell_Press/0.webp",
+      "uebungsbilder/Incline_Dumbbell_Press/1.webp"
+    ],
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders",
+      "triceps"
+    ],
+    "aliasse": [
+      "db incline bench press"
+    ]
+  },
+  {
+    "key": "Machine_Bench_Press",
+    "name": "Machine Bench Press",
+    "bilder": [
+      "uebungsbilder/Machine_Bench_Press/0.webp",
+      "uebungsbilder/Machine_Bench_Press/1.webp"
+    ],
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders",
+      "triceps"
+    ],
+    "aliasse": [
+      "machine: chest press"
+    ]
+  },
+  {
+    "key": "Leverage_Incline_Chest_Press",
+    "name": "Leverage Incline Chest Press",
+    "bilder": [
+      "uebungsbilder/Leverage_Incline_Chest_Press/0.webp",
+      "uebungsbilder/Leverage_Incline_Chest_Press/1.webp"
+    ],
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders",
+      "triceps"
+    ],
+    "aliasse": [
+      "machine: incline chest press"
+    ]
+  },
+  {
+    "key": "Cable_Crossover",
+    "name": "Cable Crossover",
+    "bilder": [
+      "uebungsbilder/Cable_Crossover/0.webp",
+      "uebungsbilder/Cable_Crossover/1.webp"
+    ],
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders"
+    ],
+    "aliasse": [
+      "cable crossover"
+    ]
+  },
+  {
+    "key": "Barbell_Bench_Press_-_Medium_Grip",
+    "name": "Barbell Bench Press (Medium Grip)",
+    "bilder": [
+      "uebungsbilder/Barbell_Bench_Press_-_Medium_Grip/0.webp",
+      "uebungsbilder/Barbell_Bench_Press_-_Medium_Grip/1.webp"
+    ],
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders",
+      "triceps"
+    ],
+    "aliasse": [
+      "bb bench press"
+    ]
+  },
+  {
+    "key": "Barbell_Incline_Bench_Press_-_Medium_Grip",
+    "name": "Barbell Incline Bench Press (Medium Grip)",
+    "bilder": [
+      "uebungsbilder/Barbell_Incline_Bench_Press_-_Medium_Grip/0.webp",
+      "uebungsbilder/Barbell_Incline_Bench_Press_-_Medium_Grip/1.webp"
+    ],
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders",
+      "triceps"
+    ],
+    "aliasse": [
+      "bb incline bench press"
+    ]
+  },
+  {
+    "key": "Weighted_Pull_Ups",
+    "name": "Weighted Pull Ups",
+    "bilder": [
+      "uebungsbilder/Weighted_Pull_Ups/0.webp",
+      "uebungsbilder/Weighted_Pull_Ups/1.webp"
+    ],
+    "primaer": [
+      "lats"
+    ],
+    "sekundaer": [
+      "biceps",
+      "middle_back"
+    ],
+    "aliasse": [
+      "weighted pull up"
+    ]
+  },
+  {
+    "key": "Wide-Grip_Lat_Pulldown",
+    "name": "Wide-Grip Lat Pulldown",
+    "bilder": [
+      "uebungsbilder/Wide-Grip_Lat_Pulldown/0.webp",
+      "uebungsbilder/Wide-Grip_Lat_Pulldown/1.webp"
+    ],
+    "primaer": [
+      "lats"
+    ],
+    "sekundaer": [
+      "biceps",
+      "middle_back",
+      "shoulders"
+    ],
+    "aliasse": [
+      "latzug"
+    ]
+  },
+  {
+    "key": "Dumbbell_Incline_Row",
+    "name": "Dumbbell Incline Row",
+    "bilder": [
+      "uebungsbilder/Dumbbell_Incline_Row/0.webp",
+      "uebungsbilder/Dumbbell_Incline_Row/1.webp"
+    ],
+    "primaer": [
+      "middle_back"
+    ],
+    "sekundaer": [
+      "biceps",
+      "forearms",
+      "lats",
+      "shoulders"
+    ],
+    "aliasse": [
+      "chest supported row"
+    ]
+  },
+  {
+    "key": "Seated_Cable_Rows",
+    "name": "Seated Cable Rows",
+    "bilder": [
+      "uebungsbilder/Seated_Cable_Rows/0.webp",
+      "uebungsbilder/Seated_Cable_Rows/1.webp"
+    ],
+    "primaer": [
+      "middle_back"
+    ],
+    "sekundaer": [
+      "biceps",
+      "lats",
+      "shoulders"
+    ],
+    "aliasse": [
+      "low row",
+      "cable row (without chest support)"
+    ]
+  },
+  {
+    "key": "Hyperextensions_Back_Extensions",
+    "name": "Hyperextensions (Back Extensions)",
+    "bilder": [
+      "uebungsbilder/Hyperextensions_Back_Extensions/0.webp",
+      "uebungsbilder/Hyperextensions_Back_Extensions/1.webp"
+    ],
+    "primaer": [
+      "lower_back"
+    ],
+    "sekundaer": [
+      "glutes",
+      "hamstrings"
+    ],
+    "aliasse": [
+      "lower back"
+    ]
+  },
+  {
+    "key": "Leverage_Shoulder_Press",
+    "name": "Leverage Shoulder Press",
+    "bilder": [
+      "uebungsbilder/Leverage_Shoulder_Press/0.webp",
+      "uebungsbilder/Leverage_Shoulder_Press/1.webp"
+    ],
+    "primaer": [
+      "shoulders"
+    ],
+    "sekundaer": [
+      "triceps"
+    ],
+    "aliasse": [
+      "shoulder press"
+    ]
+  },
+  {
+    "key": "Standing_Military_Press",
+    "name": "Standing Military Press",
+    "bilder": [
+      "uebungsbilder/Standing_Military_Press/0.webp",
+      "uebungsbilder/Standing_Military_Press/1.webp"
+    ],
+    "primaer": [
+      "shoulders"
+    ],
+    "sekundaer": [
+      "triceps"
+    ],
+    "aliasse": [
+      "bb overhead press"
+    ]
+  },
+  {
+    "key": "Side_Lateral_Raise",
+    "name": "Side Lateral Raise",
+    "bilder": [
+      "uebungsbilder/Side_Lateral_Raise/0.webp",
+      "uebungsbilder/Side_Lateral_Raise/1.webp"
+    ],
+    "primaer": [
+      "shoulders"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "db side lateral"
+    ]
+  },
+  {
+    "key": "Standing_Concentration_Curl",
+    "name": "Standing Concentration Curl",
+    "bilder": [
+      "uebungsbilder/Standing_Concentration_Curl/0.webp",
+      "uebungsbilder/Standing_Concentration_Curl/1.webp"
+    ],
+    "primaer": [
+      "biceps"
+    ],
+    "sekundaer": [
+      "forearms"
+    ],
+    "aliasse": [
+      "standing concentration curl"
+    ]
+  },
+  {
+    "key": "Standing_Biceps_Cable_Curl",
+    "name": "Standing Biceps Cable Curl",
+    "bilder": [
+      "uebungsbilder/Standing_Biceps_Cable_Curl/0.webp",
+      "uebungsbilder/Standing_Biceps_Cable_Curl/1.webp"
+    ],
+    "primaer": [
+      "biceps"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "cable bicep curl"
+    ]
+  },
+  {
+    "key": "Triceps_Pushdown_-_Rope_Attachment",
+    "name": "Triceps Pushdown (Rope Attachment)",
+    "bilder": [
+      "uebungsbilder/Triceps_Pushdown_-_Rope_Attachment/0.webp",
+      "uebungsbilder/Triceps_Pushdown_-_Rope_Attachment/1.webp"
+    ],
+    "primaer": [
+      "triceps"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "cable rope triceps pushdown"
+    ]
+  },
+  {
+    "key": "Cable_Rope_Overhead_Triceps_Extension",
+    "name": "Cable Rope Overhead Triceps Extension",
+    "bilder": [
+      "uebungsbilder/Cable_Rope_Overhead_Triceps_Extension/0.webp",
+      "uebungsbilder/Cable_Rope_Overhead_Triceps_Extension/1.webp"
+    ],
+    "primaer": [
+      "triceps"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "cable overhead triceps extension"
+    ]
+  },
+  {
+    "key": "Plank",
+    "name": "Plank",
+    "bilder": [
+      "uebungsbilder/Plank/0.webp",
+      "uebungsbilder/Plank/1.webp"
+    ],
+    "primaer": [
+      "abdominals"
+    ],
+    "sekundaer": [],
+    "aliasse": [
+      "core"
+    ]
+  }
+]

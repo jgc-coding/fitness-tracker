@@ -20,7 +20,7 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,webp}'],
         // Inject our notificationclick handler into the generated SW so tapping
         // the workout notification opens/focuses the app (see public/sw-custom.js).
         importScripts: ['sw-custom.js'],
