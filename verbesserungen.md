@@ -27,6 +27,8 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
       GitHub meldet beim Deploy "Node.js 20 is deprecated": checkout, setup-node und
       upload-artifact laufen nur noch erzwungen auf Node 24. Heute gruen; faellt der
       Zwang weg, bricht der Deploy. Versionen bewusst anheben, mit Test-Deploy pruefen.
+      Nachtrag 2026-09-23: zusaetzlich wechselt `ubuntu-latest` ab 19.10.2026 auf
+      Ubuntu 26 (Hinweis im Lauf 35912764194) — beim Anheben mit pruefen.
       Beleg: Actions-Lauf 34761917049; deploy.yml nutzt Actions @v4 und node-version 20. · Aufwand: S
 
 ## Ideen
