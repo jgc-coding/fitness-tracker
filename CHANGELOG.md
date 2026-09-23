@@ -3,6 +3,50 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.1.0] — 2026-09-23
+
+Farbige Uebungsbilder statt Linienzeichnungen fuer 28 Uebungen.
+
+### Features
+- **KI-generierte Uebungsbilder:** Gabriel hat fuenf Sammelbilder (Brust,
+  Ruecken, Schultern, Beine, Abduktion/Adduktion) erzeugen lassen; daraus sind
+  je Uebung zwei Bewegungsphasen und ein Vorschaubild geschnitten. Die
+  Detailansicht blendet wie bisher zwischen beiden Phasen ueber. Wo die
+  mittlere Phase die eigentliche Bewegung zeigt (Beinpresse, Beinbeuger
+  sitzend, Ausfallschritte), wird sie statt der Endphase genutzt. "Bad Girl"
+  und "Good Girl" kommen aus dem nachgelieferten Bild 5 (Abduktion bzw.
+  Adduktion), die falsch gezeichneten Varianten aus Bild 4 bleiben ungenutzt.
+- **Eigene Bilder statt geteilter Motive:** Brustpresse und Schraegbank-
+  Brustpresse (Maschine) sowie Low Row und Cable Row haben jetzt je ein
+  eigenes Bild. Neu im Bild-Manifest: **Butterfly** und **Shrugs** (greifen,
+  wenn die Uebung in der App so heisst; nicht im Standard-Katalog).
+- Die sechs Uebungen ohne neues Bild (Leg Curl liegend, Konzentrations- und
+  Kabel-Curl, beide Trizeps-Uebungen, Core) behalten ihre Linienzeichnung.
+- **Bildnachweis** in Einstellungen -> Info und `public/uebungsbilder/LIZENZ.md`
+  um die KI-Herkunft ergaenzt; die CC-BY-SA-Angabe bleibt fuer die
+  verbliebenen Zeichnungen.
+
+### Technik
+- Neues Skript `scripts/uebungsbilder-schneiden.mjs` mit Schnitt-Tabelle
+  `scripts/uebungsbilder-zuschnitt.mjs` und den Sammelbildern in
+  `scripts/uebungsbilder-quellen/`: entfernt das eingemalte
+  "Transparenz"-Karomuster (Muster-Erkennung statt Helligkeit, damit die
+  Haut-Schattierung bleibt), uebermalt die Schilder, richtet die zweite Phase
+  an der ersten aus und schreibt WebP. `--bogen` erzeugt einen
+  Uebersichtsbogen zum Pruefen, `--vermessen` ein Koordinatengitter fuer
+  neue Bilder.
+- Manifest-Feld `quelle` (`ki` oder `workout-guide`); `uebungsbilder-holen.mjs`
+  fasst nur noch Workout-Guide-Eintraege an. Der Matching-Test prueft
+  zusaetzlich Quelle, Dateiformat und die Schnitt-Tabelle.
+
+### Hinweise
+- **Nach dem Update einmal "Bilder automatisch zuordnen" tippen** (Einstellungen):
+  Die frueher geteilten Bild-Schluessel der beiden Brustpressen und Ruder-
+  Uebungen gibt es nicht mehr, bis dahin zeigen diese vier Uebungen die
+  Muskel-Grafik. Trainingsdaten sind nicht betroffen.
+- Bild 2 (Ruecken) ist schon im Original unscharf; dort bleiben die Bilder
+  weicher und an den Stangen etwas kruemelig.
+
 ## [2.0.0] — 2026-09-22
 
 Aus der Zwei-Personen-App wird eine Drei-Personen-App (Lisa, Gab & Ben) mit

@@ -38,8 +38,9 @@ src/
                          18 data-muscle-Ids, Grobgruppen-Fallback)
   components/tracking/ExerciseDetail.vue  Detailansicht: Ueberblendung Start-/
                          Endbild alle 1,2 s, MuscleMap, Notizfeld je Nutzer
-  data/uebungskatalog.json  Bild-Manifest: key, bilder (1-2 Frames), vorschau,
-                         primaer/sekundaer (Muskel-Ids), aliasse (Katalognamen)
+  data/uebungskatalog.json  Bild-Manifest: key, quelle (ki|workout-guide),
+                         bilder (1-2 Frames), vorschau, primaer/sekundaer
+                         (Muskel-Ids), aliasse (Katalognamen)
   utils/
     runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
     runPlanMerge.js      Merge-Regeln des Imports (reine Funktion)
@@ -53,12 +54,17 @@ src/
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
-public/uebungsbilder/    je Manifest-Key frame-<n>.svg + vorschau.webp (im Repo,
-                         precached), LIZENZ.md = Bildnachweis CC BY-SA 4.0
+public/uebungsbilder/    je Manifest-Key frame-<n>.webp (KI) oder .svg (Workout
+                         Guide) + vorschau.webp (im Repo, precached),
+                         LIZENZ.md = Bildnachweis beider Quellen
 scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf,
                          uebungsbilder-holen (Zeichnungen von Workout Guide
-                         holen und einfaerben, idempotent, --neu = alles neu)
+                         holen und einfaerben, idempotent, --neu = alles neu),
+                         uebungsbilder-schneiden (KI-Sammelbilder aus
+                         uebungsbilder-quellen/ zerschneiden nach der Tabelle
+                         uebungsbilder-zuschnitt.mjs; --bogen = Pruefbogen,
+                         --vermessen = Koordinatengitter fuer neue Bilder)
                          Vertragstests: laufplan-merge-test, runmatch-test,
                          pace-modell-test, musclemap-pruefen,
                          uebungsbilder-matching-test, uebungsring-test
@@ -150,28 +156,36 @@ npm run preview   # Build lokal testen (Port 4173)
   Geaendertes wird gepusht.
 - **Uebungsbilder kommen aus dem Repo, nie von fremden Servern:** Das Manifest
   `src/data/uebungskatalog.json` verbindet Katalognamen (`aliasse`) mit
-  Zeichnungen und Muskeln (`primaer`/`sekundaer` fuer die MuscleMap). Keys sind
-  die Slugs der Sammlung Workout Guide (Bryl Lim, teils nach Everkinetic).
-  `bilder` nennt 1 Frame (Standbild) oder 2 (Start- und Endposition, die
-  Detailansicht blendet ueber) als `frame-<n>.svg` = Frame n der Quelle;
-  das mittlere Quell-Frame ist oft dicker gezeichnet und flackert darum —
-  Frame-Wahl je Uebung per Augenschein. `vorschau.webp` (kraeftigere Linie,
-  randlos, 128 px) dient Karte und Katalog, denn die feinen Linien
-  verschwinden bei 40 px. Pfade loesen `bildUrl`/`vorschauUrl` auf (nie selbst
-  zusammenbauen). Alles erzeugt `scripts/uebungsbilder-holen.mjs` (fester
-  Quell-Commit, Linienfarbe = Textfarbe). Uebungen tragen optional `imageKey`
-  (nie `undefined`, immer `null` — Firestore lehnt undefined ab); ohne Bild
-  zeigt die Karte die MuscleMap mit Grobgruppen-Markierung. "Bilder
-  automatisch zuordnen" ersetzt auch verwaiste Keys (nicht mehr im Manifest).
-  Vertraege: `scripts/uebungsbilder-matching-test.mjs` (Matching, Pfade, jede
-  Manifest-Datei vorhanden — zuerst Test, dann Regeln), die 18 Muskel-Ids per
+  Bildern und Muskeln (`primaer`/`sekundaer` fuer die MuscleMap). `quelle`
+  bestimmt das zustaendige Skript, keins fasst die Eintraege des anderen an:
+  `ki` = farbige KI-Bilder, `frame-<n>.webp` = Phase n des Sammelbilds
+  (1 START, 2 MITTE, 3 ENDE), geschnitten von `scripts/uebungsbilder-schneiden.mjs`
+  nach der Tabelle `scripts/uebungsbilder-zuschnitt.mjs`; `workout-guide` =
+  Linienzeichnungen, `frame-<n>.svg` = Frame n der Quelle, von
+  `scripts/uebungsbilder-holen.mjs`. Keys (Workout-Guide-Slugs) bleiben beim
+  Quellwechsel stabil, gespeicherte `imageKey` zeigen dann sofort das neue Bild.
+  `bilder` nennt 1 Frame (Standbild) oder 2 (Detailansicht blendet ueber),
+  Wahl je Uebung per Augenschein — in den KI-Bildern ist MITTE oft eine Kopie.
+  Die KI-Sammelbilder haben das Transparenz-Karomuster eingemalt: das Skript
+  erkennt es am Muster, nicht an der Helligkeit (sonst bleicht die Haut aus);
+  nach jeder Tabellen-Aenderung den `--bogen` ansehen. `vorschau.webp`
+  (128 px) dient Karte und Katalog. Pfade loesen `bildUrl`/`vorschauUrl` auf
+  (nie selbst zusammenbauen). Uebungen tragen optional `imageKey` (nie
+  `undefined`, immer `null` — Firestore lehnt undefined ab); ohne Bild zeigt
+  die Karte die MuscleMap mit Grobgruppen-Markierung. "Bilder automatisch
+  zuordnen" ersetzt NUR leere und verwaiste Keys: wer eine bestehende
+  Zuordnung aendern will, nimmt den alten Key aus dem Manifest (so v2.1.0 bei
+  den geteilten Keys `machine-chest-press`/`seated-row`). Vertraege:
+  `scripts/uebungsbilder-matching-test.mjs` (Matching, Quelle, Pfade, Dateien,
+  Schnitt-Tabelle — zuerst Test, dann Regeln), die 18 Muskel-Ids per
   `scripts/musclemap-pruefen.mjs`.
-- **Bildlizenz CC BY-SA 4.0 ist Pflicht, nicht Deko:** Nachweis steht in
-  Einstellungen -> Info und in `public/uebungsbilder/LIZENZ.md` — beide nie
-  entfernen, bei neuen Bildquellen ergaenzen. Bearbeitete Zeichnungen bleiben
-  unter derselben Lizenz. Bilder aus dem Screenshot-Stil (Gymvisual,
-  ExerciseDB und deren GitHub-Kopien) sind kostenpflichtig und duerfen nicht
-  ins oeffentliche Repo.
+- **Bildnachweis ist Pflicht, nicht Deko:** Einstellungen -> Info und
+  `public/uebungsbilder/LIZENZ.md` nennen beide Quellen — nie entfernen, bei
+  neuen Bildquellen ergaenzen. Die Workout-Guide-Zeichnungen (auch bearbeitet)
+  stehen unter CC BY-SA 4.0; die Angabe bleibt, solange eine davon im Manifest
+  steht. Bilder aus dem Screenshot-Stil (Gymvisual, ExerciseDB und deren
+  GitHub-Kopien) sind kostenpflichtig und duerfen nicht ins oeffentliche Repo —
+  die KI-Bilder aehneln dem Stil, sind aber neu erzeugt.
 - **Alternativen-Ring mit Standard-Uebung JE NUTZER:** In der Planung traegt
   ein Eintrag in `day.exercises` optional `alternativen` (Array aus
   exerciseId, hartes Maximum 4) und `bevorzugt` ({ userId: exerciseId } —

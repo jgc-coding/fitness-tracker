@@ -181,16 +181,17 @@
           <span>Lokal (IndexedDB)</span>
         </div>
         <!-- Bildnachweis: Pflicht der Lizenz CC BY-SA 4.0 (Urheber nennen,
-             Lizenz verlinken, Aenderung kennzeichnen) — nie entfernen.
+             Lizenz verlinken, Aenderung kennzeichnen) — nie entfernen,
+             solange noch eine Workout-Guide-Zeichnung im Manifest steht.
              Gleicher Nachweis in public/uebungsbilder/LIZENZ.md. -->
         <p class="bildnachweis">
-          Uebungszeichnungen:
+          Linienzeichnungen:
           <a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide</a>
           von Bryl Lim, teils nach
           <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>
           — Lizenz
           <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-SA 4.0</a>,
-          fuer die App eingefaerbt.
+          fuer die App eingefaerbt. Die farbigen Uebungsbilder sind KI-generiert.
         </p>
       </div>
     </div>
