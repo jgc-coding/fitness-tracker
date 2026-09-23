@@ -1,11 +1,17 @@
-# Weitermachen — Stand 2026-09-22 (v2.0.0 ist live)
+# Weitermachen — Stand 2026-09-23 (v2.1.0 ist live)
 
 ## Stand
-- **v2.0.0 ist LIVE:** Tag `v2.0.0` auf `51ff4ef`, GitHub-Actions-Lauf
-  35776949589 gruen (build + deploy). Live-Gegenprobe per HTTP: der
-  SettingsView-Chunk enthaelt 2.0.0, `sw.js` precacht die neuen Zeichnungen,
-  `/single/` und die alten Fotos liefern 404. Telegram-Hinweis an Gabriel ist
-  raus (Update-Anleitung, Warnung zu Bens Single-App, Handy-Tests).
+- **v2.1.0 ist LIVE (23.09.):** Tag `v2.1.0` auf `8e1dc9d`, Actions-Lauf
+  35912764194 gruen. Inhalt: KI-Uebungsbilder aus Gabriels fuenf
+  Sammelbildern fuer 28 Uebungen (Details: CHANGELOG 2.1.0; Skript
+  `scripts/uebungsbilder-schneiden.mjs`, Tabelle `uebungsbilder-zuschnitt.mjs`).
+  Live-Gegenprobe per HTTP: SettingsView-Chunk enthaelt 2.1.0, `sw.js`
+  precacht 56 WebP-Phasen, alte SVGs und die Keys `machine-chest-press`/
+  `seated-row` liefern 404. Vorher geprueft: Gate gruen, Browser-Test auf
+  frischer Adresse (32/32 zugeordnet, Vorschauen laden, Ueberblendung
+  wechselt) — Pane ausgeblendet, Optik nur per Uebersichtsbogen. Telegram-
+  Checkliste an Gabriel ist raus.
+- **v2.0.0** (22.09.): Tag `v2.0.0` auf `51ff4ef`, Actions-Lauf 35776949589.
 - **Inhalt von v2** (Details: CHANGELOG 2.0.0): Autopilot-Lauf P1-P13 nach
   `docs/plan-fittrack-v2.md` (13/13 im ersten Anlauf gruen, rund 82 USD),
   danach interaktiv nachgezogen: Startdialog hakt nur den Standard-Nutzer
@@ -18,7 +24,8 @@
   Startdialog, Uebungen laden + Bilder zuordnen, Training starten, Satz
   speichern, History zeigt ihn, Laufen-Reiter. Die Pane war ausgeblendet —
   nur per DOM belegt, keine Optik; Offline-Verhalten ist nur am Handy pruefbar.
-- **Rueckkehr:** Tag `v1.8.1` ist der vorherige Live-Stand (siehe Stolperfallen).
+- **Rueckkehr:** Tag `v2.0.0` ist der vorherige Live-Stand (gleiches Schema).
+  Vor v2 liegt `v1.8.1` (siehe Stolperfallen).
 
 ## Offen
 - **In Gabriels intervals.icu-Konto liegt noch keine Aktivitaet** (seit 19.07.
@@ -26,15 +33,18 @@
 - **Lisas erster Lauf ist der eigentliche Test der Garmin-Anbindung** — ihr
   intervals.icu-Konto bekommt nur Laeufe nach dem Verbinden (Stand 10.09.).
 - **V14** (Deploy-Actions auf Node-24-faehige Versionen heben) wartet auf
-  Gabriels Freigabe. Der v2-Deploy am 22.09. lief damit noch gruen.
+  Gabriels Freigabe. Der Deploy am 23.09. lief damit noch gruen; neu meldet
+  GitHub, dass `ubuntu-latest` ab 19.10.2026 auf Ubuntu 26 wechselt.
 - Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I7**
   (Beschreibungen in `verbesserungen.md`).
 
 ## Naechste Schritte (Claude)
-1. **Rueckmeldungen aus Gabriels Handy-Test von v2 abarbeiten** (Checkliste
-   unten). Wischen: `onCardTouchEnd` in `TrackingView.vue`; Quick-Log:
-   `buildNotificationQuickLog` und `public/sw-custom.js`; Zeichnungen:
-   Manifest + `uebungsBilder.js`, Vertrag im Matching-Test.
+1. **Rueckmeldungen aus Gabriels Handy-Test von v2/v2.1 abarbeiten**
+   (Checklisten unten). Wischen: `onCardTouchEnd` in `TrackingView.vue`;
+   Quick-Log: `buildNotificationQuickLog` und `public/sw-custom.js`; Bilder:
+   Rahmen, Masken, Ausrichtung in `scripts/uebungsbilder-zuschnitt.mjs`, danach
+   `uebungsbilder-schneiden.mjs --bogen <datei>` ansehen; neues Sammelbild
+   erst mit `--vermessen <ordner>` ausmessen. Vertrag im Matching-Test.
 2. **Vorgaben nachrechnen, sobald echte Laeufe da sind** (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -51,6 +61,15 @@
    ausdruecklicher Freigabe.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.1.0 pruefen: neue Uebungsbilder** (seit 2026-09-23)
+  - App ganz schliessen und neu oeffnen, unter Settings steht 2.1.0
+  - Einmal, ein Handy reicht: Settings -> "Bilder automatisch zuordnen" (auch
+    wenn schon einmal getippt) — sonst zeigen beide Brustpressen, Low Row und
+    Cable Row nur die Muskel-Grafik
+  - Detailansicht von Leg Press, "Bad Girl" und Latzug: blendet es sauber ueber?
+  - Bilder offline: nach dem ersten Laden Flugmodus, Detailansicht oeffnen
+  - Butterfly/Shrugs: heisst die Uebung anders, im Katalog unter Bearbeiten
+    das Bild von Hand waehlen
 - [ ] **Bens altes Single-Backup sichern — jetzt.** Die Single-App ist seit dem
   v2-Deploy abgeschaltet. Auf Bens Handy die alte App oeffnen (sie startet
   vermutlich noch aus dem Zwischenspeicher), Settings -> "Backup exportieren
@@ -58,14 +77,13 @@
 - [ ] **v2.0.0 auf beiden Handys pruefen** (seit 2026-09-22)
   - App ganz schliessen und neu oeffnen, unter Settings steht 2.0.0
   - Settings: Standard-Nutzer je Handy pruefen (der Startdialog hakt nur ihn vor)
-  - Einmal, ein Handy reicht: Settings -> "Bilder automatisch zuordnen"
+  - Bilder zuordnen und offline pruefen: siehe v2.1.0 oben
   - Chin Up anlegen: Katalog, Plus, Bild "Chin-up" ("Standard-Uebungen laden"
     legt auch bewusst geloeschte Standard-Uebungen wieder an)
   - Planung: Alternativen hinterlegen (z.B. Latzug und Chin Up), im Workout
     per Stern den eigenen Standard merken; Wischen auf dem eigenen
     Karten-Bereich wechselt nur die eigene Uebung
   - Sperrbildschirm-Knopf mit 1 und mit 3 aktiven Nutzern
-  - Zeichnungen offline: nach dem ersten Laden Flugmodus, Detailansicht oeffnen
   - Lisas Zyklustag-Rad
   - Aus der v1.8.1-Pruefung uebernommen: Karte zeigt vor dem Eintragen
     Gewicht x Wdh; Uebung tauschen, Wdh bleiben stehen; Rad startet mit
@@ -91,8 +109,13 @@
 - **Rollback auf v1.8.1 nur mit Hotfix:** Ein Handy, das v2 geoeffnet hat,
   steht auf IndexedDB-Schema v4; die unveraenderte v1.8.1 wirft dort einen
   Versionsfehler. Rezept: `docs/plan-fittrack-v2.md`, Abschnitt "Rollback".
-- **Echte Uebungen haben nach dem Update noch keinen `imageKey`:** Bis jemand
-  "Bilder automatisch zuordnen" tippt, zeigen Karten die Muskel-Grafik.
+- **Uebungen ohne gueltigen `imageKey`:** Nach v2.0 fehlt er ganz, seit v2.1
+  ist er bei beiden Brustpressen, Low Row und Cable Row verwaist. Bis jemand
+  "Bilder automatisch zuordnen" tippt, zeigen diese Karten die Muskel-Grafik.
+- **Port 4173 kann von einer fremden Preview belegt sein** (andere Sitzung,
+  alter Stand): nicht beenden, sondern voruebergehend eine eigene
+  Preview-Konfiguration mit anderem Port in `.claude/launch.json` (danach
+  zuruecksetzen) und die Version in Settings gegenpruefen.
 - **Browser-Pane ausgeblendet:** `requestAnimationFrame` steht still, Vue-
   Seitenuebergaenge bleiben haengen. Ansicht per Direkt-URL laden, dann
   `window.requestAnimationFrame = cb => setTimeout(() => cb(performance.now()), 0)`
