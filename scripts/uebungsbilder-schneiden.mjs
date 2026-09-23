@@ -20,11 +20,12 @@
 //     Rechtecke mit weisser Schrift darin. Die erwartete Anzahl steht in der
 //     Tabelle; weicht sie ab, bricht das Skript ab.
 // Je Uebung:
-//  3. Phasen ausschneiden, Zusatz-Masken weiss malen, auf den Inhalt zuschneiden.
-//  4. Die zweite Phase an der ersten ausrichten (Verschiebung mit der besten
-//     Deckung der dunklen Flaechen, meist Geraet und Rumpf), damit die
-//     Ueberblendung in der Detailansicht nicht springt; beide auf dieselbe
-//     Leinwand.
+//  3. Phasen ausschneiden, Zusatz-Masken weiss malen, lose Kruemel entfernen,
+//     auf den Inhalt zuschneiden.
+//  4. Die zweite Phase an der ersten ausrichten (Standard: Verschiebung mit der
+//     besten Deckung der dunklen Flaechen, also am stillstehenden Geraet; je
+//     Uebung in der Tabelle umstellbar), damit die Ueberblendung in der
+//     Detailansicht nicht springt; beide auf dieselbe Leinwand.
 //  5. WebP schreiben, dazu das Vorschaubild (128 x 128) aus der Vorschau-Phase.
 //
 // Aufruf:  node ./scripts/uebungsbilder-schneiden.mjs              (alle KI-Eintraege)
