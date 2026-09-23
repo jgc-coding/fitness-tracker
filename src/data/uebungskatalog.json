@@ -2,8 +2,10 @@
   {
     "key": "hack-squat",
     "name": "Hack Squat",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/hack-squat/frame-2.svg"
+      "uebungsbilder/hack-squat/frame-1.webp",
+      "uebungsbilder/hack-squat/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/hack-squat/vorschau.webp",
     "primaer": [
@@ -21,9 +23,10 @@
   {
     "key": "leg-press",
     "name": "Leg Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/leg-press/frame-1.svg",
-      "uebungsbilder/leg-press/frame-3.svg"
+      "uebungsbilder/leg-press/frame-1.webp",
+      "uebungsbilder/leg-press/frame-2.webp"
     ],
     "vorschau": "uebungsbilder/leg-press/vorschau.webp",
     "primaer": [
@@ -41,6 +44,7 @@
   {
     "key": "lying-leg-curl",
     "name": "Lying Leg Curl",
+    "quelle": "workout-guide",
     "bilder": [
       "uebungsbilder/lying-leg-curl/frame-1.svg",
       "uebungsbilder/lying-leg-curl/frame-3.svg"
@@ -57,9 +61,10 @@
   {
     "key": "hip-thrust",
     "name": "Hip Thrust",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/hip-thrust/frame-1.svg",
-      "uebungsbilder/hip-thrust/frame-3.svg"
+      "uebungsbilder/hip-thrust/frame-1.webp",
+      "uebungsbilder/hip-thrust/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/hip-thrust/vorschau.webp",
     "primaer": [
@@ -76,8 +81,10 @@
   {
     "key": "hip-abduction-machine",
     "name": "Hip Abduction Machine",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/hip-abduction-machine/frame-1.svg"
+      "uebungsbilder/hip-abduction-machine/frame-1.webp",
+      "uebungsbilder/hip-abduction-machine/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/hip-abduction-machine/vorschau.webp",
     "primaer": [
@@ -93,9 +100,10 @@
   {
     "key": "hip-adduction-machine",
     "name": "Hip Adduction Machine",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/hip-adduction-machine/frame-1.svg",
-      "uebungsbilder/hip-adduction-machine/frame-3.svg"
+      "uebungsbilder/hip-adduction-machine/frame-1.webp",
+      "uebungsbilder/hip-adduction-machine/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/hip-adduction-machine/vorschau.webp",
     "primaer": [
@@ -112,9 +120,10 @@
   {
     "key": "seated-leg-curl",
     "name": "Seated Leg Curl",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/seated-leg-curl/frame-1.svg",
-      "uebungsbilder/seated-leg-curl/frame-3.svg"
+      "uebungsbilder/seated-leg-curl/frame-1.webp",
+      "uebungsbilder/seated-leg-curl/frame-2.webp"
     ],
     "vorschau": "uebungsbilder/seated-leg-curl/vorschau.webp",
     "primaer": [
@@ -128,9 +137,10 @@
   {
     "key": "leg-extension",
     "name": "Leg Extension",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/leg-extension/frame-1.svg",
-      "uebungsbilder/leg-extension/frame-3.svg"
+      "uebungsbilder/leg-extension/frame-1.webp",
+      "uebungsbilder/leg-extension/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/leg-extension/vorschau.webp",
     "primaer": [
@@ -144,9 +154,10 @@
   {
     "key": "standing-calf-raise",
     "name": "Standing Calf Raise",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/standing-calf-raise/frame-1.svg",
-      "uebungsbilder/standing-calf-raise/frame-3.svg"
+      "uebungsbilder/standing-calf-raise/frame-1.webp",
+      "uebungsbilder/standing-calf-raise/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/standing-calf-raise/vorschau.webp",
     "primaer": [
@@ -160,9 +171,10 @@
   {
     "key": "reverse-lunge",
     "name": "Reverse Lunge",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/reverse-lunge/frame-1.svg",
-      "uebungsbilder/reverse-lunge/frame-3.svg"
+      "uebungsbilder/reverse-lunge/frame-1.webp",
+      "uebungsbilder/reverse-lunge/frame-2.webp"
     ],
     "vorschau": "uebungsbilder/reverse-lunge/vorschau.webp",
     "primaer": [
@@ -180,9 +192,10 @@
   {
     "key": "dumbbell-bench-press",
     "name": "Dumbbell Bench Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/dumbbell-bench-press/frame-1.svg",
-      "uebungsbilder/dumbbell-bench-press/frame-3.svg"
+      "uebungsbilder/dumbbell-bench-press/frame-1.webp",
+      "uebungsbilder/dumbbell-bench-press/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/dumbbell-bench-press/vorschau.webp",
     "primaer": [
@@ -199,9 +212,10 @@
   {
     "key": "incline-dumbbell-press",
     "name": "Incline Dumbbell Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/incline-dumbbell-press/frame-1.svg",
-      "uebungsbilder/incline-dumbbell-press/frame-3.svg"
+      "uebungsbilder/incline-dumbbell-press/frame-1.webp",
+      "uebungsbilder/incline-dumbbell-press/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/incline-dumbbell-press/vorschau.webp",
     "primaer": [
@@ -216,12 +230,14 @@
     ]
   },
   {
-    "key": "machine-chest-press",
+    "key": "chest-press-machine",
     "name": "Machine Chest Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/machine-chest-press/frame-1.svg"
+      "uebungsbilder/chest-press-machine/frame-1.webp",
+      "uebungsbilder/chest-press-machine/frame-3.webp"
     ],
-    "vorschau": "uebungsbilder/machine-chest-press/vorschau.webp",
+    "vorschau": "uebungsbilder/chest-press-machine/vorschau.webp",
     "primaer": [
       "chest"
     ],
@@ -230,16 +246,36 @@
       "triceps"
     ],
     "aliasse": [
-      "machine: chest press",
+      "machine: chest press"
+    ]
+  },
+  {
+    "key": "incline-chest-press-machine",
+    "name": "Machine Incline Chest Press",
+    "quelle": "ki",
+    "bilder": [
+      "uebungsbilder/incline-chest-press-machine/frame-1.webp",
+      "uebungsbilder/incline-chest-press-machine/frame-3.webp"
+    ],
+    "vorschau": "uebungsbilder/incline-chest-press-machine/vorschau.webp",
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders",
+      "triceps"
+    ],
+    "aliasse": [
       "machine: incline chest press"
     ]
   },
   {
     "key": "cable-fly",
     "name": "Cable Fly",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/cable-fly/frame-1.svg",
-      "uebungsbilder/cable-fly/frame-3.svg"
+      "uebungsbilder/cable-fly/frame-1.webp",
+      "uebungsbilder/cable-fly/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/cable-fly/vorschau.webp",
     "primaer": [
@@ -255,9 +291,10 @@
   {
     "key": "bench-press",
     "name": "Bench Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/bench-press/frame-1.svg",
-      "uebungsbilder/bench-press/frame-3.svg"
+      "uebungsbilder/bench-press/frame-1.webp",
+      "uebungsbilder/bench-press/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/bench-press/vorschau.webp",
     "primaer": [
@@ -274,9 +311,10 @@
   {
     "key": "incline-bench-press",
     "name": "Incline Bench Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/incline-bench-press/frame-1.svg",
-      "uebungsbilder/incline-bench-press/frame-3.svg"
+      "uebungsbilder/incline-bench-press/frame-1.webp",
+      "uebungsbilder/incline-bench-press/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/incline-bench-press/vorschau.webp",
     "primaer": [
@@ -291,11 +329,34 @@
     ]
   },
   {
+    "key": "butterfly-machine",
+    "name": "Butterfly Machine",
+    "quelle": "ki",
+    "bilder": [
+      "uebungsbilder/butterfly-machine/frame-1.webp",
+      "uebungsbilder/butterfly-machine/frame-3.webp"
+    ],
+    "vorschau": "uebungsbilder/butterfly-machine/vorschau.webp",
+    "primaer": [
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders"
+    ],
+    "aliasse": [
+      "butterfly",
+      "butterfly (maschine)",
+      "butterfly maschine",
+      "pec deck"
+    ]
+  },
+  {
     "key": "weighted-pull-up",
     "name": "Weighted Pull-up",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/weighted-pull-up/frame-1.svg",
-      "uebungsbilder/weighted-pull-up/frame-3.svg"
+      "uebungsbilder/weighted-pull-up/frame-1.webp",
+      "uebungsbilder/weighted-pull-up/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/weighted-pull-up/vorschau.webp",
     "primaer": [
@@ -312,9 +373,10 @@
   {
     "key": "chin-up",
     "name": "Chin-up",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/chin-up/frame-1.svg",
-      "uebungsbilder/chin-up/frame-3.svg"
+      "uebungsbilder/chin-up/frame-1.webp",
+      "uebungsbilder/chin-up/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/chin-up/vorschau.webp",
     "primaer": [
@@ -335,9 +397,10 @@
   {
     "key": "lat-pulldown",
     "name": "Lat Pulldown",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/lat-pulldown/frame-1.svg",
-      "uebungsbilder/lat-pulldown/frame-3.svg"
+      "uebungsbilder/lat-pulldown/frame-1.webp",
+      "uebungsbilder/lat-pulldown/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/lat-pulldown/vorschau.webp",
     "primaer": [
@@ -355,9 +418,10 @@
   {
     "key": "chest-supported-row",
     "name": "Chest Supported Row",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/chest-supported-row/frame-1.svg",
-      "uebungsbilder/chest-supported-row/frame-3.svg"
+      "uebungsbilder/chest-supported-row/frame-1.webp",
+      "uebungsbilder/chest-supported-row/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/chest-supported-row/vorschau.webp",
     "primaer": [
@@ -374,13 +438,14 @@
     ]
   },
   {
-    "key": "seated-row",
-    "name": "Seated Cable Row",
+    "key": "low-row-machine",
+    "name": "Low Row Machine",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/seated-row/frame-1.svg",
-      "uebungsbilder/seated-row/frame-3.svg"
+      "uebungsbilder/low-row-machine/frame-1.webp",
+      "uebungsbilder/low-row-machine/frame-3.webp"
     ],
-    "vorschau": "uebungsbilder/seated-row/vorschau.webp",
+    "vorschau": "uebungsbilder/low-row-machine/vorschau.webp",
     "primaer": [
       "middle_back"
     ],
@@ -390,16 +455,37 @@
       "shoulders"
     ],
     "aliasse": [
-      "low row",
+      "low row"
+    ]
+  },
+  {
+    "key": "seated-cable-row",
+    "name": "Seated Cable Row",
+    "quelle": "ki",
+    "bilder": [
+      "uebungsbilder/seated-cable-row/frame-1.webp",
+      "uebungsbilder/seated-cable-row/frame-3.webp"
+    ],
+    "vorschau": "uebungsbilder/seated-cable-row/vorschau.webp",
+    "primaer": [
+      "middle_back"
+    ],
+    "sekundaer": [
+      "biceps",
+      "lats",
+      "shoulders"
+    ],
+    "aliasse": [
       "cable row (without chest support)"
     ]
   },
   {
     "key": "back-extension",
     "name": "Back Extension",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/back-extension/frame-1.svg",
-      "uebungsbilder/back-extension/frame-3.svg"
+      "uebungsbilder/back-extension/frame-1.webp",
+      "uebungsbilder/back-extension/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/back-extension/vorschau.webp",
     "primaer": [
@@ -416,11 +502,35 @@
     ]
   },
   {
+    "key": "dumbbell-shrug",
+    "name": "Dumbbell Shrug",
+    "quelle": "ki",
+    "bilder": [
+      "uebungsbilder/dumbbell-shrug/frame-1.webp",
+      "uebungsbilder/dumbbell-shrug/frame-3.webp"
+    ],
+    "vorschau": "uebungsbilder/dumbbell-shrug/vorschau.webp",
+    "primaer": [
+      "traps"
+    ],
+    "sekundaer": [
+      "forearms"
+    ],
+    "aliasse": [
+      "shrugs",
+      "shrug",
+      "db shrugs",
+      "db shrug",
+      "dumbbell shrugs"
+    ]
+  },
+  {
     "key": "machine-shoulder-press",
     "name": "Machine Shoulder Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/machine-shoulder-press/frame-1.svg",
-      "uebungsbilder/machine-shoulder-press/frame-3.svg"
+      "uebungsbilder/machine-shoulder-press/frame-1.webp",
+      "uebungsbilder/machine-shoulder-press/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/machine-shoulder-press/vorschau.webp",
     "primaer": [
@@ -436,9 +546,10 @@
   {
     "key": "overhead-press",
     "name": "Overhead Press",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/overhead-press/frame-1.svg",
-      "uebungsbilder/overhead-press/frame-3.svg"
+      "uebungsbilder/overhead-press/frame-1.webp",
+      "uebungsbilder/overhead-press/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/overhead-press/vorschau.webp",
     "primaer": [
@@ -454,9 +565,10 @@
   {
     "key": "lateral-raise",
     "name": "Lateral Raise",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/lateral-raise/frame-1.svg",
-      "uebungsbilder/lateral-raise/frame-3.svg"
+      "uebungsbilder/lateral-raise/frame-1.webp",
+      "uebungsbilder/lateral-raise/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/lateral-raise/vorschau.webp",
     "primaer": [
@@ -470,6 +582,7 @@
   {
     "key": "concentration-curl",
     "name": "Concentration Curl",
+    "quelle": "workout-guide",
     "bilder": [
       "uebungsbilder/concentration-curl/frame-1.svg",
       "uebungsbilder/concentration-curl/frame-3.svg"
@@ -488,6 +601,7 @@
   {
     "key": "cable-curl",
     "name": "Cable Curl",
+    "quelle": "workout-guide",
     "bilder": [
       "uebungsbilder/cable-curl/frame-1.svg",
       "uebungsbilder/cable-curl/frame-3.svg"
@@ -504,6 +618,7 @@
   {
     "key": "rope-tricep-pushdown",
     "name": "Rope Tricep Pushdown",
+    "quelle": "workout-guide",
     "bilder": [
       "uebungsbilder/rope-tricep-pushdown/frame-1.svg",
       "uebungsbilder/rope-tricep-pushdown/frame-3.svg"
@@ -520,6 +635,7 @@
   {
     "key": "overhead-tricep-extension",
     "name": "Overhead Tricep Extension",
+    "quelle": "workout-guide",
     "bilder": [
       "uebungsbilder/overhead-tricep-extension/frame-1.svg",
       "uebungsbilder/overhead-tricep-extension/frame-3.svg"
@@ -536,6 +652,7 @@
   {
     "key": "plank",
     "name": "Plank",
+    "quelle": "workout-guide",
     "bilder": [
       "uebungsbilder/plank/frame-1.svg"
     ],

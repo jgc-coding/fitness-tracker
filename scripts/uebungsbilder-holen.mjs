@@ -8,7 +8,9 @@
 // Welche Zeichnungen geholt werden, bestimmt allein das Manifest
 // (src/data/uebungskatalog.json): `bilder` nennt die Frames in
 // Animationsreihenfolge (uebungsbilder/<key>/frame-<n>.svg, n = Frame der
-// Quelle), das Vorschaubild entsteht aus dem ersten davon.
+// Quelle), das Vorschaubild entsteht aus dem ersten davon. Nur Eintraege mit
+// `quelle: "workout-guide"` — die KI-Bilder (`quelle: "ki"`) schneidet
+// scripts/uebungsbilder-schneiden.mjs, dieses Skript fasst sie nie an.
 //
 // Aufruf:  node ./scripts/uebungsbilder-holen.mjs          (fehlende Dateien)
 //          node ./scripts/uebungsbilder-holen.mjs --neu    (alles neu erzeugen,
@@ -95,10 +97,15 @@ async function erzeugeVorschau(svg, zielDatei) {
 }
 
 async function holen() {
-  const eintraege = JSON.parse(readFileSync(manifestPfad, 'utf-8'))
-  if (!Array.isArray(eintraege) || eintraege.length === 0) {
+  const manifest = JSON.parse(readFileSync(manifestPfad, 'utf-8'))
+  if (!Array.isArray(manifest) || manifest.length === 0) {
     throw new Error(`Manifest ${manifestPfad} ist leer oder kein Array`)
   }
+  const unbekannt = manifest.filter(e => e.quelle !== 'workout-guide' && e.quelle !== 'ki')
+  if (unbekannt.length) {
+    throw new Error(`Eintraege ohne gueltige quelle (workout-guide|ki): ${unbekannt.map(e => e.key).join(', ')}`)
+  }
+  const eintraege = manifest.filter(e => e.quelle === 'workout-guide')
 
   let geschrieben = 0
   let uebersprungen = 0
@@ -134,7 +141,8 @@ async function holen() {
     }
   }
 
-  console.log(`[uebungsbilder] fertig: ${geschrieben} geschrieben, ${uebersprungen} uebersprungen (${eintraege.length} Eintraege)`)
+  console.log(`[uebungsbilder] fertig: ${geschrieben} geschrieben, ${uebersprungen} uebersprungen ` +
+    `(${eintraege.length} Workout-Guide-Eintraege; ${manifest.length - eintraege.length} KI-Eintraege nicht angefasst)`)
 }
 
 // Kein process.exit() nach fetch (globale Regel) — Fehler werfen und nur den

@@ -4,9 +4,11 @@
 // Der Test ist der Vertrag: alle 32 Katalognamen (31 aus der Plan-Tabelle in
 // docs/plan-fittrack-v2.md plus "Chin Up", Nachtrag 22.09.2026) muessen ihren
 // Key treffen, Fantasienamen duerfen nichts treffen, und jede im Manifest
-// genannte Datei muss unter public/ liegen. Seit 22.09.2026 sind die Keys die
-// Slugs der Workout-Guide-Sammlung (Zeichnungen, CC BY-SA 4.0). Wer
-// Matching-Regeln oder das Manifest aendert, erweitert ZUERST diesen Test.
+// genannte Datei muss unter public/ liegen. Die Keys stammen aus der
+// Workout-Guide-Sammlung (Zeichnungen, CC BY-SA 4.0); seit v2.1.0 zeigen die
+// meisten davon KI-generierte Bilder (quelle "ki", zugeschnitten von
+// scripts/uebungsbilder-schneiden.mjs). Wer Matching-Regeln, das Manifest
+// oder die Schnitt-Tabelle aendert, erweitert ZUERST diesen Test.
 //
 // Aufruf:  node ./scripts/uebungsbilder-matching-test.mjs
 
@@ -21,6 +23,7 @@ import {
   bildUrl,
   vorschauUrl
 } from '../src/utils/uebungsBilder.js'
+import { QUELLEN, UEBUNGEN } from './uebungsbilder-zuschnitt.mjs'
 
 const projektWurzel = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const katalog = JSON.parse(
@@ -41,8 +44,8 @@ function pruefe(beschreibung, bedingung) {
 // Die 32 Katalognamen -> erwarteter Key. Namen stehen hier EXAKT wie im
 // Uebungskatalog der App (SettingsView DEFAULT_EXERCISES), inklusive
 // Anfuehrungszeichen, Doppelpunkten und Gross-/Kleinschreibung.
-// Bewusst geteilte Zeichnungen: die beiden Brustpressen-Maschinen und die
-// beiden Ruder-Uebungen (die Sammlung hat je nur ein passendes Motiv).
+// Seit v2.1.0 hat jede Uebung ihr eigenes Bild; die beiden Brustpressen-
+// Maschinen und die beiden Ruder-Uebungen teilen sich keins mehr.
 const ERWARTET = [
   ['Hack Squat', 'hack-squat'],
   ['Leg Press', 'leg-press'],
@@ -56,8 +59,8 @@ const ERWARTET = [
   ['lunges', 'reverse-lunge'],
   ['DB Bench press', 'dumbbell-bench-press'],
   ['DB incline Bench press', 'incline-dumbbell-press'],
-  ['machine: chest press', 'machine-chest-press'],
-  ['machine: incline chest press', 'machine-chest-press'],
+  ['machine: chest press', 'chest-press-machine'],
+  ['machine: incline chest press', 'incline-chest-press-machine'],
   ['Cable Crossover', 'cable-fly'],
   ['BB Bench press', 'bench-press'],
   ['BB incline Bench press', 'incline-bench-press'],
@@ -65,8 +68,8 @@ const ERWARTET = [
   ['Chin Up', 'chin-up'],
   ['Latzug', 'lat-pulldown'],
   ['chest supported row', 'chest-supported-row'],
-  ['low row', 'seated-row'],
-  ['cable row (without chest support)', 'seated-row'],
+  ['low row', 'low-row-machine'],
+  ['cable row (without chest support)', 'seated-cable-row'],
   ['lower back', 'back-extension'],
   ['shoulder press', 'machine-shoulder-press'],
   ['BB overhead press', 'overhead-press'],
@@ -83,6 +86,18 @@ pruefe(`Vertrag umfasst 32 Namen (ist: ${ERWARTET.length})`, ERWARTET.length ===
 for (const [name, key] of ERWARTET) {
   const treffer = findeImageKey(katalog, name)
   pruefe(`"${name}" -> ${key}`, treffer === key)
+}
+
+// Uebungen ausserhalb des Standard-Katalogs, fuer die es seit v2.1.0 ein
+// eigenes Bild gibt (Gabriel hat sie mit den KI-Bildern mitgeliefert)
+console.log('[matching-test] Zusatz-Uebungen mit eigenem Bild:')
+for (const [name, key] of [
+  ['Butterfly', 'butterfly-machine'],
+  ['Butterfly (Maschine)', 'butterfly-machine'],
+  ['Shrugs', 'dumbbell-shrug'],
+  ['DB Shrugs', 'dumbbell-shrug']
+]) {
+  pruefe(`"${name}" -> ${key}`, findeImageKey(katalog, name) === key)
 }
 
 console.log('[matching-test] Fantasienamen duerfen nichts treffen:')
@@ -107,17 +122,21 @@ pruefe('Bindestrich-Schreibweise ("chin-up") trifft den Chin-Up-Eintrag',
   findeImageKey(katalog, 'Chin-up') === 'chin-up')
 
 console.log('[matching-test] Manifest-Zugriff und Pfad-Aufloesung:')
-const latzug = eintragFuerKey(katalog, 'lat-pulldown')
+const kabelCurl = eintragFuerKey(katalog, 'cable-curl')
 const plank = eintragFuerKey(katalog, 'plank')
 pruefe('eintragFuerKey findet hack-squat', eintragFuerKey(katalog, 'hack-squat')?.name === 'Hack Squat')
 pruefe('eintragFuerKey mit unbekanntem Key -> null', eintragFuerKey(katalog, 'Gibt_Es_Nicht') === null)
 pruefe('alte Foto-Keys (vor 22.09.2026) sind verwaist -> null',
   eintragFuerKey(katalog, 'Hack_Squat') === null && eintragFuerKey(katalog, 'Wide-Grip_Lat_Pulldown') === null)
+// "Bilder automatisch zuordnen" ersetzt nur verwaiste Keys — darum sind die
+// frueher geteilten Keys ganz weg, statt einer Haelfte weiter zu gehoeren
+pruefe('geteilte Keys vor v2.1.0 sind verwaist -> null',
+  eintragFuerKey(katalog, 'machine-chest-press') === null && eintragFuerKey(katalog, 'seated-row') === null)
 pruefe('bildUrl haengt Bild 0 an die Base an',
-  bildUrl(latzug, 0, '/fitness-tracker/') === '/fitness-tracker/uebungsbilder/lat-pulldown/frame-1.svg')
+  bildUrl(kabelCurl, 0, '/fitness-tracker/') === '/fitness-tracker/uebungsbilder/cable-curl/frame-1.svg')
 pruefe('bildUrl ergaenzt fehlenden Slash der Base (Bild 1)',
-  bildUrl(latzug, 1, '/fitness-tracker') === '/fitness-tracker/uebungsbilder/lat-pulldown/frame-3.svg')
-pruefe('bildUrl ausserhalb der Bildliste -> null', bildUrl(latzug, 5, '/') === null)
+  bildUrl(kabelCurl, 1, '/fitness-tracker') === '/fitness-tracker/uebungsbilder/cable-curl/frame-3.svg')
+pruefe('bildUrl ausserhalb der Bildliste -> null', bildUrl(kabelCurl, 5, '/') === null)
 pruefe('bildUrl ohne Eintrag -> null', bildUrl(null, 0, '/') === null)
 pruefe('vorschauUrl zeigt auf das Vorschaubild',
   vorschauUrl(plank, '/fitness-tracker/') === '/fitness-tracker/uebungsbilder/plank/vorschau.webp')
@@ -125,8 +144,16 @@ pruefe('vorschauUrl ohne Eintrag -> null', vorschauUrl(null, '/') === null)
 
 console.log('[matching-test] Manifest-Vertrag (Schluessel, Pfade, Dateien, Muskeln):')
 const keys = katalog.map(e => e.key)
-pruefe(`30 Eintraege (ist: ${katalog.length})`, katalog.length === 30)
+pruefe(`34 Eintraege (ist: ${katalog.length})`, katalog.length === 34)
 pruefe('Keys sind eindeutig', new Set(keys).size === keys.length)
+// Die Quelle bestimmt Dateiformat und zustaendiges Skript: workout-guide ->
+// SVG von uebungsbilder-holen.mjs, ki -> WebP von uebungsbilder-schneiden.mjs
+const ENDUNG = { 'workout-guide': 'svg', ki: 'webp' }
+const quelleFalsch = katalog.filter(e => !ENDUNG[e.quelle]).map(e => e.key)
+pruefe(`jede Quelle ist workout-guide oder ki${quelleFalsch.length ? ' (falsch: ' + quelleFalsch.join(', ') + ')' : ''}`,
+  quelleFalsch.length === 0)
+pruefe('28 KI-Bilder, 6 Zeichnungen',
+  katalog.filter(e => e.quelle === 'ki').length === 28 && katalog.filter(e => e.quelle === 'workout-guide').length === 6)
 
 const aliasBesitzer = new Map()
 let aliasDoppelt = []
@@ -146,7 +173,7 @@ const muskelIds = new Set([...mapQuelle.matchAll(/data-muscle="([a-z_]+)"/g)].ma
 
 for (const e of katalog) {
   const bilder = Array.isArray(e.bilder) ? e.bilder : []
-  const pfadMuster = new RegExp(`^uebungsbilder/${e.key}/frame-[1-3]\\.svg$`)
+  const pfadMuster = new RegExp(`^uebungsbilder/${e.key}/frame-[1-3]\\.${ENDUNG[e.quelle] || 'FEHLT'}$`)
   const pfadeOk = bilder.length >= 1 && bilder.length <= 2 && bilder.every(p => pfadMuster.test(p))
   const vorschauOk = e.vorschau === `uebungsbilder/${e.key}/vorschau.webp`
   const fehlend = [...bilder, e.vorschau].filter(p => !p || !existsSync(path.join(projektWurzel, 'public', p)))
@@ -156,6 +183,43 @@ for (const e of katalog) {
     (fehlend.length ? ` (fehlt: ${fehlend.join(', ')})` : '') +
     (unbekannt.length ? ` (unbekannte Muskeln: ${unbekannt.join(', ')})` : ''),
     pfadeOk && vorschauOk && fehlend.length === 0 && (e.primaer || []).length > 0 && unbekannt.length === 0)
+}
+
+// Schnitt-Tabelle (uebungsbilder-zuschnitt.mjs) und Manifest muessen
+// zusammenpassen: das Manifest bestimmt, WELCHE Phasen ein KI-Eintrag zeigt
+// (frame-<n> = Phase n: 1 START, 2 MITTE, 3 ENDE), die Tabelle, WO sie im
+// Quellbild liegen. Ein Rahmen ist [links, oben, rechts, unten] in Pixeln des
+// Quellbilds (rechts/unten exklusiv).
+console.log('[matching-test] Schnitt-Tabelle passt zum Manifest:')
+const kiKeys = katalog.filter(e => e.quelle === 'ki').map(e => e.key)
+const tabellenKeys = Object.keys(UEBUNGEN)
+const ohneTabelle = kiKeys.filter(k => !UEBUNGEN[k])
+const ohneManifest = tabellenKeys.filter(k => !kiKeys.includes(k))
+pruefe(`jeder KI-Eintrag steht in der Tabelle${ohneTabelle.length ? ' (fehlt: ' + ohneTabelle.join(', ') + ')' : ''}`,
+  ohneTabelle.length === 0)
+pruefe(`die Tabelle kennt nur KI-Eintraege des Manifests${ohneManifest.length ? ' (zu viel: ' + ohneManifest.join(', ') + ')' : ''}`,
+  ohneManifest.length === 0)
+
+function rahmenOk(rahmen, quelle) {
+  return Array.isArray(rahmen) && rahmen.length === 4 && rahmen.every(Number.isInteger) &&
+    rahmen[0] >= 0 && rahmen[1] >= 0 && rahmen[0] < rahmen[2] && rahmen[1] < rahmen[3] &&
+    rahmen[2] <= quelle.breite && rahmen[3] <= quelle.hoehe
+}
+
+for (const key of kiKeys.filter(k => UEBUNGEN[k])) {
+  const t = UEBUNGEN[key]
+  const quelle = QUELLEN[t.quelle]
+  const phasen = katalog.find(e => e.key === key).bilder.map(p => Number(/frame-(\d)\./.exec(p)?.[1]))
+  const genutzt = [...phasen, t.vorschau ?? phasen[0]]
+  const fehlendePhasen = genutzt.filter(n => !quelle || !rahmenOk(t.phasen?.[n], quelle))
+  const maskenOk = (t.masken || []).every(m => quelle && rahmenOk(m, quelle))
+  const a = t.ausrichtung
+  const ausrichtungOk = a === undefined || a === 'mitte' ||
+    (Array.isArray(a) && a.length === 2 && a.every(Number.isInteger))
+  pruefe(`${key}: Quelle bekannt, Rahmen fuer Phase ${[...new Set(genutzt)].join('+')} gueltig` +
+    (fehlendePhasen.length ? ` (ungueltig: ${fehlendePhasen.join(', ')})` : '') + (maskenOk ? '' : ' (Maske ungueltig)') +
+    (ausrichtungOk ? '' : ' (Ausrichtung ungueltig)'),
+    Boolean(quelle) && fehlendePhasen.length === 0 && maskenOk && ausrichtungOk)
 }
 
 if (fehler > 0) {
