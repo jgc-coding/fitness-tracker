@@ -597,6 +597,8 @@ async function vermessen(ordner) {
 
 async function schneiden() {
   const argumente = process.argv.slice(2)
+  const unbekannt = argumente.filter(a => a.startsWith('--') && a !== '--bogen' && a !== '--vermessen')
+  if (unbekannt.length) throw new Error(`Unbekannte Option ${unbekannt.join(', ')} (erlaubt: --bogen <datei>, --vermessen <ordner>)`)
   const vermessenIndex = argumente.indexOf('--vermessen')
   if (vermessenIndex >= 0) {
     const ordner = argumente[vermessenIndex + 1]
