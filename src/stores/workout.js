@@ -96,8 +96,8 @@ export const useWorkoutStore = defineStore('workout', () => {
     if (full) pushRecord('workoutLogs', full.id, full)
   }
 
-  // Besetzung waehrend eines laufenden Workouts aendern (Chip-Zeile im
-  // Tracking). Nur userIds wird geschrieben — bereits gespeicherte Saetze
+  // Besetzung waehrend eines laufenden Workouts aendern (Farbkreise im Kopf
+  // des Trackings). Nur userIds wird geschrieben — bereits gespeicherte Saetze
   // bleiben unangetastet.
   async function updateWorkoutUsers(userIds) {
     if (!activeWorkout.value) return
