@@ -59,18 +59,6 @@
           <span class="workout-date">{{ formattedDate }}</span>
         </div>
 
-        <!-- Workout-Notiz und Zyklustag (P11): vorhandene Werte sind am
-             Knopf erkennbar ("Notiz ✓" / "Zyklustag 17"). Der Zyklus-Knopf
-             erscheint nur, wenn ein aktiver Nutzer zyklus: true traegt. -->
-        <div class="workout-meta">
-          <button class="btn btn-secondary meta-btn" @click="openNoteModal">
-            Notiz{{ workoutNote ? ' ✓' : '' }}
-          </button>
-          <button v-if="zyklusUser" class="btn btn-secondary meta-btn" @click="openCycleModal">
-            Zyklustag{{ currentCycleDay != null ? ' ' + currentCycleDay : '' }}
-          </button>
-        </div>
-
         <!-- Wer trainiert: antippbare Chip-Zeile, Tipp oeffnet den Dialog -->
         <button class="user-chips" @click="showUserSelect = true">
           <span
@@ -185,6 +173,20 @@
         <button class="btn btn-secondary btn-block" @click="showQuickAdd = true" style="margin-top: var(--space-md)">
           + Uebung hinzufuegen
         </button>
+
+        <!-- Workout-Notiz und Zyklustag (P11): unter der Uebungsliste, direkt
+             vor "Workout beenden" (Wunsch Gabriel 24.09.2026, vorher ueber
+             der Liste). Vorhandene Werte sind am Knopf erkennbar
+             ("Notiz ✓" / "Zyklustag 17"). Der Zyklus-Knopf erscheint nur,
+             wenn ein aktiver Nutzer zyklus: true traegt. -->
+        <div class="workout-meta">
+          <button class="btn btn-secondary meta-btn" @click="openNoteModal">
+            Notiz{{ workoutNote ? ' ✓' : '' }}
+          </button>
+          <button v-if="zyklusUser" class="btn btn-secondary meta-btn" @click="openCycleModal">
+            Zyklustag{{ currentCycleDay != null ? ' ' + currentCycleDay : '' }}
+          </button>
+        </div>
 
         <!-- Finish workout -->
         <button class="btn btn-primary btn-block" @click="finishWorkout" style="margin-top: var(--space-sm)">
@@ -1324,11 +1326,11 @@ onUnmounted(() => {
   margin-bottom: var(--space-sm);
 }
 
-/* Notiz- und Zyklustag-Knoepfe unter dem Kopf (P11) */
+/* Notiz- und Zyklustag-Knoepfe unter der Uebungsliste (P11) */
 .workout-meta {
   display: flex;
   gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  margin-top: var(--space-sm);
 }
 
 .meta-btn {
