@@ -7,7 +7,8 @@
 // genannte Datei muss unter public/ liegen. Die Keys stammen aus der
 // Workout-Guide-Sammlung (Zeichnungen, CC BY-SA 4.0); seit v2.1.0 zeigen die
 // meisten davon KI-generierte Bilder (quelle "ki", zugeschnitten von
-// scripts/uebungsbilder-schneiden.mjs). Wer Matching-Regeln, das Manifest
+// scripts/uebungsbilder-schneiden.mjs), seit v2.2.0 auch die vier
+// Arm-Uebungen, dazu neu Dips. Wer Matching-Regeln, das Manifest
 // oder die Schnitt-Tabelle aendert, erweitert ZUERST diesen Test.
 //
 // Aufruf:  node ./scripts/uebungsbilder-matching-test.mjs
@@ -95,7 +96,16 @@ for (const [name, key] of [
   ['Butterfly', 'butterfly-machine'],
   ['Butterfly (Maschine)', 'butterfly-machine'],
   ['Shrugs', 'dumbbell-shrug'],
-  ['DB Shrugs', 'dumbbell-shrug']
+  ['DB Shrugs', 'dumbbell-shrug'],
+  // seit v2.2.0 (Sammelbild 7): der Name in der App ist nicht bekannt, darum
+  // die gaengigen Schreibweisen; sonst waehlt man das Bild im Katalog von Hand
+  ['Dips', 'dips'],
+  ['Dip', 'dips'],
+  ['Barrendips', 'dips'],
+  ['Dips (Körpergewicht)', 'dips'],
+  ['Dips (Koerpergewicht)', 'dips'],
+  ['Bodyweight Dips', 'dips'],
+  ['Triceps Dips', 'dips']
 ]) {
   pruefe(`"${name}" -> ${key}`, findeImageKey(katalog, name) === key)
 }
@@ -133,9 +143,9 @@ pruefe('alte Foto-Keys (vor 22.09.2026) sind verwaist -> null',
 pruefe('geteilte Keys vor v2.1.0 sind verwaist -> null',
   eintragFuerKey(katalog, 'machine-chest-press') === null && eintragFuerKey(katalog, 'seated-row') === null)
 pruefe('bildUrl haengt Bild 0 an die Base an',
-  bildUrl(kabelCurl, 0, '/fitness-tracker/') === '/fitness-tracker/uebungsbilder/cable-curl/frame-1.svg')
+  bildUrl(kabelCurl, 0, '/fitness-tracker/') === '/fitness-tracker/uebungsbilder/cable-curl/frame-1.webp')
 pruefe('bildUrl ergaenzt fehlenden Slash der Base (Bild 1)',
-  bildUrl(kabelCurl, 1, '/fitness-tracker') === '/fitness-tracker/uebungsbilder/cable-curl/frame-3.svg')
+  bildUrl(kabelCurl, 1, '/fitness-tracker') === '/fitness-tracker/uebungsbilder/cable-curl/frame-3.webp')
 pruefe('bildUrl ausserhalb der Bildliste -> null', bildUrl(kabelCurl, 5, '/') === null)
 pruefe('bildUrl ohne Eintrag -> null', bildUrl(null, 0, '/') === null)
 pruefe('vorschauUrl zeigt auf das Vorschaubild',
@@ -144,7 +154,7 @@ pruefe('vorschauUrl ohne Eintrag -> null', vorschauUrl(null, '/') === null)
 
 console.log('[matching-test] Manifest-Vertrag (Schluessel, Pfade, Dateien, Muskeln):')
 const keys = katalog.map(e => e.key)
-pruefe(`34 Eintraege (ist: ${katalog.length})`, katalog.length === 34)
+pruefe(`35 Eintraege (ist: ${katalog.length})`, katalog.length === 35)
 pruefe('Keys sind eindeutig', new Set(keys).size === keys.length)
 // Die Quelle bestimmt Dateiformat und zustaendiges Skript: workout-guide ->
 // SVG von uebungsbilder-holen.mjs, ki -> WebP von uebungsbilder-schneiden.mjs
@@ -152,8 +162,13 @@ const ENDUNG = { 'workout-guide': 'svg', ki: 'webp' }
 const quelleFalsch = katalog.filter(e => !ENDUNG[e.quelle]).map(e => e.key)
 pruefe(`jede Quelle ist workout-guide oder ki${quelleFalsch.length ? ' (falsch: ' + quelleFalsch.join(', ') + ')' : ''}`,
   quelleFalsch.length === 0)
-pruefe('28 KI-Bilder, 6 Zeichnungen',
-  katalog.filter(e => e.quelle === 'ki').length === 28 && katalog.filter(e => e.quelle === 'workout-guide').length === 6)
+pruefe('33 KI-Bilder, 2 Zeichnungen (Leg Curl liegend und Core)',
+  katalog.filter(e => e.quelle === 'ki').length === 33 && katalog.filter(e => e.quelle === 'workout-guide').length === 2)
+// Die Arm-Keys bleiben beim Quellwechsel gleich — gespeicherte Zuordnungen
+// zeigen so ohne neues "Bilder automatisch zuordnen" das KI-Bild
+const armKeys = ['concentration-curl', 'cable-curl', 'rope-tricep-pushdown', 'overhead-tricep-extension']
+pruefe('die vier Arm-Uebungen zeigen KI-Bilder unter ihrem alten Key',
+  armKeys.every(k => eintragFuerKey(katalog, k)?.quelle === 'ki'))
 
 const aliasBesitzer = new Map()
 let aliasDoppelt = []

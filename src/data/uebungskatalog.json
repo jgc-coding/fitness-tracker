@@ -582,10 +582,10 @@
   {
     "key": "concentration-curl",
     "name": "Concentration Curl",
-    "quelle": "workout-guide",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/concentration-curl/frame-1.svg",
-      "uebungsbilder/concentration-curl/frame-3.svg"
+      "uebungsbilder/concentration-curl/frame-1.webp",
+      "uebungsbilder/concentration-curl/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/concentration-curl/vorschau.webp",
     "primaer": [
@@ -601,10 +601,10 @@
   {
     "key": "cable-curl",
     "name": "Cable Curl",
-    "quelle": "workout-guide",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/cable-curl/frame-1.svg",
-      "uebungsbilder/cable-curl/frame-3.svg"
+      "uebungsbilder/cable-curl/frame-1.webp",
+      "uebungsbilder/cable-curl/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/cable-curl/vorschau.webp",
     "primaer": [
@@ -618,10 +618,10 @@
   {
     "key": "rope-tricep-pushdown",
     "name": "Rope Tricep Pushdown",
-    "quelle": "workout-guide",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/rope-tricep-pushdown/frame-1.svg",
-      "uebungsbilder/rope-tricep-pushdown/frame-3.svg"
+      "uebungsbilder/rope-tricep-pushdown/frame-1.webp",
+      "uebungsbilder/rope-tricep-pushdown/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/rope-tricep-pushdown/vorschau.webp",
     "primaer": [
@@ -635,10 +635,10 @@
   {
     "key": "overhead-tricep-extension",
     "name": "Overhead Tricep Extension",
-    "quelle": "workout-guide",
+    "quelle": "ki",
     "bilder": [
-      "uebungsbilder/overhead-tricep-extension/frame-1.svg",
-      "uebungsbilder/overhead-tricep-extension/frame-3.svg"
+      "uebungsbilder/overhead-tricep-extension/frame-1.webp",
+      "uebungsbilder/overhead-tricep-extension/frame-3.webp"
     ],
     "vorschau": "uebungsbilder/overhead-tricep-extension/vorschau.webp",
     "primaer": [
@@ -647,6 +647,35 @@
     "sekundaer": [],
     "aliasse": [
       "cable overhead triceps extension"
+    ]
+  },
+  {
+    "key": "dips",
+    "name": "Dips",
+    "quelle": "ki",
+    "bilder": [
+      "uebungsbilder/dips/frame-3.webp",
+      "uebungsbilder/dips/frame-2.webp"
+    ],
+    "vorschau": "uebungsbilder/dips/vorschau.webp",
+    "primaer": [
+      "triceps",
+      "chest"
+    ],
+    "sekundaer": [
+      "shoulders"
+    ],
+    "aliasse": [
+      "dips",
+      "dip",
+      "barrendips",
+      "dips (körpergewicht)",
+      "dips (koerpergewicht)",
+      "bodyweight dips",
+      "parallel bar dips",
+      "chest dips",
+      "triceps dips",
+      "tricep dips"
     ]
   },
   {

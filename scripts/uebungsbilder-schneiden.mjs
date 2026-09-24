@@ -36,6 +36,9 @@
 //              schneidet nichts, sondern schreibt jedes Sammelbild gesaeubert
 //              mit Koordinatengitter und rot umrandeten Schildern — zum
 //              Vermessen der Rahmen fuer ein neues oder getauschtes Bild
+// Neue Sammelbilder muessen im Massstab der bisherigen vorliegen (Karofeld
+// 5-6 px, Schilder hoechstens 64 px hoch). Bleibt beim Vermessen Karo stehen
+// und fehlen Schilder, das Bild vorher verkleinern (so bei 7-dips.webp).
 // Deterministisch: gleiche Quellen und Tabelle ergeben dieselben Dateien. Die
 // Ausgaben werden immer neu geschrieben. Jede Abweichung (Quellbild fehlt oder
 // hat andere Masse, Schilderzahl stimmt nicht, Phase ohne Rahmen) bricht mit
