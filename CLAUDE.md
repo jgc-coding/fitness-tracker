@@ -277,6 +277,12 @@ npm run preview   # Build lokal testen (Port 4173)
   eine eigene Herkunft ohne Anmeldung). `localhost` und `127.0.0.1` koennen aus einer
   frueheren Sitzung angemeldet sein — dann landet jeder gespeicherte Testsatz in der
   echten Cloud.
+- **Preview-Port 4173 ist oft von einer anderen Sitzung belegt** (alter Stand): nie
+  beenden, sondern voruebergehend eine eigene Konfiguration mit anderem Port und
+  `--strictPort` in `.claude/launch.json` (danach zuruecksetzen); Version in Settings
+  gegenpruefen.
+- **Reine Doku-Commits mit `[skip ci]` im Betreff pushen** — jeder Push auf `master`
+  startet sonst einen Deploy, der denselben App-Stand neu baut.
 - **`privat\` gehoert in den Hauptbaum** (`C:\Projekte\Fitness Tracker\privat`). Ein
   `privat\` in einem Worktree geht mit ihm verloren: `git worktree remove` loescht
   ignorierte Dateien ohne Rueckfrage. Vorher `git status --porcelain --ignored` pruefen.
