@@ -55,21 +55,29 @@
       <!-- Active workout -->
       <div v-else class="workout-active">
         <div class="workout-header">
-          <h2>{{ currentDay?.title || 'Workout' }}</h2>
-          <span class="workout-date">{{ formattedDate }}</span>
-        </div>
+          <div class="workout-titel">
+            <h2>{{ currentDay?.title || 'Workout' }}</h2>
+            <span class="workout-date">{{ formattedDate }}</span>
+          </div>
 
-        <!-- Wer trainiert: antippbare Chip-Zeile, Tipp oeffnet den Dialog -->
-        <button class="user-chips" @click="showUserSelect = true">
-          <span
-            v-for="user in authStore.activeUsers"
-            :key="user.id"
-            class="user-chip"
-            :style="{ borderColor: user.color, color: user.color, background: user.bgColor }"
+          <!-- Wer trainiert: Farbkreise mit Anfangsbuchstaben rechts im Kopf
+               (Variante C, Gabriel 24.09.2026 — vorher eine Chip-Zeile unter
+               dem Titel). Tipp oeffnet den Dialog. -->
+          <button
+            class="user-avatare"
+            :aria-label="`Wer trainiert: ${aktiveNamen}. Tippen zum Aendern`"
+            :title="`Wer trainiert: ${aktiveNamen}`"
+            @click="showUserSelect = true"
           >
-            {{ user.name }}
-          </span>
-        </button>
+            <span
+              v-for="user in authStore.activeUsers"
+              :key="user.id"
+              class="user-avatar"
+              :style="{ background: user.color }"
+              aria-hidden="true"
+            >{{ user.name.charAt(0) }}</span>
+          </button>
+        </div>
 
         <!-- Exercise list -->
         <div
@@ -169,22 +177,39 @@
           </div>
         </div>
 
-        <!-- Quick add exercise -->
-        <button class="btn btn-secondary btn-block" @click="showQuickAdd = true" style="margin-top: var(--space-md)">
-          + Uebung hinzufuegen
-        </button>
-
-        <!-- Workout-Notiz und Zyklustag (P11): unter der Uebungsliste, direkt
-             vor "Workout beenden" (Wunsch Gabriel 24.09.2026, vorher ueber
-             der Liste). Vorhandene Werte sind am Knopf erkennbar
-             ("Notiz ✓" / "Zyklustag 17"). Der Zyklus-Knopf erscheint nur,
-             wenn ein aktiver Nutzer zyklus: true traegt. -->
-        <div class="workout-meta">
-          <button class="btn btn-secondary meta-btn" @click="openNoteModal">
+        <!-- Werkzeugzeile unter der Uebungsliste (Variante C, Gabriel
+             24.09.2026): Uebung hinzufuegen, Workout-Notiz und Zyklustag (P11)
+             als gleich hohe Knoepfe in einer Reihe, darunter "Workout
+             beenden". Vorhandene Werte sind am Knopf erkennbar (getoente
+             Flaeche, "Notiz ✓" / "Zyklus 17"; "Zyklus" statt "Zyklustag",
+             damit alle drei auf 360 px in eine Reihe passen). Der
+             Zyklus-Knopf erscheint nur, wenn ein aktiver Nutzer zyklus: true
+             traegt. -->
+        <div class="workout-werkzeuge">
+          <button
+            class="btn btn-secondary werkzeug-btn werkzeug-haupt"
+            aria-label="Uebung hinzufuegen"
+            @click="showQuickAdd = true"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Uebung
+          </button>
+          <button
+            class="btn btn-secondary werkzeug-btn"
+            :class="{ 'hat-wert': workoutNote }"
+            @click="openNoteModal"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
             Notiz{{ workoutNote ? ' ✓' : '' }}
           </button>
-          <button v-if="zyklusUser" class="btn btn-secondary meta-btn" @click="openCycleModal">
-            Zyklustag{{ currentCycleDay != null ? ' ' + currentCycleDay : '' }}
+          <button
+            v-if="zyklusUser"
+            class="btn btn-secondary werkzeug-btn"
+            :class="{ 'hat-wert': currentCycleDay != null }"
+            @click="openCycleModal"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Zyklus{{ currentCycleDay != null ? ' ' + currentCycleDay : '' }}
           </button>
         </div>
 
@@ -195,8 +220,8 @@
       </div>
     </div>
 
-    <!-- Nutzer-Auswahl erneut oeffnen (Chip-Zeile); Aenderung waehrend eines
-         aktiven Workouts landet als userIds am workoutLog -->
+    <!-- Nutzer-Auswahl erneut oeffnen (Farbkreise im Kopf); Aenderung waehrend
+         eines aktiven Workouts landet als userIds am workoutLog -->
     <UserSelectModal v-model="showUserSelect" @confirm="onActiveUsersChanged" />
 
     <!-- Uebungs-Detailansicht: grosses Bild, MuscleMap, Notizen je Nutzer -->
@@ -691,6 +716,9 @@ const workoutNote = computed(() => workoutStore.activeWorkout?.note || '')
 // Der Zyklus-Nutzer: der aktive Nutzer mit zyklus: true (siehe constants.js)
 const zyklusUser = computed(() => authStore.activeUsers.find(u => u.zyklus) || null)
 
+// Vorlesetext der Farbkreise im Kopf ("Lisa, Gab")
+const aktiveNamen = computed(() => authStore.activeUsers.map(u => u.name).join(', '))
+
 const currentCycleDay = computed(() => {
   const uid = zyklusUser.value?.id
   const days = workoutStore.activeWorkout?.cycleDays
@@ -929,7 +957,7 @@ async function toggleIncrease(exerciseId, userId) {
   increaseToggles[exerciseId][userId] = result
 }
 
-// Bestaetigte Nutzer-Auswahl aus der Chip-Zeile: der Store ist schon
+// Bestaetigte Nutzer-Auswahl ueber die Farbkreise im Kopf: der Store ist schon
 // aktualisiert (UserSelectModal), hier bleibt nur, die Besetzung am laufenden
 // Workout-Log nachzuziehen — gespeicherte Saetze bleiben unangetastet.
 async function onActiveUsersChanged(userIds) {
@@ -1319,23 +1347,95 @@ onUnmounted(() => {
   font-size: var(--font-size-sm);
 }
 
+/* Kopf: Titel + Datum links, Farbkreise der aktiven Nutzer rechts */
 .workout-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-sm);
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
 }
 
-/* Notiz- und Zyklustag-Knoepfe unter der Uebungsliste (P11) */
-.workout-meta {
+.workout-titel {
   display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.meta-btn {
-  padding: var(--space-xs) var(--space-md);
+/* Wer trainiert: Kreise mit Anfangsbuchstaben in der Nutzerfarbe, mehrere
+   leicht ueberlappend; der Ring in Seitenfarbe trennt sie. Der Knopf ist
+   44 px hoch (Tippflaeche), die Kreise 32 px. Der negative Rand rechts
+   gleicht Innenabstand (4 px) und Ring (2 px) aus: die farbige Flaeche des
+   letzten Kreises schliesst buendig mit den Karten ab. */
+.user-avatare {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  margin-right: -6px;
+  padding: 0 var(--space-xs);
+  border-radius: var(--radius-full);
+}
+
+.user-avatare:active {
+  background: var(--color-border);
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-bg);
+  border-radius: 50%;
+  color: var(--color-white);
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+}
+
+.user-avatar + .user-avatar {
+  margin-left: -8px;
+}
+
+/* Werkzeugzeile unter der Liste: gleich hohe Knoepfe, Breite nach Inhalt
+   ("+ Uebung" bekommt den groessten Anteil). Knappe Innenabstaende: mit
+   Zyklus-Knopf brauchen alle drei rund 300 px, auf 360-px-Handys bleiben
+   so gut 30 px Luft. Erst unter ~340 px rutscht der letzte Knopf in eine
+   zweite Zeile, statt abgeschnitten zu werden. */
+.workout-werkzeuge {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.werkzeug-btn {
+  flex: 1 1 auto;
+  gap: 6px;
+  padding: var(--space-sm);
+  white-space: nowrap;
+}
+
+.werkzeug-haupt {
+  flex-grow: 2;
+}
+
+.werkzeug-btn svg {
+  flex-shrink: 0;
+}
+
+/* Wert vorhanden (Notiz gespeichert, Zyklustag gesetzt): leicht getoent in
+   der Akzentfarbe, wie der aktive Reiter unten. Statische Farben, kein
+   color-mix (alte Android-WebViews). */
+.werkzeug-btn.hat-wert {
+  background: var(--color-accent-soft);
+  border-color: rgba(145, 31, 47, 0.3);
+  color: var(--color-accent);
 }
 
 .note-textarea {
@@ -1360,30 +1460,15 @@ onUnmounted(() => {
   margin: 0 auto var(--space-md);
 }
 
-.user-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-md);
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.user-chip {
-  padding: 2px var(--space-sm);
-  border: 1.5px solid;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-}
-
 .workout-header h2 {
   font-size: var(--font-size-xl);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
+/* text-light statt text-muted: 4,7:1 statt 2,5:1 Kontrast auf dem Seitengrund */
 .workout-date {
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
   font-size: var(--font-size-sm);
 }
 
