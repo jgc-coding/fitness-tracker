@@ -33,7 +33,15 @@ export const QUELLEN = {
   '3-schultern.webp': { breite: 1536, hoehe: 1024, hintergrund: 'karo', schilder: 12 },
   '4-beine.webp': { breite: 1536, hoehe: 1024, hintergrund: 'karo', schilder: 36 },
   // Ersatz fuer die falsch gezeichneten "Bad Girl"/"Good Girl" aus Bild 4
-  '5-abduktion-adduktion.webp': { breite: 1536, hoehe: 1024, hintergrund: 'karo', schilder: 8 }
+  '5-abduktion-adduktion.webp': { breite: 1536, hoehe: 1024, hintergrund: 'karo', schilder: 8 },
+  // Nachgeliefert 24.09.2026 (verlustfrei aus Gabriels PNG): Arme und Dips
+  '6-arme.webp': { breite: 1536, hoehe: 1024, hintergrund: 'karo', schilder: 16 },
+  // Kam 1983x793 an, Karofelder und Schilder rund 1,3-mal so gross wie in den
+  // anderen Bildern — beides erkennt das Skript nur in deren Massstab. Darum
+  // einmalig auf 1536 px Breite verkleinert (lanczos3) abgelegt. Der Titel ist
+  // auch dann noch zu hoch fuer die Schilder-Suche (nur 3 von 4 gefunden); er
+  // liegt ueber der Rueckenansicht, kein Rahmen reicht an ihn heran.
+  '7-dips.webp': { breite: 1536, hoehe: 614, hintergrund: 'karo', schilder: 3 }
 }
 
 export const UEBUNGEN = {
@@ -73,5 +81,18 @@ export const UEBUNGEN = {
   'reverse-lunge': { quelle: '4-beine.webp', phasen: { 1: [1130, 760, 1258, 980], 2: [1261, 760, 1385, 1013], 3: [1385, 779, 1533, 976] }, ausrichtung: 'mitte' },
   // Bild 5: die richtigen "Bad Girl" (Abduktion) und "Good Girl" (Adduktion)
   'hip-abduction-machine': { quelle: '5-abduktion-adduktion.webp', phasen: { 1: [336, 91, 636, 442], 2: [704, 83, 1036, 443], 3: [1128, 65, 1497, 440] }, vorschau: 3 },
-  'hip-adduction-machine': { quelle: '5-abduktion-adduktion.webp', phasen: { 1: [299, 513, 693, 931], 2: [712, 513, 1026, 943], 3: [1141, 584, 1450, 945] } }
+  'hip-adduction-machine': { quelle: '5-abduktion-adduktion.webp', phasen: { 1: [299, 513, 693, 931], 2: [712, 513, 1026, 943], 3: [1141, 584, 1450, 945] } },
+  // Bild 6: Arme, vier Felder mit schwarzen Trennlinien (x 766-768, y 402-404)
+  // — kein Rahmen darf sie beruehren; die Rueckenansicht steht knapp links.
+  // Curls: Vorschau in der Endhaltung, der gebeugte Arm ist klein eindeutiger
+  'concentration-curl': { quelle: '6-arme.webp', phasen: { 1: [250, 62, 416, 350], 2: [420, 62, 592, 350], 3: [598, 62, 760, 350] }, vorschau: 3 },
+  'cable-curl': { quelle: '6-arme.webp', phasen: { 1: [976, 62, 1152, 350], 2: [1150, 62, 1332, 350], 3: [1332, 62, 1520, 350] }, vorschau: 3 },
+  'rope-tricep-pushdown': { quelle: '6-arme.webp', phasen: { 1: [223, 466, 397, 792], 2: [396, 466, 566, 792], 3: [566, 466, 752, 792] } },
+  // In ENDE steht die Person ein Stueck weiter vom Turm weg: an der Person
+  // ausrichten (Hose und Beine gemessen), der Turm springt dafuer um 6 px
+  'overhead-tricep-extension': { quelle: '6-arme.webp', phasen: { 1: [978, 462, 1153, 792], 2: [1152, 462, 1332, 792], 3: [1332, 462, 1522, 792] }, ausrichtung: [-3, 0] },
+  // Bild 7: Dips — START und ENDE zeigen dieselbe Haltung, die Bewegung
+  // steckt in MITTE. Das Manifest nimmt ENDE + MITTE (frame-3, frame-2): die
+  // KI hat das Gestell in MITTE breiter gezeichnet, ENDE kommt ihm naeher
+  'dips': { quelle: '7-dips.webp', phasen: { 1: [390, 80, 720, 545], 2: [740, 128, 1150, 545], 3: [1170, 36, 1525, 545] } }
 }

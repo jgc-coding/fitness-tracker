@@ -5,9 +5,10 @@ steht im Manifest `src/data/uebungskatalog.json` (Feld `quelle`).
 
 ## KI-generierte Bilder (`quelle: "ki"`, Dateien `frame-<n>.webp`)
 
-Die farbigen Bilder von 28 Uebungen (seit Version 2.1.0) wurden mit einem
-KI-Bildgenerator im Auftrag des Projekts erstellt. Sie stammen nicht aus der
-Sammlung Workout Guide; die CC-BY-SA-Lizenz unten gilt fuer sie nicht.
+Die farbigen Bilder von 33 Uebungen (28 seit Version 2.1.0, die vier
+Arm-Uebungen und Dips seit 2.2.0) wurden mit einem KI-Bildgenerator im
+Auftrag des Projekts erstellt. Sie stammen nicht aus der Sammlung Workout
+Guide; die CC-BY-SA-Lizenz unten gilt fuer sie nicht.
 
 Zugeschnitten mit `scripts/uebungsbilder-schneiden.mjs` aus den Sammelbildern
 in `scripts/uebungsbilder-quellen/`: Hintergrund-Karomuster entfernt,
@@ -15,8 +16,10 @@ Beschriftungen entfernt, je Uebung zwei Bewegungsphasen und ein Vorschaubild.
 
 ## Linienzeichnungen aus Workout Guide (`quelle: "workout-guide"`, Dateien `frame-<n>.svg`)
 
-Betrifft die Ordner `lying-leg-curl`, `concentration-curl`, `cable-curl`,
-`rope-tricep-pushdown`, `overhead-tricep-extension` und `plank`.
+Betrifft die Ordner `lying-leg-curl` und `plank`. Die Arm-Uebungen
+(`concentration-curl`, `cable-curl`, `rope-tricep-pushdown`,
+`overhead-tricep-extension`) zeigten bis Version 2.1.0 ebenfalls Zeichnungen
+aus dieser Sammlung.
 
 Die Zeichnungen stammen aus der Sammlung **Workout Guide** von
 [Bryl Lim](https://bryllim.com): https://github.com/bryllim/workout-guide
