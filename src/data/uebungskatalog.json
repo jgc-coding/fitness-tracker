@@ -580,6 +580,30 @@
     ]
   },
   {
+    "key": "reverse-pec-deck",
+    "name": "Reverse Butterfly",
+    "quelle": "workout-guide",
+    "bilder": [
+      "uebungsbilder/reverse-pec-deck/frame-1.svg",
+      "uebungsbilder/reverse-pec-deck/frame-3.svg"
+    ],
+    "vorschau": "uebungsbilder/reverse-pec-deck/vorschau.webp",
+    "primaer": [
+      "shoulders"
+    ],
+    "sekundaer": [
+      "middle_back",
+      "traps"
+    ],
+    "aliasse": [
+      "butterfly reverse",
+      "reverse butterfly",
+      "reverse pec deck",
+      "reverse fly",
+      "rear delt fly"
+    ]
+  },
+  {
     "key": "concentration-curl",
     "name": "Concentration Curl",
     "quelle": "ki",

@@ -16,7 +16,8 @@ Beschriftungen entfernt, je Uebung zwei Bewegungsphasen und ein Vorschaubild.
 
 ## Linienzeichnungen aus Workout Guide (`quelle: "workout-guide"`, Dateien `frame-<n>.svg`)
 
-Betrifft die Ordner `lying-leg-curl` und `plank`. Die Arm-Uebungen
+Betrifft die Ordner `lying-leg-curl`, `plank` und `reverse-pec-deck` (seit
+Version 2.3.0, fuer "Butterfly reverse"). Die Arm-Uebungen
 (`concentration-curl`, `cable-curl`, `rope-tricep-pushdown`,
 `overhead-tricep-extension`) zeigten bis Version 2.1.0 ebenfalls Zeichnungen
 aus dieser Sammlung.
