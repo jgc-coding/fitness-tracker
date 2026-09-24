@@ -1,10 +1,12 @@
 // Vertragstest fuers Namens-Matching und das Bild-Manifest der Uebungszeichnungen
 // (src/utils/uebungsBilder.js, src/data/uebungskatalog.json).
 //
-// Der Test ist der Vertrag: alle 32 Katalognamen (31 aus der Plan-Tabelle in
-// docs/plan-fittrack-v2.md plus "Chin Up", Nachtrag 22.09.2026) muessen ihren
-// Key treffen, Fantasienamen duerfen nichts treffen, und jede im Manifest
-// genannte Datei muss unter public/ liegen. Die Keys stammen aus der
+// Der Test ist der Vertrag: alle 36 Namen der Standardliste
+// (src/data/standardUebungen.js: 31 aus der Plan-Tabelle in
+// docs/plan-fittrack-v2.md, "Chin Up" seit 22.09.2026, dazu seit 24.09.2026
+// die vier in der App nachgetragenen Butterfly, Butterfly reverse, DB Shrugs
+// und Dips) muessen ihren Key treffen, Fantasienamen duerfen nichts treffen,
+// und jede im Manifest genannte Datei muss unter public/ liegen. Die Keys stammen aus der
 // Workout-Guide-Sammlung (Zeichnungen, CC BY-SA 4.0); seit v2.1.0 zeigen die
 // meisten davon KI-generierte Bilder (quelle "ki", zugeschnitten von
 // scripts/uebungsbilder-schneiden.mjs), seit v2.2.0 auch die vier
@@ -25,6 +27,7 @@ import {
   vorschauUrl
 } from '../src/utils/uebungsBilder.js'
 import { QUELLEN, UEBUNGEN } from './uebungsbilder-zuschnitt.mjs'
+import { STANDARD_UEBUNGEN } from '../src/data/standardUebungen.js'
 
 const projektWurzel = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const katalog = JSON.parse(
@@ -42,9 +45,10 @@ function pruefe(beschreibung, bedingung) {
   }
 }
 
-// Die 32 Katalognamen -> erwarteter Key. Namen stehen hier EXAKT wie im
-// Uebungskatalog der App (SettingsView DEFAULT_EXERCISES), inklusive
-// Anfuehrungszeichen, Doppelpunkten und Gross-/Kleinschreibung.
+// Die 36 Namen der Standardliste -> erwarteter Key. Namen stehen hier EXAKT
+// wie in src/data/standardUebungen.js (und damit in der App), inklusive
+// Anfuehrungszeichen, Doppelpunkten und Gross-/Kleinschreibung; ein Test
+// unten wacht darueber, dass beide Listen dieselben Namen tragen.
 // Seit v2.1.0 hat jede Uebung ihr eigenes Bild; die beiden Brustpressen-
 // Maschinen und die beiden Ruder-Uebungen teilen sich keins mehr.
 const ERWARTET = [
@@ -79,27 +83,40 @@ const ERWARTET = [
   ['Cable Bicep Curl', 'cable-curl'],
   ['Cable Rope Triceps Pushdown', 'rope-tricep-pushdown'],
   ['Cable Overhead Triceps Extension', 'overhead-tricep-extension'],
-  ['core', 'plank']
+  ['core', 'plank'],
+  // In der App nachgetragen, seit 24.09.2026 in der Standardliste (Namen aus
+  // der Cloud gelesen mit scripts/uebungen-cloud.mjs)
+  ['Butterfly', 'butterfly-machine'],
+  ['Butterfly reverse', 'reverse-pec-deck'],
+  ['DB Shrugs', 'dumbbell-shrug'],
+  ['Dips', 'dips']
 ]
 
-console.log('[matching-test] 32 Katalognamen muessen ihren Key treffen:')
-pruefe(`Vertrag umfasst 32 Namen (ist: ${ERWARTET.length})`, ERWARTET.length === 32)
+console.log('[matching-test] 36 Namen der Standardliste muessen ihren Key treffen:')
+pruefe(`Vertrag umfasst 36 Namen (ist: ${ERWARTET.length})`, ERWARTET.length === 36)
 for (const [name, key] of ERWARTET) {
   const treffer = findeImageKey(katalog, name)
   pruefe(`"${name}" -> ${key}`, treffer === key)
 }
+// Die Standardliste der App und dieser Vertrag muessen dieselben Namen tragen:
+// eine neue Standard-Uebung ohne Bild-Vertrag faellt hier auf
+const vertragNamen = ERWARTET.map(([name]) => name).sort()
+const standardNamen = STANDARD_UEBUNGEN.map(u => u.name).sort()
+const nurStandard = standardNamen.filter(n => !vertragNamen.includes(n))
+const nurVertrag = vertragNamen.filter(n => !standardNamen.includes(n))
+pruefe(`Standardliste und Vertrag tragen dieselben Namen` +
+  (nurStandard.length ? ` (ohne Vertrag: ${nurStandard.join(', ')})` : '') +
+  (nurVertrag.length ? ` (nicht in der Standardliste: ${nurVertrag.join(', ')})` : ''),
+  nurStandard.length === 0 && nurVertrag.length === 0)
 
-// Uebungen ausserhalb des Standard-Katalogs, fuer die es seit v2.1.0 ein
-// eigenes Bild gibt (Gabriel hat sie mit den KI-Bildern mitgeliefert)
-console.log('[matching-test] Zusatz-Uebungen mit eigenem Bild:')
+// Andere Schreibweisen, unter denen eine Uebung in der App heissen koennte
+console.log('[matching-test] andere Schreibweisen finden dasselbe Bild:')
 for (const [name, key] of [
-  ['Butterfly', 'butterfly-machine'],
   ['Butterfly (Maschine)', 'butterfly-machine'],
+  ['Reverse Butterfly', 'reverse-pec-deck'],
+  ['Reverse Pec Deck', 'reverse-pec-deck'],
   ['Shrugs', 'dumbbell-shrug'],
-  ['DB Shrugs', 'dumbbell-shrug'],
-  // seit v2.2.0 (Sammelbild 7): der Name in der App ist nicht bekannt, darum
-  // die gaengigen Schreibweisen; sonst waehlt man das Bild im Katalog von Hand
-  ['Dips', 'dips'],
+  // seit v2.2.0 (Sammelbild 7)
   ['Dip', 'dips'],
   ['Barrendips', 'dips'],
   ['Dips (Körpergewicht)', 'dips'],
@@ -154,7 +171,7 @@ pruefe('vorschauUrl ohne Eintrag -> null', vorschauUrl(null, '/') === null)
 
 console.log('[matching-test] Manifest-Vertrag (Schluessel, Pfade, Dateien, Muskeln):')
 const keys = katalog.map(e => e.key)
-pruefe(`35 Eintraege (ist: ${katalog.length})`, katalog.length === 35)
+pruefe(`36 Eintraege (ist: ${katalog.length})`, katalog.length === 36)
 pruefe('Keys sind eindeutig', new Set(keys).size === keys.length)
 // Die Quelle bestimmt Dateiformat und zustaendiges Skript: workout-guide ->
 // SVG von uebungsbilder-holen.mjs, ki -> WebP von uebungsbilder-schneiden.mjs
@@ -162,8 +179,8 @@ const ENDUNG = { 'workout-guide': 'svg', ki: 'webp' }
 const quelleFalsch = katalog.filter(e => !ENDUNG[e.quelle]).map(e => e.key)
 pruefe(`jede Quelle ist workout-guide oder ki${quelleFalsch.length ? ' (falsch: ' + quelleFalsch.join(', ') + ')' : ''}`,
   quelleFalsch.length === 0)
-pruefe('33 KI-Bilder, 2 Zeichnungen (Leg Curl liegend und Core)',
-  katalog.filter(e => e.quelle === 'ki').length === 33 && katalog.filter(e => e.quelle === 'workout-guide').length === 2)
+pruefe('33 KI-Bilder, 3 Zeichnungen (Leg Curl liegend, Core, Butterfly reverse)',
+  katalog.filter(e => e.quelle === 'ki').length === 33 && katalog.filter(e => e.quelle === 'workout-guide').length === 3)
 // Die Arm-Keys bleiben beim Quellwechsel gleich — gespeicherte Zuordnungen
 // zeigen so ohne neues "Bilder automatisch zuordnen" das KI-Bild
 const armKeys = ['concentration-curl', 'cable-curl', 'rope-tricep-pushdown', 'overhead-tricep-extension']

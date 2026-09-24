@@ -217,6 +217,7 @@ import { exportToJSON, importFromJSON } from '../utils/exportData.js'
 import { useExercises } from '../composables/useExercises.js'
 import { findeImageKey, eintragFuerKey } from '../utils/uebungsBilder.js'
 import bildKatalog from '../data/uebungskatalog.json'
+import { STANDARD_UEBUNGEN } from '../data/standardUebungen.js'
 
 const authStore = useAuthStore()
 const { updateExercise } = useExercises()
@@ -318,51 +319,10 @@ async function updateName(userId, event) {
   }
 }
 
-const DEFAULT_EXERCISES = [
-  // Legs
-  { name: 'Hack Squat', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'Leg Press', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'Leg curl', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'hip thrusts', muscleGroup: 'legs', equipment: 'barbell' },
-  { name: '"bad girl"', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: '"good girl"', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'seated leg curl', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'seated leg extension', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'calve raises', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'lunges', muscleGroup: 'legs', equipment: 'dumbbell' },
-
-  // Chest
-  { name: 'DB Bench press', muscleGroup: 'chest', equipment: 'dumbbell' },
-  { name: 'DB incline Bench press', muscleGroup: 'chest', equipment: 'dumbbell' },
-  { name: 'machine: chest press', muscleGroup: 'chest', equipment: 'machine_weight' },
-  { name: 'machine: incline chest press', muscleGroup: 'chest', equipment: 'machine_weight' },
-  { name: 'Cable Crossover', muscleGroup: 'chest', equipment: 'machine_cable' },
-  { name: 'BB Bench press', muscleGroup: 'chest', equipment: 'barbell' },
-  { name: 'BB incline Bench press', muscleGroup: 'chest', equipment: 'barbell' },
-
-  // Back
-  { name: 'weighted pull up', muscleGroup: 'back', equipment: 'bodyweight' },
-  { name: 'Chin Up', muscleGroup: 'back', equipment: 'bodyweight' },
-  { name: 'Latzug', muscleGroup: 'back', equipment: 'machine_cable' },
-  { name: 'chest supported row', muscleGroup: 'back', equipment: 'dumbbell' },
-  { name: 'low row', muscleGroup: 'back', equipment: 'machine_cable' },
-  { name: 'cable row (without chest support)', muscleGroup: 'back', equipment: 'machine_cable' },
-  { name: 'lower back', muscleGroup: 'back', equipment: 'machine_weight' },
-
-  // Shoulders
-  { name: 'shoulder press', muscleGroup: 'shoulders', equipment: 'machine_weight' },
-  { name: 'BB overhead press', muscleGroup: 'shoulders', equipment: 'barbell' },
-  { name: 'DB Side lateral', muscleGroup: 'shoulders', equipment: 'dumbbell' },
-
-  // Arms
-  { name: 'Standing Concentration Curl', muscleGroup: 'arms', equipment: 'dumbbell' },
-  { name: 'Cable Bicep Curl', muscleGroup: 'arms', equipment: 'machine_cable' },
-  { name: 'Cable Rope Triceps Pushdown', muscleGroup: 'arms', equipment: 'machine_cable' },
-  { name: 'Cable Overhead Triceps Extension', muscleGroup: 'arms', equipment: 'machine_cable' },
-
-  // Core
-  { name: 'core', muscleGroup: 'core', equipment: 'bodyweight' }
-]
+// Standardliste der Uebungen (fuer "Standard-Uebungen laden"): liegt seit
+// 24.09.2026 in src/data/standardUebungen.js, damit Vertragstest und
+// scripts/uebungen-cloud.mjs dieselbe Liste lesen
+const DEFAULT_EXERCISES = STANDARD_UEBUNGEN
 
 async function seedExercises() {
   const existing = await db.exercises.toArray()

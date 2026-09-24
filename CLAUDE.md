@@ -41,6 +41,9 @@ src/
   data/uebungskatalog.json  Bild-Manifest: key, quelle (ki|workout-guide),
                          bilder (1-2 Frames), vorschau, primaer/sekundaer
                          (Muskel-Ids), aliasse (Katalognamen)
+  data/standardUebungen.js  Standardliste (Name, Gruppe, Geraet): liest die App
+                         ("Standard-Uebungen laden"), der Bild-Vertrag und
+                         der Cloud-Abgleich
   utils/
     runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
     runPlanMerge.js      Merge-Regeln des Imports (reine Funktion)
@@ -59,6 +62,9 @@ public/uebungsbilder/    je Manifest-Key frame-<n>.webp (KI) oder .svg (Workout
                          LIZENZ.md = Bildnachweis beider Quellen
 scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf,
+                         uebungen-cloud (alle Uebungen der App aus der Cloud
+                         lesen und mit Standardliste/Bildern abgleichen, nur
+                         lesen; aus dem Worktree mit --konto <Hauptbaum>),
                          uebungsbilder-holen (Zeichnungen von Workout Guide
                          holen und einfaerben, idempotent, --neu = alles neu),
                          uebungsbilder-schneiden (KI-Sammelbilder aus
@@ -179,6 +185,12 @@ npm run preview   # Build lokal testen (Port 4173)
   `scripts/uebungsbilder-matching-test.mjs` (Matching, Quelle, Pfade, Dateien,
   Schnitt-Tabelle — zuerst Test, dann Regeln), die 18 Muskel-Ids per
   `scripts/musclemap-pruefen.mjs`.
+- **In der App nachgetragene Uebungen sind keine Sonderfaelle:** Katalog ->
+  "+ Neu" legt Uebungen nur in der Datenbank an, der Code kennt sie nicht.
+  Den echten Bestand zeigt `scripts/uebungen-cloud.mjs` (nur lesen); was dort
+  "nur in der App" steht, kommt mit exaktem Namen, Gruppe und Geraet in
+  `src/data/standardUebungen.js` und in den Bild-Vertrag (der Test verlangt
+  fuer jede Standard-Uebung ein Bild).
 - **Bildnachweis ist Pflicht, nicht Deko:** Einstellungen -> Info und
   `public/uebungsbilder/LIZENZ.md` nennen beide Quellen — nie entfernen, bei
   neuen Bildquellen ergaenzen. Die Workout-Guide-Zeichnungen (auch bearbeitet)
