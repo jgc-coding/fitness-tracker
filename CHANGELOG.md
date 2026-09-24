@@ -3,6 +3,27 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.2.1] — 2026-09-24
+
+Nutzer-Anzeige und Notiz-Knopf im Tracking sitzen jetzt stimmig im Layout
+(Variante C aus drei Skizzen, Wahl Gabriel).
+
+### Features
+- **Wer trainiert:** Farbkreise mit Anfangsbuchstaben in der Nutzerfarbe
+  rechts im Workout-Kopf statt einer einzelnen Namens-Pill unter dem Titel.
+  Ein Tipp oeffnet wie bisher "Wer trainiert?". Das Datum steht klein unter
+  dem Titel und ist besser lesbar (Kontrast 4,7:1 statt 2,5:1).
+- **Werkzeugzeile unter der Liste:** "+ Uebung", "Notiz" und mit Lisa
+  "Zyklus" als gleich hohe Knoepfe in einer Reihe, darunter "Workout
+  beenden". Eine gespeicherte Notiz und ein gesetzter Zyklustag toenen ihren
+  Knopf leicht ein. "Zyklus" statt "Zyklustag", damit alle drei Knoepfe auf
+  360-px-Handys in eine Reihe passen.
+
+### Technik
+- Neues Produktprofil `PRODUCT.md` (Nutzer, Anmutung "ruhig und kraftvoll",
+  No-Gos, Grundsaetze) als Grundlage fuer kuenftige Design-Arbeit mit dem
+  Skill impeccable.
+
 ## [2.2.0] — 2026-09-24
 
 Farbige Bilder auch fuer die Arm-Uebungen, neu ein Bild fuer Dips; der
