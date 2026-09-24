@@ -3,12 +3,20 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
-## [2.2.1] — 2026-09-24
+## [2.3.0] — 2026-09-24
 
 Nutzer-Anzeige und Notiz-Knopf im Tracking sitzen jetzt stimmig im Layout
-(Variante C aus drei Skizzen, Wahl Gabriel).
+(Variante C aus drei Skizzen, Wahl Gabriel). Die in der App nachgetragenen
+Uebungen sind jetzt Standard-Uebungen wie alle anderen.
 
 ### Features
+- **Nachgetragene Uebungen sind Standard:** Butterfly, Butterfly reverse,
+  DB Shrugs und Dips stehen mit ihrem Namen aus der App in der Standardliste
+  und im Bild-Vertrag. "Standard-Uebungen laden" legt sie auf einem neuen
+  Geraet mit an.
+- **Butterfly reverse hat ein Bild:** vorerst die Linienzeichnung
+  "Reverse Pec Deck" aus Workout Guide (CC BY-SA 4.0), bis ein farbiges
+  KI-Bild kommt. Es greift nach "Bilder automatisch zuordnen".
 - **Wer trainiert:** Farbkreise mit Anfangsbuchstaben in der Nutzerfarbe
   rechts im Workout-Kopf statt einer einzelnen Namens-Pill unter dem Titel.
   Ein Tipp oeffnet wie bisher "Wer trainiert?". Das Datum steht klein unter
@@ -23,6 +31,17 @@ Nutzer-Anzeige und Notiz-Knopf im Tracking sitzen jetzt stimmig im Layout
 - Neues Produktprofil `PRODUCT.md` (Nutzer, Anmutung "ruhig und kraftvoll",
   No-Gos, Grundsaetze) als Grundlage fuer kuenftige Design-Arbeit mit dem
   Skill impeccable.
+- Neues Skript `scripts/uebungen-cloud.mjs`: liest alle Uebungen der App aus
+  der Cloud (nur lesen) und zeigt je Uebung Standardliste, Bild, Plan und
+  Anzahl Saetze. So sieht Claude auch Uebungen, die nur in der App angelegt
+  wurden.
+- Die Standardliste liegt jetzt in `src/data/standardUebungen.js`; App,
+  Vertragstest und Cloud-Abgleich lesen dieselbe Liste. Der Test prueft,
+  dass jede Standard-Uebung ein Bild findet.
+
+### Hinweise
+- Nach dem Update einmal "Bilder automatisch zuordnen" tippen, damit
+  Butterfly reverse sein Bild bekommt.
 
 ## [2.2.0] — 2026-09-24
 
