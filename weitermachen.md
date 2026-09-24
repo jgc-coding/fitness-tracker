@@ -1,20 +1,20 @@
-# Weitermachen — Stand 2026-09-24 (v2.1.0 ist live)
+# Weitermachen — Stand 2026-09-24 (v2.2.0 ist live)
 
 ## Stand
-- **v2.1.0 ist LIVE (23.09.):** KI-Uebungsbilder aus Gabriels fuenf
-  Sammelbildern fuer 28 Uebungen (Details: CHANGELOG 2.1.0). Tag `v2.1.0` auf
-  `8e1dc9d`, Actions-Lauf 35912764194 gruen. Live-Gegenprobe per HTTP:
-  SettingsView-Chunk enthaelt 2.1.0, `sw.js` precacht 56 WebP-Phasen, alte
-  SVGs und die Keys `machine-chest-press`/`seated-row` liefern 404. Vorher:
-  Gate gruen, Browser-Test auf frischer Adresse (32/32 zugeordnet, Vorschauen
-  laden, Ueberblendung wechselt) — Pane ausgeblendet, Optik nur per
-  Uebersichtsbogen. Handy-Checkliste per Telegram an Gabriel.
+- **v2.2.0 ist LIVE (24.09.):** KI-Bilder auch fuer die vier Arm-Uebungen,
+  neues Bild fuer Dips (Sammelbilder 6 und 7), Notiz- und Zyklustag-Knopf
+  unter der Uebungsliste (Details: CHANGELOG 2.2.0). Tag `v2.2.0` auf
+  `4a676ea`, Actions-Lauf 35975652599 gruen. Live-Gegenprobe per HTTP:
+  SettingsView-Chunk enthaelt 2.2.0, `sw.js` precacht 66 WebP-Phasen und nur
+  noch 3 SVGs, alte Arm-SVGs liefern 404. Vorher: Gate gruen, voller
+  Neuschnitt liess die 28 alten Bilder byte-gleich, Browser-Test auf frischer
+  Adresse (33/33 zugeordnet, Ueberblendung wechselt, Notiz-Knopf zwischen
+  "+ Uebung hinzufuegen" und "Workout beenden") — Pane ausgeblendet, Optik nur
+  per Uebersichtsbogen.
+- **v2.1.0 (23.09.):** KI-Bilder fuer 28 Uebungen aus Sammelbild 1-5.
 - **Werkzeug fuer Bildtausch:** `scripts/uebungsbilder-schneiden.mjs` mit
   Tabelle `scripts/uebungsbilder-zuschnitt.mjs` (Regeln in der CLAUDE.md).
-- **save-state clean (24.09.):** Rueckkehrpunkt `master` = `e44d699`. Der
-  Sitzungs-Branch war schon per Fast-Forward in `master`; nichts zu mergen,
-  keine Branches freigegeben zum Loeschen. Doku-Commits mit `[skip ci]`.
-- **Rueckkehr:** Tag `v2.0.0` ist der vorherige Live-Stand (gleiches Schema).
+- **Rueckkehr:** Tag `v2.1.0` ist der vorherige Live-Stand (gleiches Schema).
   Vor v2 liegt `v1.8.1` (siehe Stolperfallen).
 
 ## Stolperfallen (aktuell)
@@ -40,13 +40,15 @@
   (Android-Back = abbrechen) — bei Umbauten beibehalten.
 
 ## Naechste Schritte (Claude)
-1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0/v2.1 abarbeiten**
+1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.2 abarbeiten**
    (Checklisten in `docs/tests/`). Wischen: `onCardTouchEnd` in
    `TrackingView.vue`; Quick-Log: `buildNotificationQuickLog` und
    `public/sw-custom.js`; Bilder: Rahmen, Masken, Ausrichtung in
    `scripts/uebungsbilder-zuschnitt.mjs`, danach
    `uebungsbilder-schneiden.mjs --bogen <datei>` ansehen; neues Sammelbild
-   erst mit `--vermessen <ordner>` ausmessen. Vertrag im Matching-Test.
+   erst mit `--vermessen <ordner>` ausmessen (anderer Massstab: vorher
+   verkleinern, siehe Kopfkommentar). Vertrag im Matching-Test. Soll der
+   Zyklustag-Knopf doch oben bleiben: nur er zurueck in den Kopf.
 2. **Vorgaben nachrechnen, sobald echte Laeufe da sind** (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -73,6 +75,7 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.2.0 am Handy durchklicken** — App neu starten, dann Settings -> "Bilder automatisch zuordnen", sonst bleibt Dips ohne Bild; Liste: `docs/tests/v2.2.0-handy.md` (seit 2026-09-24)
 - [ ] **v2.1.0 am Handy durchklicken** — zuerst einmal Settings -> "Bilder automatisch zuordnen", sonst fehlen bei vier Uebungen die Bilder; Liste: `docs/tests/v2.1.0-handy.md` (seit 2026-09-23)
 - [ ] **Bens altes Single-Backup sichern — jetzt** (seit 2026-09-22)
   Die Single-App ist seit dem v2-Deploy abgeschaltet. Auf Bens Handy die alte
