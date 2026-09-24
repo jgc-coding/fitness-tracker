@@ -3,6 +3,42 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.2.0] — 2026-09-24
+
+Farbige Bilder auch fuer die Arm-Uebungen, neu ein Bild fuer Dips; der
+Notiz-Knopf sitzt unter der Uebungsliste.
+
+### Features
+- **KI-Bilder fuer die vier Arm-Uebungen** (Konzentrations-Curl, Kabel-Curl,
+  Trizepsdruecken am Seil, Trizeps ueber Kopf) aus Gabriels Sammelbild 6
+  statt der Linienzeichnungen. Die Bild-Schluessel bleiben gleich, bereits
+  zugeordnete Uebungen zeigen das neue Bild ohne weiteren Schritt. Bei den
+  beiden Curls zeigt das Vorschaubild die Endhaltung.
+- **Neues Bild: Dips** (Sammelbild 7). Es greift, wenn die Uebung in der App
+  "Dips", "Dip", "Barrendips", "Dips (Körpergewicht)" oder aehnlich heisst;
+  sonst im Katalog unter Bearbeiten das Bild "Dips" waehlen. Die
+  Detailansicht blendet zwischen oberer und unterer Position.
+- **Notiz- und Zyklustag-Knopf unter der Uebungsliste** (direkt vor
+  "Workout beenden") statt ueber der Liste — die Uebungen stehen damit
+  direkt unter der Nutzer-Zeile.
+
+### Technik
+- Schnitt-Tabelle um die Sammelbilder 6 (Arme) und 7 (Dips) erweitert. Bild 7
+  kam rund 1,3-fach vergroessert an; Karomuster und Schilder erkennt das
+  Skript nur im Massstab der anderen Bilder, darum liegt es auf 1536 px
+  verkleinert in `scripts/uebungsbilder-quellen/`. Beim Trizeps ueber Kopf
+  richtet sich die Ueberblendung nach der Person statt nach dem Kabelturm.
+- Bildnachweis: nur noch Leg Curl liegend und Core sind Workout-Guide-
+  Zeichnungen (CC BY-SA 4.0), die Angabe bleibt.
+
+### Hinweise
+- Nach dem Update einmal Einstellungen -> "Bilder automatisch zuordnen"
+  tippen, damit die Dips-Uebung ihr Bild bekommt. Trainingsdaten sind nicht
+  betroffen.
+- Dips: die KI hat das Gestell je Phase unterschiedlich breit gezeichnet,
+  beim Ueberblenden verrutscht der hintere Holm etwas. An den Knoecheln hat
+  die Karo-Entfernung etwas helle Haut weiss gemacht.
+
 ## [2.1.0] — 2026-09-23
 
 Farbige Uebungsbilder statt Linienzeichnungen fuer 28 Uebungen.
