@@ -1,20 +1,25 @@
-# Weitermachen — Stand 2026-09-24 (v2.2.0 ist live)
+# Weitermachen — Stand 2026-09-24 (v2.3.0 ist live)
 
 ## Stand
-- **v2.2.0 ist LIVE (24.09.):** KI-Bilder auch fuer die vier Arm-Uebungen,
-  neues Bild fuer Dips (Sammelbilder 6 und 7), Notiz- und Zyklustag-Knopf
-  unter der Uebungsliste (Details: CHANGELOG 2.2.0). Tag `v2.2.0` auf
-  `4a676ea`, Actions-Lauf 35975652599 gruen. Live-Gegenprobe per HTTP:
-  SettingsView-Chunk enthaelt 2.2.0, `sw.js` precacht 66 WebP-Phasen und nur
-  noch 3 SVGs, alte Arm-SVGs liefern 404. Vorher: Gate gruen, voller
-  Neuschnitt liess die 28 alten Bilder byte-gleich, Browser-Test auf frischer
-  Adresse (33/33 zugeordnet, Ueberblendung wechselt, Notiz-Knopf zwischen
-  "+ Uebung hinzufuegen" und "Workout beenden") — Pane ausgeblendet, Optik nur
-  per Uebersichtsbogen.
-- **v2.1.0 (23.09.):** KI-Bilder fuer 28 Uebungen aus Sammelbild 1-5.
+- **v2.3.0 ist LIVE (24.09.):** Tracking-Kopf mit Farbkreisen der
+  Trainierenden, Werkzeugzeile "+ Uebung / Notiz / Zyklus" unter der Liste
+  (Variante C aus drei Skizzen, Gabriels Wahl), die vier in der App
+  nachgetragenen Uebungen sind Standard, Butterfly reverse hat die Zeichnung
+  reverse-pec-deck (Details: CHANGELOG 2.3.0). Tag `v2.3.0` auf `9cdb3a2`,
+  Actions-Lauf 35999523856 gruen. Live-Gegenprobe per HTTP: Settings-Chunk
+  enthaelt 2.3.0, `sw.js` precacht 66 WebP-Phasen und 5 SVGs. Vorher: Gate
+  gruen, Browser-Test auf frischer Adresse (36/36 zugeordnet), Screenshots
+  der Werkzeugzeile per Headless-Chrome auf 360 px (Pane war ausgeblendet).
+- **v2.2.0 (24.09.):** KI-Bilder fuer die Arm-Uebungen und Dips (Sammelbilder
+  6 und 7); v2.1.0 (23.09.): KI-Bilder fuer 28 Uebungen aus Sammelbild 1-5.
+- **Alle Uebungen der App sichtbar:** `scripts/uebungen-cloud.mjs` (nur lesen)
+  zeigte am 24.09. 36 Uebungen, alle jetzt in der Standardliste.
 - **Werkzeug fuer Bildtausch:** `scripts/uebungsbilder-schneiden.mjs` mit
   Tabelle `scripts/uebungsbilder-zuschnitt.mjs` (Regeln in der CLAUDE.md).
-- **Rueckkehr:** Tag `v2.1.0` ist der vorherige Live-Stand (gleiches Schema).
+- **Design-Werkzeug impeccable auf 4.3.1** (Claude-Skills-Commit `d45f982`,
+  nicht gepusht; Ordner aus der Originalquelle ersetzt, nicht per npx).
+  `PRODUCT.md` steht im Projekt, noch im Schema von 3.5.0.
+- **Rueckkehr:** Tag `v2.2.0` ist der vorherige Live-Stand (gleiches Schema).
   Vor v2 liegt `v1.8.1` (siehe Stolperfallen).
 
 ## Stolperfallen (aktuell)
@@ -40,28 +45,36 @@
   (Android-Back = abbrechen) — bei Umbauten beibehalten.
 
 ## Naechste Schritte (Claude)
-1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.2 abarbeiten**
+1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.3 abarbeiten**
    (Checklisten in `docs/tests/`). Wischen: `onCardTouchEnd` in
    `TrackingView.vue`; Quick-Log: `buildNotificationQuickLog` und
    `public/sw-custom.js`; Bilder: Rahmen, Masken, Ausrichtung in
    `scripts/uebungsbilder-zuschnitt.mjs`, danach
    `uebungsbilder-schneiden.mjs --bogen <datei>` ansehen; neues Sammelbild
    erst mit `--vermessen <ordner>` ausmessen (anderer Massstab: vorher
-   verkleinern, siehe Kopfkommentar). Vertrag im Matching-Test. Soll der
-   Zyklustag-Knopf doch oben bleiben: nur er zurueck in den Kopf.
-2. **Vorgaben nachrechnen, sobald echte Laeufe da sind** (fruehestens nach dem
+   verkleinern, siehe Kopfkommentar). Vertrag im Matching-Test. Neue
+   Uebungen in der App: zuerst `uebungen-cloud.mjs` laufen lassen.
+2. **Muskelbild (KI, 25 Figurenpaare, Anhang vom 24.09.) ist beurteilt,
+   nicht eingebaut:** 14 von 36 Uebungen passen sauber, 16 mit Abstrichen,
+   6 fehlen (Leg curl, seated leg curl, seated leg extension, Dips, beide
+   Bizeps-Curls). Maengel: Bizeps-Paare markieren hinten den Trizeps, Reihe 2
+   zeigt zwei Rueckansichten, Reihe 5 ist unten abgeschnitten, Haupt- und
+   Hilfsmuskeln nicht unterschieden. Liefert Gabriel ein ergaenztes Bild:
+   ein Paar je Muskelprofil (rund 20, Profile = primaer/sekundaer im
+   Manifest) und erst dann entscheiden, ob es die MuscleMap ersetzt.
+3. **Vorgaben nachrechnen, sobald echte Laeufe da sind** (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
-3. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
+4. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
    `scripts/runmatch-test.mjs` erweitern, dann `src/utils/runMatch.js`.
-4. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
+5. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
    Regeln in `docs/laufplan-format.md` Abschnitt 5).
-5. Meldet Gabriel die Wdh-Luecke erneut: Diagnose in die App bauen
+6. Meldet Gabriel die Wdh-Luecke erneut: Diagnose in die App bauen
    (Trefferzahl je Uebung/Nutzer sichtbar machen), nicht raten.
-6. Probleme mit "Workout beenden"/Quick-Log: `public/sw-custom.js` und die
+7. Probleme mit "Workout beenden"/Quick-Log: `public/sw-custom.js` und die
    Notification-Payload in `TrackingView.vue` pruefen.
-7. Reiter zu eng auf Gabriels Handy: Schwelle der Label-Media-Query in
+8. Reiter zu eng auf Gabriels Handy: Schwelle der Label-Media-Query in
    `BottomNav.vue` anheben statt Labels kuerzen.
-8. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
+9. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
    ausdruecklicher Freigabe.
 
 ## Offen
@@ -75,7 +88,7 @@
   (Beschreibungen in `verbesserungen.md`).
 
 ## Was Gabriel selbst tun muss
-- [ ] **v2.2.0 am Handy durchklicken** — App neu starten, dann Settings -> "Bilder automatisch zuordnen", sonst bleibt Dips ohne Bild; Liste: `docs/tests/v2.2.0-handy.md` (seit 2026-09-24)
+- [ ] **v2.3.0 am Handy durchklicken** — App neu starten, dann Settings -> "Bilder automatisch zuordnen", sonst bleibt Butterfly reverse ohne Bild; Liste: `docs/tests/v2.2.0-handy.md` (seit 2026-09-24)
 - [ ] **v2.1.0 am Handy durchklicken** — zuerst einmal Settings -> "Bilder automatisch zuordnen", sonst fehlen bei vier Uebungen die Bilder; Liste: `docs/tests/v2.1.0-handy.md` (seit 2026-09-23)
 - [ ] **Bens altes Single-Backup sichern — jetzt** (seit 2026-09-22)
   Die Single-App ist seit dem v2-Deploy abgeschaltet. Auf Bens Handy die alte
