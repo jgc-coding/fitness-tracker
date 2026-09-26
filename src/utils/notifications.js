@@ -72,8 +72,10 @@ export function dismissWorkoutNotification() {
 }
 
 // getLastReps kommt aus der TrackingView: dieselbe Quelle wie Karte und Rad,
-// damit der Sperrbildschirm dieselben Wdh zeigt.
-export function buildExerciseLines(workoutExercises, getExerciseName, users, recommendations, getSavedValue, getLastReps, getUserExerciseId) {
+// damit der Sperrbildschirm dieselben Wdh zeigt. getSatzPunkte (optional)
+// liefert fuer Mehrsatz-Nutzer { slots, fertig } — die Zeile zeigt dann den
+// Fortschritt, z.B. "(2/3)".
+export function buildExerciseLines(workoutExercises, getExerciseName, users, recommendations, getSavedValue, getLastReps, getUserExerciseId, getSatzPunkte) {
   const lines = []
   // Aktive Uebung je Nutzer (Schnellwechsel-Ring); ohne die Funktion gilt
   // fuer alle die Karten-Uebung wie bisher.
@@ -89,16 +91,18 @@ export function buildExerciseLines(workoutExercises, getExerciseName, users, rec
       if (!namen.includes(name)) namen.push(name)
       const savedWeight = getSavedValue(exId, user.id, 'weight')
       const savedReps = getSavedValue(exId, user.id, 'reps')
+      const punkte = getSatzPunkte ? getSatzPunkte(exId, user.id) : null
+      const fortschritt = punkte ? ` (${punkte.fertig}/${punkte.slots})` : ''
 
       if (savedWeight) {
-        userParts.push(`${user.name}: ${savedWeight}kg x${savedReps}`)
+        userParts.push(`${user.name}: ${savedWeight}kg x${savedReps}${fortschritt}`)
       } else {
         const rec = recommendations[exId]?.[user.id]
         if (rec) {
           const reps = getLastReps(exId, user.id)
-          userParts.push(`${user.name}: ~${rec.weight}kg${reps != null ? ` x${reps}` : ''}`)
+          userParts.push(`${user.name}: ~${rec.weight}kg${reps != null ? ` x${reps}` : ''}${fortschritt}`)
         } else {
-          userParts.push(`${user.name}: --`)
+          userParts.push(`${user.name}: --${fortschritt}`)
         }
       }
     }

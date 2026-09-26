@@ -22,12 +22,16 @@ export function useHistory() {
     return sets[0]
   }
 
-  async function getLastSets(exerciseId, userId) {
-    const sets = await db.setLogs
+  // Alle Saetze der letzten Einheit (juengstes Datum), nach Satznummer.
+  // ohneWorkoutLogId laesst das laufende Workout aus — sonst waere nach dem
+  // ersten Satz von heute "die letzte Einheit" schon heute.
+  async function getLastSets(exerciseId, userId, ohneWorkoutLogId = null) {
+    let sets = await db.setLogs
       .where('[exerciseId+userId]')
       .equals([exerciseId, userId])
       .toArray()
 
+    if (ohneWorkoutLogId) sets = sets.filter(s => s.workoutLogId !== ohneWorkoutLogId)
     if (sets.length === 0) return []
 
     sets.sort((a, b) => b.date.localeCompare(a.date) || a.setNumber - b.setNumber)
