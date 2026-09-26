@@ -1,26 +1,30 @@
-# Weitermachen — Stand 2026-09-24 (v2.3.0 ist live)
+# Weitermachen — Stand 2026-09-26 (v2.4.0 ist live)
 
 ## Stand
-- **v2.3.0 ist LIVE (24.09.):** Tracking-Kopf mit Farbkreisen der
-  Trainierenden, Werkzeugzeile "+ Uebung / Notiz / Zyklus" unter der Liste
-  (Variante C aus drei Skizzen, Gabriels Wahl), die vier in der App
-  nachgetragenen Uebungen sind Standard, Butterfly reverse hat die Zeichnung
-  reverse-pec-deck (Details: CHANGELOG 2.3.0). Tag `v2.3.0` auf `9cdb3a2`,
-  Actions-Lauf 35999523856 gruen. Live-Gegenprobe per HTTP: Settings-Chunk
-  enthaelt 2.3.0, `sw.js` precacht 66 WebP-Phasen und 5 SVGs. Vorher: Gate
-  gruen, Browser-Test auf frischer Adresse (36/36 zugeordnet), Screenshots
-  der Werkzeugzeile per Headless-Chrome auf 360 px (Pane war ausgeblendet).
-- **v2.2.0 (24.09.):** KI-Bilder fuer die Arm-Uebungen und Dips (Sammelbilder
-  6 und 7); v2.1.0 (23.09.): KI-Bilder fuer 28 Uebungen aus Sammelbild 1-5.
-- **Alle Uebungen der App sichtbar:** `scripts/uebungen-cloud.mjs` (nur lesen)
-  zeigte am 24.09. 36 Uebungen, alle jetzt in der Standardliste.
-- **Werkzeug fuer Bildtausch:** `scripts/uebungsbilder-schneiden.mjs` mit
-  Tabelle `scripts/uebungsbilder-zuschnitt.mjs` (Regeln in der CLAUDE.md).
-- **Design-Werkzeug impeccable auf 4.3.1** (Claude-Skills-Commit `d45f982`,
-  nicht gepusht; Ordner aus der Originalquelle ersetzt, nicht per npx).
-  `PRODUCT.md` steht im Projekt, noch im Schema von 3.5.0.
-- **Rueckkehr:** Tag `v2.2.0` ist der vorherige Live-Stand (gleiches Schema).
-  Vor v2 liegt `v1.8.1` (siehe Stolperfallen).
+- **v2.4.0 ist LIVE (26.09.):** Wuensche von Gabriel und Lisa umgesetzt
+  (Details: CHANGELOG 2.4.0). Satzzahl je Person in den Einstellungen (Lisa
+  soll auf 3), kompakte Tracking-Karte (Variante A aus zwei Skizzen, Gabriels
+  Wahl), Wechsel-Knopf nennt die Alternative, Schiebe-Animation nach Tipp und
+  Wisch, Alternativen in der Planung eingerueckt mit Pfeil und x (Gabriels
+  eigene Mischung), Suchfenster ueber der Bildschirmtastatur. Tag `v2.4.0` auf
+  `8c9197a`, Actions-Lauf 36260889519 gruen. Live-Gegenprobe per HTTP:
+  Settings-Chunk enthaelt 2.4.0, TrackingView-Chunk mit Satz-Punkten und
+  Schiebe-Animation, `sw.js` precacht ihn.
+- **Geprueft vor dem Deploy:** Gate gruen (9 Befehle, neu `saetze-test.mjs`).
+  Browser-Test auf frischer Adresse: Planung, Wechsel und Wischen samt
+  Animations-Klassen, Satz-Ablauf Lisa -> Gab -> Lisa -> Lisa, Neuladen mitten
+  im Training, Tausch, Hinzufuegen, individuelles Training, History, Katalog,
+  Laufen, Anordnung fuer 1/2/3 Personen. Tastatur per nachgestelltem
+  `visualViewport`, Quick-Log-Warteschlange und Sperrbildschirm-Zeilen direkt
+  an der Komponente, Screenshots per Headless-Chrome auf 360 px.
+- **Nicht geprueft, nur am Handy:** echte Tastatur, Gefuehl der Animation,
+  Sperrbildschirm-Knopf, Sync der Satz-Einstellung zwischen den Handys
+  (Checkliste `docs/tests/v2.4.0-handy.md`).
+- **Rueckkehr:** Rueckkehrpunkt vor diesem Release ist `91707d3` (Tag `v2.3.0`
+  auf `9cdb3a2`, gleiches Schema, keine Datenbank-Aenderung). Vor v2 liegt
+  `v1.8.1` (siehe Stolperfallen).
+- **Aus frueheren Sitzungen:** impeccable auf 4.3.1 (Claude-Skills-Commit
+  `d45f982`, nicht gepusht); `PRODUCT.md` steht noch im Schema von 3.5.0.
 
 ## Stolperfallen (aktuell)
 - **Rollback auf v1.8.1 nur mit Hotfix:** Ein Handy, das v2 geoeffnet hat,
@@ -32,8 +36,10 @@
 - **Browser-Pane ausgeblendet:** `requestAnimationFrame` steht still, Vue-
   Seitenuebergaenge bleiben haengen. Ansicht per Direkt-URL laden, dann
   `window.requestAnimationFrame = cb => setTimeout(() => cb(performance.now()), 0)`
-  setzen und per `element.click()` im javascript_tool klicken. Screenshots
-  gehen dann nicht — nur DOM belegen und das so melden.
+  setzen und per `element.click()` im javascript_tool klicken; Layout-Masse
+  (`getBoundingClientRect`) stimmen trotzdem. Screenshots dann per
+  Headless-Chrome mit DevTools-Protokoll (Emulation 360 x 800) und
+  `--incognito` — ein Profilordner unter AppData laesst IndexedDB scheitern.
 - **Pane springt zwischen zwei Runden auf die Preview-Adresse zurueck:** Tests
   als EIN `browser_batch`, der mit `navigate` beginnt. Nach einem Neustart der
   Pane ist die IndexedDB der Testadressen leer.
@@ -45,11 +51,15 @@
   (Android-Back = abbrechen) — bei Umbauten beibehalten.
 
 ## Naechste Schritte (Claude)
-1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.3 abarbeiten**
-   (Checklisten in `docs/tests/`). Wischen: `onCardTouchEnd` in
-   `TrackingView.vue`; Quick-Log: `buildNotificationQuickLog` und
-   `public/sw-custom.js`; Bilder: Rahmen, Masken, Ausrichtung in
-   `scripts/uebungsbilder-zuschnitt.mjs`, danach
+1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.4 abarbeiten**
+   (Checklisten in `docs/tests/`). v2.4: Tastatur in `Modal.vue`
+   (`messeSichtbarenBereich`, Schwelle `TASTATUR_AB_PX`); Saetze zuerst in
+   `scripts/saetze-test.mjs`, dann `src/utils/saetze.js`; Karte ueber
+   `kartenZeilen` und CSS in `TrackingView.vue` — lange Namen im
+   Wechsel-Knopf sind auf 360 px gekuerzt (`.user-ring-btn`, Stern und
+   Steigern-Knopf nehmen je 24 px). Wischen: `onCardTouchEnd`; Quick-Log:
+   `buildNotificationQuickLog` und `public/sw-custom.js`; Bilder: Rahmen,
+   Masken, Ausrichtung in `scripts/uebungsbilder-zuschnitt.mjs`, danach
    `uebungsbilder-schneiden.mjs --bogen <datei>` ansehen; neues Sammelbild
    erst mit `--vermessen <ordner>` ausmessen (anderer Massstab: vorher
    verkleinern, siehe Kopfkommentar). Vertrag im Matching-Test. Neue
@@ -69,7 +79,9 @@
 5. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
    Regeln in `docs/laufplan-format.md` Abschnitt 5).
 6. Meldet Gabriel die Wdh-Luecke erneut: Diagnose in die App bauen
-   (Trefferzahl je Uebung/Nutzer sichtbar machen), nicht raten.
+   (Trefferzahl je Uebung/Nutzer sichtbar machen), nicht raten. Die
+   Vorschlaege laufen seit v2.4 ueber `ladeVorschlag` (eine Abfrage
+   `getLastSets` ohne das laufende Workout).
 7. Probleme mit "Workout beenden"/Quick-Log: `public/sw-custom.js` und die
    Notification-Payload in `TrackingView.vue` pruefen.
 8. Reiter zu eng auf Gabriels Handy: Schwelle der Label-Media-Query in
@@ -84,10 +96,12 @@
   intervals.icu-Konto bekommt nur Laeufe nach dem Verbinden (Stand 10.09.).
 - **V14** (Deploy-Actions anheben) wartet auf Gabriels Freigabe — jetzt mit
   Frist: `ubuntu-latest` wechselt ab 19.10.2026 auf Ubuntu 26.
-- Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I7**
-  (Beschreibungen in `verbesserungen.md`).
+- Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I7**, **I8**
+  (alle Saetze eines Tages in der History), **I9** (einzelnen Satz loeschen)
+  — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.4.0 am Handy durchklicken** — beide Handys neu starten, dann Settings -> "Saetze je Uebung" -> bei Lisa 3; Liste: `docs/tests/v2.4.0-handy.md` (seit 2026-09-26)
 - [ ] **v2.3.0 am Handy durchklicken** — App neu starten, dann Settings -> "Bilder automatisch zuordnen", sonst bleibt Butterfly reverse ohne Bild; Liste: `docs/tests/v2.2.0-handy.md` (seit 2026-09-24)
 - [ ] **v2.1.0 am Handy durchklicken** — zuerst einmal Settings -> "Bilder automatisch zuordnen", sonst fehlen bei vier Uebungen die Bilder; Liste: `docs/tests/v2.1.0-handy.md` (seit 2026-09-23)
 - [ ] **Bens altes Single-Backup sichern — jetzt** (seit 2026-09-22)
@@ -96,22 +110,22 @@
   Settings -> "Backup exportieren (JSON)", Datei aufheben.
 - [ ] **v2.0.0 auf beiden Handys durchklicken** — Liste: `docs/tests/v2.0.0-handy.md` (seit 2026-09-22)
 - [ ] **Alte Worktrees entfernen**, nur wenn in der Desktop-App keine Sitzung mehr darauf zeigt (seit 2026-09-22)
-  - `vigorous-elion-220387`: enthaelt nur eine pruefsummengleiche Kopie der
-    Autopilot-Protokolle, Branch gemergt. Befehl (PowerShell):
-    `Remove-Item -LiteralPath "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387\.claude\autopilot" -Recurse -Force; git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387"; if ($?) { git -C "C:\Projekte\Fitness Tracker" branch -d claude/wiederholungszahl-exercise-switch-8b736b }`
-  - `fitnesstracker-fortsetzung-f8ed8f` (angelegt 23.09., keine eigenen
-    Commits) und nach dem Ende dieser Sitzung `exercise-images-crop-e10a06`:
-    beide gemergt, ignoriert liegt nur eine Kopie der Autopilot-Protokolle
-    (identisch mit dem Hauptbaum). Befehl je Ordner:
-    `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\<ordner>"; if ($?) { git -C "C:\Projekte\Fitness Tracker" branch -d <branch> }`
-    (Branches: `claude/fitnesstracker-fortsetzung-f8ed8f`, `claude/exercise-images-crop-e10a06`)
+  In allen liegt ignoriert nur eine Kopie der Autopilot-Protokolle, am
+  26.09. geprueft: identisch mit dem Hauptordner. Alle Branches sind gemergt.
+  Ordnername und Branch passen inzwischen nicht mehr zusammen — die Befehle
+  (PowerShell, je Zeile ein Worktree) nennen das richtige Paar:
+  - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\exercise-images-crop-e10a06"; if ($?) { git -C "C:\Projekte\Fitness Tracker" branch -d claude/laufplan-review-reschedule-970ea5 }`
+  - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\festive-mclaren-e87f6a"; if ($?) { git -C "C:\Projekte\Fitness Tracker" branch -d claude/exercise-images-crop-e10a06 }`
+  - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\fitnesstracker-fortsetzung-f8ed8f"; if ($?) { git -C "C:\Projekte\Fitness Tracker" branch -d claude/exercise-muscle-images-f1d6f8 }`
+  - `Remove-Item -LiteralPath "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387\.claude\autopilot" -Recurse -Force; git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387"; if ($?) { git -C "C:\Projekte\Fitness Tracker" branch -d claude/wiederholungszahl-exercise-switch-8b736b }`
+  - nach dem Ende der Sitzung vom 26.09.: `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\ubungen-system-refinements-64f8ad"; if ($?) { git -C "C:\Projekte\Fitness Tracker" branch -d claude/ubungen-system-refinements-64f8ad }`
 - [ ] Rueckmeldung nach dem Lauf am Handy testen (v1.6.0 ist live) (seit 2026-09-07)
   - App schliessen und neu oeffnen, sonst zeigt sie noch 1.5.0
   - Laufen, Woche: einen erledigten Lauf antippen, Wie war es? tippen, Stufe und Notiz speichern
   - Laufen, Plan: Nur Rueckmeldungen kopieren antippen und den Text in den Chat kleben
 - [ ] Lisas Handy: App neu starten, damit die Tempovorgaben ankommen (seit 2026-09-09)
-- [ ] Claude Rueckmeldung geben (Stand 16.09., ergaenzt 24.09.) (seit 2026-09-16)
+- [ ] Claude Rueckmeldung geben (Stand 16.09., ergaenzt 26.09.) (seit 2026-09-16)
   - Soll die Zeile Erledigt ohne Rueckmeldung im kopierten Kurztext bleiben?
   - save-state clean und ignorierte privat-Dateien: Skill anpassen?
   - V14 freigeben: Deploy-Actions auf neue Version heben — vor dem 19.10.2026?
-  - Die Projekt-CLAUDE.md ist auf rund 20.700 Zeichen gewachsen: Straffung vorschlagen lassen?
+  - Die Projekt-CLAUDE.md ist auf rund 24.900 Zeichen gewachsen: Straffung vorschlagen lassen?
