@@ -324,7 +324,10 @@ npm run preview   # Build lokal testen (Port 4173)
   `http://reps-test.localhost:5173/fitness-tracker/` (jede `*.localhost`-Subdomain ist
   eine eigene Herkunft ohne Anmeldung). `localhost` und `127.0.0.1` koennen aus einer
   frueheren Sitzung angemeldet sein — dann landet jeder gespeicherte Testsatz in der
-  echten Cloud.
+  echten Cloud. Testdaten am schnellsten ueber den echten Backup-Import (Datei-Feld
+  in Settings per `DataTransfer` befuellen, `change` ausloesen). Der Startdialog
+  "Wer trainiert?" (App.vue) oeffnet bei JEDEM Laden und liegt dann als erstes
+  Modal im DOM — zuerst bestaetigen oder schliessen.
 - **Preview-Port 4173 ist oft von einer anderen Sitzung belegt** (alter Stand): nie
   beenden, sondern voruebergehend eine eigene Konfiguration mit anderem Port und
   `--strictPort` in `.claude/launch.json` (danach zuruecksetzen); Version in Settings
