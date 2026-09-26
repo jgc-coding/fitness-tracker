@@ -71,6 +71,20 @@ export function vorbelegungAusBevorzugt(eintrag) {
   return map
 }
 
+// Was die Wechsel-Zeile eines Nutzers zeigt (Gabriel 26.09.2026): `ziel` ist
+// die Uebung, zu der ein Tipp wechselt — der Knopf nennt das Ziel, nicht die
+// aktuelle Uebung, denn die steht schon im Kartentitel (Uebung des
+// Titel-Nutzers `kopfUserId`). `eigene` ist die aktive Uebung des Nutzers,
+// aber nur, wenn sie vom Titel abweicht — sonst null.
+export function wechselAnzeige(eintrag, userId, kopfUserId) {
+  const aktiv = aktiveUebungId(eintrag, userId)
+  const kopf = aktiveUebungId(eintrag, kopfUserId)
+  return {
+    ziel: naechsteImRing(eintrag, userId, 1),
+    eigene: aktiv !== kopf ? aktiv : null
+  }
+}
+
 // Standard-Uebung eines Nutzers setzen bzw. per erneutem Setzen derselben
 // Uebung entfernen (Toggle). Liefert ein frisches Objekt.
 export function toggleBevorzugt(bevorzugt, userId, exerciseId) {

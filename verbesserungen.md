@@ -3,9 +3,9 @@ Stand: 2026-08-17 (Runde 1, Fokus: Gym-UX — als v1.2.0 umgesetzt, gemergt,
 deployt und abgesichert; nur V8/I1/I5 sind zurueckgestellt)
 
 Vorgeschichte: Die /improve-Runde vom 2026-07-07 (Punkte 1-12) ist in
-`weitermachen.md` dokumentiert und mit v1.1.0 umgesetzt. Punkt 11 ist entschieden:
-**Es bleibt bewusst bei EINEM getrackten Satz je Uebung** (Gabriel, 2026-08-16) —
-steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
+`weitermachen.md` dokumentiert und mit v1.1.0 umgesetzt. Punkt 11 war zunaechst
+"bewusst EIN getrackter Satz je Uebung" (Gabriel, 2026-08-16); am 2026-09-26
+entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md).
 
 ## Kernfunktionen (Pruefliste — jede Runde erneut abfahren)
 1. **Plan erstellen** (Plan + Trainingstag + Uebungen zuordnen) — erwartet: Plan sichtbar, Uebungen mit Sets · zuletzt: laeuft (2026-08-16, live in Single-Variante)
@@ -38,6 +38,14 @@ steht jetzt als Architektur-Entscheidung in der CLAUDE.md.
       Wochenansicht, der einen Lauf mit `unplanned: true` anlegt — mit Paket 2
       kommt derselbe Lauf ohnehin automatisch von der Uhr, deshalb erst danach
       entscheiden, ob es den Knopf noch braucht.
+- **I8** (Erweiterung) Alle Saetze eines Tages in der History zeigen — Aufwand: S-M
+      Nutzen: Seit v2.4.0 erfasst Lisa jeden Satz einzeln; History und CSV
+      zeigen je Tag aber nur den schwersten. Abgrenzung: Tipp auf eine Zelle
+      zeigt die Saetze dieses Tages; die Tabelle selbst bleibt ein Wert je Zelle.
+- **I9** (Erweiterung) Einen einzelnen Satz loeschen — Aufwand: S
+      Nutzen: Ein versehentlich gespeicherter Satz (z.B. per Sperrbildschirm)
+      laesst sich bisher nur ueberschreiben. Abgrenzung: "Satz entfernen" im
+      Rad fuer gespeicherte Saetze, Loeschen mit Tombstone (pushDelete).
 - **I1** (Erweiterung) Trainingsmodus: Bildschirm-Wachhalten + Pausen-Timer — zurueckgestellt 2026-08-16 (Gabriel) · Aufwand: M
       Nutzen: Handy bleibt zwischen Saetzen an, ein Blick + ein Tap; Timer meldet den
       naechsten Satz. · Bedarf: kein wakeLock/Timer im Repo · Abgrenzung: kein Audio-Coaching.

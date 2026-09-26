@@ -33,9 +33,10 @@ src/
   composables/useHistory.js  Spreadsheet-Daten, letzte Werte, Steigerungslogik
   composables/useExerciseNotes.js  Notiz je Nutzer je Uebung (deterministische Id,
                          Leeren = text '', nie loeschen)
-  components/shared/     Modal (Android-Back schliesst!), EmptyState, WheelPicker,
-                         UserSelectModal (Startdialog), MuscleMap (Inline-SVG,
-                         18 data-muscle-Ids, Grobgruppen-Fallback)
+  components/shared/     Modal (Android-Back schliesst! folgt bei offener
+                         Tastatur dem sichtbaren Bereich), EmptyState,
+                         WheelPicker, UserSelectModal (Startdialog), MuscleMap
+                         (Inline-SVG, 18 data-muscle-Ids, Grobgruppen-Fallback)
   components/tracking/ExerciseDetail.vue  Detailansicht: Ueberblendung Start-/
                          Endbild alle 1,2 s, MuscleMap, Notizfeld je Nutzer
   data/uebungskatalog.json  Bild-Manifest: key, quelle (ki|workout-guide),
@@ -53,6 +54,9 @@ src/
     uebungsBilder.js     Manifest-Zugriff + Namens-Matching (reine Funktionen,
                          Manifest kommt als Parameter)
     uebungsRing.js       Schnellwechsel-Ring + Standard-Uebung je Nutzer
+                         (reine Funktionen)
+    saetze.js            Saetze je Uebung und Person: offener Satz,
+                         Vorbelegung, Rad-Reihenfolge, Quick-Log-Folge
                          (reine Funktionen)
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
@@ -73,7 +77,8 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          --vermessen = Koordinatengitter fuer neue Bilder)
                          Vertragstests: laufplan-merge-test, runmatch-test,
                          pace-modell-test, musclemap-pruefen,
-                         uebungsbilder-matching-test, uebungsring-test
+                         uebungsbilder-matching-test, uebungsring-test,
+                         saetze-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
                          garmin-anbindung, plan-fittrack-v2
@@ -101,16 +106,29 @@ npm run preview   # Build lokal testen (Port 4173)
 - **Vue-Proxys nie direkt in Dexie schreiben:** reaktive Objekte/Arrays (z.B.
   `day.exercises`) sprengen `put`/`update` mit `DataCloneError`. Vorher flach
   kopieren (`list.map(e => ({ ...e }))`).
-- **Ein Satz je Uebung ist Absicht** (Entscheidung Gabriel 2026-08-16): genau ein
-  Referenzwert (Gewicht x Wdh) je Uebung und Nutzer; das Sets-Feld der Planung ist
-  reine Notiz. Kein Multi-Set-Tracking bauen.
+- **Saetze je Uebung sind eine Einstellung JE PERSON** (Entscheidung Gabriel
+  2026-09-26, ersetzt "ein Satz je Uebung" vom 16.08.): Einstellungen -> "Saetze je
+  Uebung" 1-5, gespeichert in `db.meta` als `saetze_<userId>` (gesynct wie die
+  Namen, gilt also auf beiden Handys). 1 = ein Referenzwert wie bis v2.3 (Standard
+  fuer alle), ab 2 hat jeder Satz ein eigenes setLog mit `setNumber` 1..n (Lisa: 3).
+  Die Regeln stehen als reine Funktionen in `utils/saetze.js`, Vertrag
+  `scripts/saetze-test.mjs` (zuerst Test, dann Regeln): offener Satz (Luecken
+  zuerst), Vorbelegung (heute gespeichert -> Satz davor von heute -> Vorschlag aus
+  der letzten Einheit), Rad nach dem Speichern (reihum der naechste ANDERE Nutzer
+  mit offenem Satz, sonst der naechste Satz desselben Nutzers) und die
+  Quick-Log-Folge (jeder offene Satz einzeln, Label "S2"). Das Sets-Feld der
+  Planung bleibt reine Notiz.
 - **Vorwert = Gewicht x Wdh aus EINEM Datensatz:** Karte, Empfehlungszeile,
   Rad-Vorbelegung, Quick-Log-Knopf und Sperrbildschirm lesen die Wdh nur ueber
   `getLastReps` (TrackingView) — und die holt sie aus `recommendations`, also aus
   demselben gespeicherten Satz, aus dem das Gewicht kommt. Zwei getrennte Speicher
   gab es schon einmal: der Gewichtsvorschlag wurde nur bei einem Treffer
   ueberschrieben, die Wdh dagegen immer, und ein leeres Abfrageergebnis liess das
-  Gewicht ohne Wdh stehen (v1.8.1). Auf 360-px-Handys bricht der Wert vor dem "x"
+  Gewicht ohne Wdh stehen (v1.8.1). Mit mehreren Saetzen gilt dasselbe je Satz:
+  Satz 1 ist der Eintrag in `recommendations`, Satz n kommt aus Satz n der letzten
+  Einheit (`satzVorschlag`). "Letzte Einheit" heisst OHNE das laufende Workout
+  (`getLastSets(..., activeWorkout.id)`) — sonst wird nach dem ersten Satz von
+  heute "letztes Mal" zu "heute". Auf 360-px-Handys bricht der Wert vor dem "×"
   um (`{{ ' ' }}` im Template ist Absicht, siehe Kommentar dort).
 - **Workout-Abweichungen liegen am Log:** Tausch/Quick-Add schreiben die aktuelle
   Uebungsliste als `exercises`-Override an den `workoutLog` (persistWorkoutExercises);
@@ -130,6 +148,13 @@ npm run preview   # Build lokal testen (Port 4173)
   (Service Worker) muessen gleich bleiben.
 - **Gewichtsschritte:** 1.25 kg fuer Barbell/Machine-Weight, 1 kg sonst.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
+- **Bildschirmtastatur ueberdeckt, statt zu verkleinern** (Android, Chrome ab 108):
+  `Modal.vue` misst waehrend es offen ist den sichtbaren Bereich
+  (`visualViewport`) und legt die Ueberlagerung darauf; Suchfenster (`fullHeight`)
+  bleiben bei offener Tastatur voll hoch. Vorher klebte das Fenster am unteren Rand
+  und die Treffer rutschten beim Tippen hinter die Tastatur. Die Browser-Pane hat
+  keine Bildschirmtastatur: pruefbar nur mit einem nachgestellten `visualViewport`
+  (Objekt mit height/offsetTop/scale, resize-Event) und am Handy.
 - **Standard-Nutzer ist GERAETE-lokal** (`localStorage`, Schluessel mit DB-Namen, siehe
   `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History, am Notification-Knopf.
   Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und beide Handys wuerden sich
@@ -203,7 +228,10 @@ npm run preview   # Build lokal testen (Port 4173)
   exerciseId, hartes Maximum 4) und `bevorzugt` ({ userId: exerciseId } —
   die gemerkte Standard-Uebung je Nutzer, gesynct); Uebungslisten dort NUR
   ueber `kopiereUebungsEintrag` neu bauen (kopiert generisch alle Felder —
-  harte Feldaufzaehlung verliert Alternativen und Standards).
+  harte Feldaufzaehlung verliert Alternativen und Standards). Die Planung
+  listet die Alternativen eingerueckt unter der 1. Wahl, jede mit eigenem x
+  (`removeAlternative`); ein darauf gemerkter Standard bleibt stehen und
+  wirkt nicht mehr.
   Im Workout ist der Ring `[basisExerciseId, ...alternativen]`, und JEDER
   Nutzer hat darin seine eigene aktive Uebung: `userExerciseIds`
   ({ userId: exerciseId }, nur Abweichungen) am Workout-Eintrag, aufgeloest
@@ -215,8 +243,16 @@ npm run preview   # Build lokal testen (Port 4173)
   (`kopfId`); Wechsel je Nutzer per Tipp auf die Wechsel-Zeile seines
   Bereichs ODER horizontalem Wischen (|dx| > 40px und |dx| > 2|dy|, passive
   Listener; auf einem `.user-value` wechselt dessen Nutzer, sonst der
-  bevorzugte). Der Stern in der Wechsel-Zeile schreibt `bevorzugt` per
-  updateTrainingDay in den Plan (Toggle). Saetze, Empfehlungen, Rad und
+  bevorzugte). Der Wechsel-Knopf nennt das ZIEL des Tipps, nie die aktuelle
+  Uebung (die steht im Titel); weicht die Uebung eines Nutzers vom Titel ab,
+  steht ihr Name in seiner Farbe dabei — Regel `wechselAnzeige`. Jeder
+  Wechsel schiebt Titel und Werte zur Seite (`<Transition>` schieben-vor /
+  schieben-zurueck, Schluessel = aktive Uebung): der Karten-Schluessel darf
+  beim Ringwechsel NICHT wechseln, sonst gibt es keine Animation. Die
+  Karte selbst (Variante A, 26.09.2026): kleines Vorschaubild neben dem
+  Titel, je Person ein Bereich mit Farbkreis; zu zweit nebeneinander, allein
+  und zu dritt je eine Zeile. Der Stern in der Wechsel-Zeile schreibt
+  `bevorzugt` per updateTrainingDay in den Plan (Toggle). Saetze, Empfehlungen, Rad und
   Notification laufen ueberall ueber `aktiveId(eintrag, userId)`. Der freie
   Tausch bleibt eine Karten-Entscheidung: er setzt `exerciseId` und LEERT
   `userExerciseIds`. Jeder Wechsel laeuft den Tausch-Weg

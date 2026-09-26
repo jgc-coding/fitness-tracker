@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { db } from '../db/dexie.js'
 import { USERS } from '../utils/constants.js'
 import { pushRecord } from '../services/syncService.js'
+import { satzZahlGueltig } from '../utils/saetze.js'
 
 // Der Standard-Nutzer ist eine GERAETE-Einstellung, kein geteilter Datensatz:
 // auf Lisas Handy soll Lisa vorausgewaehlt sein, auf Gabs Handy Gab. Deshalb
@@ -51,6 +52,44 @@ export const useAuthStore = defineStore('auth', () => {
         user.name = stored.value
       }
     }
+  }
+
+  // Saetze je Uebung und Person (Gabriel 26.09.2026): 1 = ein Referenzwert
+  // wie bis v2.3, ab 2 wird jeder Satz einzeln erfasst (Regeln in
+  // utils/saetze.js). Anders als der Standard-Nutzer eine GETEILTE
+  // Einstellung: db.meta wird gesynct — Lisas 3 Saetze gelten auch auf Gabs
+  // Handy, wenn beide zusammen trainieren.
+  const satzZahlen = ref({})
+
+  function satzZahl(userId) {
+    return satzZahlen.value[userId] || 1
+  }
+
+  async function loadSatzZahlen() {
+    const zahlen = {}
+    for (const user of users.value) {
+      const stored = await db.meta.get(`saetze_${user.id}`)
+      const n = satzZahlGueltig(stored?.value)
+      if (stored && n === null) {
+        // Nicht still ueberdecken: ein kaputter Wert gehoert ins Log
+        console.warn('[FitTrack] [WARN] Ungueltige Satzzahl ignoriert, nutze 1:', user.id, stored.value)
+      }
+      zahlen[user.id] = n || 1
+    }
+    satzZahlen.value = zahlen
+  }
+
+  async function setSatzZahl(userId, anzahl) {
+    const n = satzZahlGueltig(anzahl)
+    if (n === null || !users.value.some(u => u.id === userId)) {
+      console.warn('[FitTrack] [WARN] Satzzahl nicht gespeichert (ungueltig):', userId, anzahl)
+      return
+    }
+    satzZahlen.value = { ...satzZahlen.value, [userId]: n }
+    const key = `saetze_${userId}`
+    const record = { key, value: n, updatedAt: new Date().toISOString() }
+    await db.meta.put(record)
+    pushRecord('meta', key, record)
   }
 
   function loadDefaultUser() {
@@ -132,6 +171,10 @@ export const useAuthStore = defineStore('auth', () => {
     startVorauswahl,
     updateUserName,
     loadUserNames,
+    satzZahlen,
+    satzZahl,
+    loadSatzZahlen,
+    setSatzZahl,
     setDefaultUser,
     setActiveUsers,
     getUserName

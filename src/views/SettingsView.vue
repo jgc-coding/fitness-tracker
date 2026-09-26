@@ -43,6 +43,32 @@
             </button>
           </div>
         </div>
+
+        <!-- Saetze je Uebung und Person (Gabriel 26.09.2026): gesynct, gilt
+             also auf allen Geraeten -->
+        <div class="default-user">
+          <span class="user-label-id">Saetze je Uebung</span>
+          <p class="settings-desc">
+            Bei 1 wird wie bisher ein Wert je Uebung eingetragen. Ab 2 erfasst
+            die Person jeden Satz einzeln. Die Einstellung gilt auf allen Geraeten.
+          </p>
+          <div v-for="user in authStore.users" :key="user.id" class="satz-zeile">
+            <span class="satz-name" :style="{ borderLeftColor: user.color }">{{ user.name }}</span>
+            <div class="user-toggle satz-auswahl" role="group" :aria-label="`Saetze je Uebung fuer ${user.name}`">
+              <button
+                v-for="n in SATZZAHL_MAX"
+                :key="n"
+                class="toggle-btn"
+                :class="{ active: authStore.satzZahl(user.id) === n }"
+                :style="{ '--user-color': user.color }"
+                :aria-pressed="authStore.satzZahl(user.id) === n"
+                @click="authStore.setSatzZahl(user.id, n)"
+              >
+                {{ n }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Seed exercises -->
@@ -216,6 +242,7 @@ import {
 import { exportToJSON, importFromJSON } from '../utils/exportData.js'
 import { useExercises } from '../composables/useExercises.js'
 import { findeImageKey, eintragFuerKey } from '../utils/uebungsBilder.js'
+import { SATZZAHL_MAX } from '../utils/saetze.js'
 import bildKatalog from '../data/uebungskatalog.json'
 import { STANDARD_UEBUNGEN } from '../data/standardUebungen.js'
 
@@ -294,6 +321,7 @@ async function doBackupImport(event) {
     const text = await file.text()
     const { imported, skipped } = await importFromJSON(text)
     await authStore.loadUserNames()
+    await authStore.loadSatzZahlen()
     resyncAll() // bringt neue lokale Daten in die Cloud (falls angemeldet)
     backupError.value = false
     backupMessage.value = `Import fertig: ${imported} uebernommen, ${skipped} unveraendert.`
@@ -532,7 +560,10 @@ async function seedHistory() {
   setTimeout(() => { historyMessage.value = '' }, 3000)
 }
 
-onMounted(() => authStore.loadUserNames())
+onMounted(() => {
+  authStore.loadUserNames()
+  authStore.loadSatzZahlen()
+})
 </script>
 
 <style scoped>
@@ -611,6 +642,33 @@ onMounted(() => authStore.loadUserNames())
   border-color: var(--user-color, var(--color-accent));
   color: var(--user-color, var(--color-accent));
   background: var(--color-white);
+}
+
+/* Saetze je Uebung: Name links (Farbstrich wie oben), rechts 1-5 */
+.satz-zeile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.satz-name {
+  flex: 0 0 64px;
+  min-width: 0;
+  padding-left: var(--space-sm);
+  border-left: 3px solid;
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.satz-auswahl {
+  flex: 1;
+}
+
+.satz-auswahl .toggle-btn {
+  padding: 6px 0;
 }
 
 .form-input {

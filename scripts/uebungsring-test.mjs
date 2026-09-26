@@ -11,7 +11,8 @@ import {
   naechsteImRing,
   mitNutzerUebung,
   vorbelegungAusBevorzugt,
-  toggleBevorzugt
+  toggleBevorzugt,
+  wechselAnzeige
 } from '../src/utils/uebungsRing.js'
 
 let fehler = 0
@@ -88,6 +89,26 @@ pruefe('andere Uebung ersetzt den Standard', b3.user1 === 'latzug')
 const original = { user2: 'x' }
 toggleBevorzugt(original, 'user2', 'y')
 pruefe('Original bleibt unveraendert (frische Kopie)', original.user2 === 'x')
+
+// Wechsel-Knopf je Nutzer (v2.4.0, Gabriel 26.09.2026): der Knopf nennt das
+// ZIEL eines Tipps, nicht die aktuelle Uebung — die steht schon im
+// Kartentitel. Die eigene Uebung erscheint nur, wenn sie vom Titel abweicht.
+console.log('[uebungsring-test] Anzeige der Wechsel-Zeile:')
+const a1 = wechselAnzeige(eintrag, 'user1', 'user1')
+pruefe('Titel-Nutzer auf der Basis: Knopf nennt die naechste Uebung', a1.ziel === 'klimmzug')
+pruefe('Titel-Nutzer: keine eigene Zeile (steht im Titel)', a1.eigene === null)
+const a2 = wechselAnzeige(eintrag, 'user2', 'user1')
+pruefe('abweichender Nutzer: Knopf nennt sein naechstes Ziel', a2.ziel === 'chinup')
+pruefe('abweichender Nutzer: seine eigene Uebung wird genannt', a2.eigene === 'klimmzug')
+const a3 = wechselAnzeige(eintrag, 'user2', 'user2')
+pruefe('ist er selbst der Titel-Nutzer, entfaellt die eigene Zeile', a3.eigene === null && a3.ziel === 'chinup')
+const zweier = { exerciseId: 'latzug', basisExerciseId: 'latzug', alternativen: ['klimmzug'], userExerciseIds: { user2: 'klimmzug' } }
+const a4 = wechselAnzeige(zweier, 'user2', 'user1')
+pruefe('Zweier-Ring: vom Wechsel zurueck zur Titel-Uebung', a4.ziel === 'latzug' && a4.eigene === 'klimmzug')
+pruefe('Zweier-Ring: Titel-Nutzer sieht die Alternative', wechselAnzeige(zweier, 'user1', 'user1').ziel === 'klimmzug')
+const a5 = wechselAnzeige(altEintrag, 'user1', 'user1')
+pruefe('ohne Alternativen: kein Ziel, keine eigene Zeile', a5.ziel === null && a5.eigene === null)
+pruefe('null-Eintrag bleibt leer', wechselAnzeige(null, 'user1', 'user1').ziel === null)
 
 if (fehler > 0) {
   console.error(`[uebungsring-test] ROT: ${fehler} Pruefung(en) fehlgeschlagen`)

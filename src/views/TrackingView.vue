@@ -79,100 +79,145 @@
           </button>
         </div>
 
-        <!-- Exercise list -->
+        <!-- Uebungsliste, kompakt (Variante A aus zwei Skizzen, Gabriel
+             26.09.2026): Kopf mit kleinem Vorschaubild, darunter je Person
+             ein Bereich. Die Werte je Person rechnet `kartenZeilen` vor. -->
         <div
-          v-for="(planExercise, index) in workoutExercises"
-          :key="planExercise.exerciseId + '-' + index"
+          v-for="karte in kartenZeilen"
+          :key="karte.entry.exerciseId + '-' + karte.index"
           class="card exercise-card"
-          :class="{ 'exercise-active': activeExerciseIndex === index }"
-          @click="openExerciseInput(index)"
+          :class="{ 'exercise-active': activeExerciseIndex === karte.index }"
+          @click="openExerciseInput(karte.index)"
           @touchstart.passive="onCardTouchStart"
-          @touchend.passive="onCardTouchEnd($event, index)"
+          @touchend.passive="onCardTouchEnd($event, karte.index)"
         >
-          <div class="exercise-row">
-            <!-- Thumbnail links: Vorschaubild der KOPF-Uebung (die aktive Uebung des
-                 bevorzugten Nutzers — auf Lisas Handy traegt die Karte Lisas
-                 Uebung), ohne Bild die MuscleMap klein als Platzhalter.
-                 Tipp aufs Thumbnail oeffnet die Detailansicht, NICHT das
-                 Eingabe-Rad — darum @click.stop -->
-            <div class="exercise-thumb" @click.stop="openExerciseDetail(kopfId(planExercise))">
-              <img
-                v-if="getThumbUrl(kopfId(planExercise))"
-                :src="getThumbUrl(kopfId(planExercise))"
-                alt=""
-                class="thumb-foto"
-              />
-              <MuscleMap
-                v-else
-                :fallback-group="getMuscleGroupId(kopfId(planExercise))"
-                :size="44"
-              />
+          <!-- Kopf: Vorschaubild und Name der KOPF-Uebung (die aktive Uebung
+               des bevorzugten Nutzers — auf Lisas Handy traegt die Karte Lisas
+               Uebung), ohne Bild die MuscleMap klein als Platzhalter. Tipp
+               aufs Vorschaubild oeffnet die Detailansicht, NICHT das
+               Eingabe-Rad — darum @click.stop. Wechselt die Kopf-Uebung,
+               schieben Bild und Name zur Seite (Transition, Schluessel =
+               Uebung). -->
+          <div class="exercise-kopf">
+            <div class="exercise-thumb" @click.stop="openExerciseDetail(karte.kopf)">
+              <Transition :name="schiebeName" mode="out-in">
+                <img
+                  v-if="getThumbUrl(karte.kopf)"
+                  :key="'bild-' + karte.kopf"
+                  :src="getThumbUrl(karte.kopf)"
+                  alt=""
+                  class="thumb-foto"
+                />
+                <MuscleMap
+                  v-else
+                  :key="'karte-' + karte.kopf"
+                  :fallback-group="getMuscleGroupId(karte.kopf)"
+                  :size="32"
+                />
+              </Transition>
             </div>
+            <Transition :name="schiebeName" mode="out-in">
+              <h3 :key="karte.kopf" class="exercise-name">
+                {{ getExerciseName(karte.kopf) }}<span
+                  v-if="getExerciseNotes(karte.kopf)"
+                  class="exercise-notes-inline"
+                > ({{ getExerciseNotes(karte.kopf) }})</span>
+              </h3>
+            </Transition>
+            <button class="btn-icon" aria-label="Uebung tauschen" @click.stop="openSwap(karte.index)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+            </button>
+          </div>
 
-            <div class="exercise-main">
-              <div class="exercise-name-row">
-                <h3 class="exercise-name">
-                  {{ getExerciseName(kopfId(planExercise)) }}<span
-                    v-if="getExerciseNotes(kopfId(planExercise))"
-                    class="exercise-notes-inline"
-                  > ({{ getExerciseNotes(kopfId(planExercise)) }})</span>
-                </h3>
-                <button class="btn-icon" @click.stop="openSwap(index)">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
-                </button>
-              </div>
-
-              <!-- Compact display of current values per user.
-                   Layout nach Anzahl: 1 volle Breite, 2 nebeneinander, 3 untereinander -->
-              <div class="exercise-values" :class="'users-' + authStore.activeUsers.length">
-                <div v-for="user in authStore.activeUsers" :key="user.id" class="user-value" :data-user-id="user.id" :style="{ borderLeftColor: user.color }">
-                  <span class="user-value-name">{{ user.name }}</span>
-                  <span class="user-value-data">
-                    <template v-if="getSavedValue(aktiveId(planExercise, user.id), user.id, 'weight')">
-                      {{ getSavedValue(aktiveId(planExercise, user.id), user.id, 'weight') }}kg <span class="value-reps">x {{ getSavedValue(aktiveId(planExercise, user.id), user.id, 'reps') }}</span>
-                    </template>
-                    <template v-else-if="recommendations[aktiveId(planExercise, user.id)]?.[user.id]">
-                      <span class="rec-hint">{{ recommendations[aktiveId(planExercise, user.id)][user.id].weight }}kg</span>
-                      <!-- Wdh der letzten Einheit. {{ ' ' }} statt Leerzeichen: Vue streicht
-                           Leerraum am Rand eines template, und nur dort darf umbrochen werden -->
-                      <template v-if="getLastReps(aktiveId(planExercise, user.id), user.id) != null">
-                        {{ ' ' }}<span class="rec-hint value-reps">x {{ getLastReps(aktiveId(planExercise, user.id), user.id) }}</span>
+          <!-- Werte je Person. Layout nach Anzahl: 1 volle Breite, 2
+               nebeneinander, 3 untereinander (bei voller Breite steht die
+               Wechsel-Zeile rechts in derselben Reihe). -->
+          <div class="exercise-values" :class="'users-' + karte.nutzer.length">
+            <div
+              v-for="z in karte.nutzer"
+              :key="z.user.id"
+              class="user-value"
+              role="group"
+              :aria-label="z.user.name"
+              :data-user-id="z.user.id"
+              :style="{ borderLeftColor: z.user.color }"
+            >
+              <div class="user-value-zeile">
+                <span class="user-kreis" :style="{ background: z.user.color }" aria-hidden="true">{{ z.user.name.charAt(0) }}</span>
+                <!-- Wert der aktiven Uebung dieser Person: heute gespeichert
+                     fett, sonst der Vorschlag kursiv. Wer mehrere Saetze
+                     erfasst, sieht dazu je Satz einen Punkt (voll =
+                     gespeichert). -->
+                <Transition :name="schiebeName" mode="out-in">
+                  <span :key="z.exId" class="user-value-data">
+                    <template v-if="z.wert">
+                      <span :class="{ 'rec-hint': !z.wert.gespeichert }">{{ z.wert.weight }}</span>
+                      <!-- Wdh aus DEMSELBEN Satz wie das Gewicht. {{ ' ' }} statt
+                           Leerzeichen: Vue streicht Leerraum am Rand eines
+                           template, und nur dort darf umbrochen werden -->
+                      <template v-if="z.wert.reps != null">
+                        {{ ' ' }}<span class="value-reps" :class="{ 'rec-hint': !z.wert.gespeichert }">× {{ z.wert.reps }}</span>
                       </template>
-                      <span v-if="increaseFlags[aktiveId(planExercise, user.id)]?.[user.id]" class="increase-hint">&#8593;</span>
+                      <span v-if="!z.wert.gespeichert && z.steigern" class="increase-hint">&#8593;</span>
                     </template>
                     <template v-else>--</template>
+                    <span
+                      v-if="z.punkte"
+                      class="satz-punkte"
+                      role="img"
+                      :aria-label="`${z.punkte.fertig} von ${z.punkte.slots} Saetzen gespeichert`"
+                    >
+                      <i
+                        v-for="n in z.punkte.slots"
+                        :key="n"
+                        :style="{ borderColor: z.user.color, background: n <= z.punkte.fertig ? z.user.color : 'transparent' }"
+                      ></i>
+                    </span>
                   </span>
-                  <button
-                    class="increase-icon-btn"
-                    :class="{ active: increaseToggles[aktiveId(planExercise, user.id)]?.[user.id] }"
-                    :style="{ '--user-color': user.color }"
-                    :title="`${user.name}: Gewicht beim nächsten Mal steigern`"
-                    @click.stop="toggleIncrease(aktiveId(planExercise, user.id), user.id)"
-                  >
-                    <img src="/logo.svg" alt="" class="increase-icon-logo" />
-                  </button>
-                  <!-- Schnellwechsel JE NUTZER (nur mit hinterlegten Alternativen):
-                       Tipp aufs Symbol springt zur naechsten Ring-Uebung DIESES
-                       Nutzers, der Name zeigt seine aktive Uebung. Der Stern
-                       merkt sie als seinen Standard im Plan (erneuter Tipp
-                       entfernt den Standard); Wischen auf dem Bereich wechselt
-                       ebenfalls nur diesen Nutzer. -->
-                  <div v-if="getRing(planExercise).length > 1" class="user-ring-row">
-                    <button class="user-ring-btn" :title="`${user.name}: Alternative wechseln`" @click.stop="tapRingUser(index, user.id)">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
-                      <span class="user-ring-name">{{ getExerciseName(aktiveId(planExercise, user.id)) }}</span>
+                </Transition>
+                <button
+                  class="increase-icon-btn"
+                  :class="{ active: increaseToggles[z.exId]?.[z.user.id] }"
+                  :style="{ '--user-color': z.user.color }"
+                  :title="`${z.user.name}: Gewicht beim nächsten Mal steigern`"
+                  @click.stop="toggleIncrease(z.exId, z.user.id)"
+                >
+                  <img src="/logo.svg" alt="" class="increase-icon-logo" />
+                </button>
+              </div>
+              <!-- Schnellwechsel JE PERSON (nur mit hinterlegten Alternativen):
+                   Der Knopf nennt das ZIEL eines Tipps — die aktuelle Uebung
+                   steht schon im Kartentitel (Gabriel 26.09.2026). Macht die
+                   Person gerade eine andere Uebung als im Titel, steht deren
+                   Name in ihrer Farbe darueber. Der Stern merkt die aktive
+                   Uebung als ihren Standard im Plan (erneuter Tipp entfernt
+                   ihn); Wischen auf dem Bereich wechselt ebenfalls nur diese
+                   Person. -->
+              <Transition :name="schiebeName" mode="out-in">
+                <div v-if="z.anzeige.eigene || z.anzeige.ziel" :key="z.exId" class="user-wechsel">
+                  <div v-if="z.anzeige.eigene" class="user-eigene" :style="{ color: z.user.color }">
+                    {{ getExerciseName(z.anzeige.eigene) }}
+                  </div>
+                  <div v-if="z.anzeige.ziel" class="user-ring-row">
+                    <button
+                      class="user-ring-btn"
+                      :aria-label="`${z.user.name}: wechseln zu ${getExerciseName(z.anzeige.ziel)}`"
+                      @click.stop="tapRingUser(karte.index, z.user.id)"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
+                      <span class="user-ring-name">{{ getExerciseName(z.anzeige.ziel) }}</span>
                     </button>
                     <button
-                      v-if="kannStandardMerken(index)"
+                      v-if="karte.standardMoeglich"
                       class="user-star-btn"
-                      :class="{ active: istStandard(planExercise, user.id) }"
-                      :style="{ '--user-color': user.color }"
-                      :title="`${user.name}: aktive Uebung als Standard merken`"
-                      @click.stop="merkeStandard(index, user.id)"
+                      :class="{ active: istStandard(karte.entry, z.user.id) }"
+                      :style="{ '--user-color': z.user.color }"
+                      :title="`${z.user.name}: aktive Uebung als Standard merken`"
+                      @click.stop="merkeStandard(karte.index, z.user.id)"
                     >&#9733;</button>
                   </div>
                 </div>
-              </div>
+              </Transition>
             </div>
           </div>
         </div>
@@ -238,14 +283,39 @@
             class="user-tab"
             :class="{ active: pickerUserId === user.id }"
             :style="{ '--user-color': user.color }"
-            @click="pickerUserId = user.id"
+            @click="waehleImRad(user.id)"
           >
             {{ user.name }}
           </button>
         </div>
 
-        <!-- Recommendation hint -->
-        <div v-if="pickerRecommendation" class="picker-rec">
+        <!-- Satz-Reiter, nur wer mehrere Saetze erfasst (Einstellungen):
+             gespeicherte Saetze mit Wert und Haken, der gewaehlte umrandet.
+             Vorgewaehlt ist der erste offene Satz. -->
+        <div v-if="pickerSlots > 1" class="satz-tabs">
+          <button
+            v-for="n in pickerSlots"
+            :key="n"
+            class="satz-tab"
+            :class="{ active: pickerSatz === n }"
+            :style="{ '--user-color': pickerUserColor }"
+            @click="waehleSatz(n)"
+          >
+            <span class="satz-tab-titel">Satz {{ n }}</span>
+            <span v-if="pickerGespeichert(n)" class="satz-tab-wert fertig">
+              {{ pickerGespeichert(n).weight }} × {{ pickerGespeichert(n).reps }} ✓
+            </span>
+            <span v-else class="satz-tab-wert">offen</span>
+          </button>
+        </div>
+
+        <!-- Hinweis ueber dem Rad. Mehrere Saetze: was die Person letztes Mal
+             in DIESEM Satz geschafft hat. Ein Satz: die Empfehlung wie bisher. -->
+        <div v-if="pickerSlots > 1 && pickerLetztesMal" class="picker-rec">
+          Letztes Mal, Satz {{ pickerSatz }}: {{ pickerLetztesMal.weight }}kg<template v-if="pickerLetztesMal.reps != null"> x {{ pickerLetztesMal.reps }}</template>
+          <span v-if="pickerQuelle === 'vorschlag' && pickerShouldIncrease" class="increase-hint"> &#8593; erhoeht</span>
+        </div>
+        <div v-else-if="pickerSlots <= 1 && pickerRecommendation" class="picker-rec">
           Empfehlung: {{ pickerRecommendation.weight }}kg<template v-if="pickerLastReps != null"> x {{ pickerLastReps }}</template>
           <span v-if="pickerShouldIncrease" class="increase-hint"> &#8593; erhoeht</span>
         </div>
@@ -410,7 +480,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import TopBar from '../components/layout/TopBar.vue'
 import Modal from '../components/shared/Modal.vue'
@@ -433,8 +503,20 @@ import {
   naechsteImRing,
   mitNutzerUebung,
   vorbelegungAusBevorzugt,
-  toggleBevorzugt
+  toggleBevorzugt,
+  wechselAnzeige
 } from '../utils/uebungsRing.js'
+import {
+  satzSlots,
+  offenerSatz,
+  gespeicherteSaetze,
+  letzterSatz,
+  satzAusEinheit,
+  vorschlagsSatz,
+  vorbelegung,
+  naechsterSchritt,
+  quickLogFolge
+} from '../utils/saetze.js'
 import bildKatalog from '../data/uebungskatalog.json'
 import {
   requestNotificationPermission,
@@ -451,7 +533,7 @@ const workoutStore = useWorkoutStore()
 const plansStore = usePlansStore()
 const authStore = useAuthStore()
 const { exercises, loadExercises, getExerciseById } = useExercises()
-const { getLatestWeight, shouldIncreaseWeight } = useHistory()
+const { getLastSets } = useHistory()
 
 const showDaySelector = ref(false)
 const showUserSelect = ref(false)
@@ -464,6 +546,9 @@ const swapIndex = ref(-1)
 const recommendations = reactive({})
 const increaseFlags = reactive({})
 const increaseToggles = reactive({})
+// Saetze der letzten Einheit je Uebung und Person (ohne das laufende
+// Workout) — Quelle fuer "Letztes Mal, Satz n" und die Vorschlaege je Satz
+const letzteEinheit = reactive({})
 const workoutExercises = ref([])
 const currentDay = ref(null)
 
@@ -475,8 +560,12 @@ const customSelectedIds = ref([])
 // Wheel picker state
 const activeExerciseIndex = ref(-1)
 const pickerUserId = ref('user1')
+const pickerSatz = ref(1)
 const pickerWeight = ref(20)
 const pickerReps = ref(10)
+// Woher die Vorbelegung stammt ('heute' | 'davor' | 'vorschlag' | null) —
+// nur ein Vorschlag aus der letzten Einheit traegt die Steigerung
+const pickerQuelle = ref(null)
 
 const showNotifBanner = ref(false)
 const formattedDate = computed(() => formatDate(getToday()))
@@ -608,6 +697,36 @@ const pickerLastReps = computed(() => {
   return ex ? getLastReps(aktiveId(ex, pickerUserId.value), pickerUserId.value) : null
 })
 
+// --- Saetze im Rad (Regeln in utils/saetze.js, Vertrag scripts/saetze-test.mjs) ---
+
+// Aktive Uebung des im Rad gewaehlten Nutzers
+const pickerExId = computed(() => {
+  if (activeExerciseIndex.value < 0) return null
+  const ex = workoutExercises.value[activeExerciseIndex.value]
+  return ex ? aktiveId(ex, pickerUserId.value) : null
+})
+
+// Wie viele Satz-Reiter das Rad zeigt (1 = keine Reiter, wie bisher)
+const pickerSlots = computed(() =>
+  pickerExId.value ? slotsFuer(pickerExId.value, pickerUserId.value) : 1
+)
+
+const pickerUserColor = computed(() =>
+  authStore.users.find(u => u.id === pickerUserId.value)?.color || 'var(--color-accent)'
+)
+
+// "Letztes Mal, Satz n" — der Satz aus der letzten Einheit, ohne Steigerung
+const pickerLetztesMal = computed(() => {
+  if (!pickerExId.value) return null
+  return satzAusEinheit(letzteEinheit[pickerExId.value]?.[pickerUserId.value] || [], pickerSatz.value)
+})
+
+// Heute gespeicherter Satz n des gewaehlten Nutzers (Reiter mit Haken)
+function pickerGespeichert(n) {
+  if (!pickerExId.value) return null
+  return letzterSatz(saetzeHeute(pickerExId.value, pickerUserId.value).filter(s => s.setNumber === n))
+}
+
 // Vorauswahl im Rad und erster Notification-Knopf: der Standard-Nutzer des
 // Geraets — ist er heute nicht aktiv, der erste aktive Nutzer.
 const preferredUserId = computed(() => {
@@ -653,11 +772,62 @@ function openExerciseDetail(exerciseId) {
   showExerciseDetail.value = true
 }
 
-function getSavedValue(exerciseId, userId, field) {
-  const sets = workoutStore.getSetsForExercise(exerciseId, userId)
-  const set = sets.find(s => s.setNumber === 1)
-  return set ? set[field] : null
+// Heute gespeicherte Saetze einer Person fuer eine Uebung
+function saetzeHeute(exerciseId, userId) {
+  return workoutStore.getSetsForExercise(exerciseId, userId)
 }
+
+// Wie viele Saetze die Person je Uebung erfasst (Einstellungen), mindestens
+// so viele, wie heute schon gespeichert sind — 1 heisst: ein Referenzwert
+function slotsFuer(exerciseId, userId) {
+  return satzSlots(authStore.satzZahl(userId), saetzeHeute(exerciseId, userId))
+}
+
+// Gespeicherter Wert fuer Karte und Sperrbildschirm: der zuletzt
+// eingetragene Satz von heute (mit einem Satz je Uebung ist das Satz 1)
+function getSavedValue(exerciseId, userId, field) {
+  const satz = letzterSatz(saetzeHeute(exerciseId, userId))
+  return satz ? satz[field] : null
+}
+
+// Anzeige-Wert einer Person auf der Karte: heute gespeichert (fett), sonst
+// der Vorschlag aus der letzten Einheit (kursiv). Gewicht und Wdh stammen
+// immer aus EINEM Datensatz.
+function kartenWert(exerciseId, userId) {
+  const satz = letzterSatz(saetzeHeute(exerciseId, userId))
+  if (satz) return { weight: satz.weight, reps: satz.reps, gespeichert: true }
+  const rec = recommendations[exerciseId]?.[userId]
+  if (rec) return { weight: rec.weight, reps: getLastReps(exerciseId, userId), gespeichert: false }
+  return null
+}
+
+// Punkte fuer die Saetze auf der Karte — null bei einem Satz je Uebung
+function satzPunkte(exerciseId, userId) {
+  const heute = saetzeHeute(exerciseId, userId)
+  const slots = satzSlots(authStore.satzZahl(userId), heute)
+  return slots > 1 ? { slots, fertig: gespeicherteSaetze(slots, heute) } : null
+}
+
+// Alles, was eine Karte zeigt, einmal vorgerechnet (statt dieselben Aufrufe
+// im Template mehrfach zu wiederholen). Haengt an Saetzen, Vorschlaegen,
+// Nutzern und Einstellungen — Vue rechnet bei jeder Aenderung neu.
+const kartenZeilen = computed(() => workoutExercises.value.map((entry, index) => ({
+  entry,
+  index,
+  kopf: kopfId(entry),
+  standardMoeglich: kannStandardMerken(index),
+  nutzer: authStore.activeUsers.map(user => {
+    const exId = aktiveId(entry, user.id)
+    return {
+      user,
+      exId,
+      wert: kartenWert(exId, user.id),
+      steigern: increaseFlags[exId]?.[user.id] || false,
+      punkte: satzPunkte(exId, user.id),
+      anzeige: wechselAnzeige(entry, user.id, preferredUserId.value)
+    }
+  })
+})))
 
 // Wdh der letzten Einheit — aus DEMSELBEN gespeicherten Satz wie der
 // Gewichtsvorschlag daneben. Vorher standen beide in getrennten Speichern, die
@@ -677,30 +847,62 @@ function getWeightStep(exerciseId) {
 async function loadRecommendations() {
   for (const ex of workoutExercises.value) {
     // Je Nutzer SEINE aktive Uebung (Schnellwechsel-Ring) — der Schluessel in
-    // recommendations/increaseFlags ist immer die Uebung, die er wirklich macht
+    // recommendations/increaseFlags ist immer die Uebung, die er wirklich
+    // macht. Die uebrigen Ring-Uebungen gleich mit: dann stehen die Werte
+    // schon bereit, wenn er wechselt, und die Schiebe-Animation zeigt keine
+    // leere Zeile.
     for (const user of authStore.activeUsers) {
-      const exId = aktiveId(ex, user.id)
-      if (!recommendations[exId]) recommendations[exId] = {}
-      if (!increaseFlags[exId]) increaseFlags[exId] = {}
-
-      const latest = await getLatestWeight(exId, user.id)
-
-      const shouldInc = await shouldIncreaseWeight(exId, user.id)
-      increaseFlags[exId][user.id] = shouldInc
-
-      if (latest) {
-        // Steigern-Merker wirkt direkt auf den Vorschlag: Schrittweite aufschlagen,
-        // der Pfeil im UI zeigt dann nur noch an, DASS erhoeht wurde.
-        const weight = shouldInc
-          ? Math.round((latest.weight + getWeightStep(exId)) * 100) / 100
-          : latest.weight
-        // latest traegt die Wdh dieses Satzes mit — getLastReps liest sie von
-        // hier. Ein Eintrag, ein Paar: das Rad startet mit dem, was die Karte
-        // zeigt, und ein leeres Abfrageergebnis kann kein halbes Paar hinterlassen.
-        recommendations[exId][user.id] = { ...latest, weight }
+      for (const exId of new Set([aktiveId(ex, user.id), ...ringFuer(ex)])) {
+        await ladeVorschlag(exId, user.id)
       }
     }
   }
+}
+
+async function ladeVorschlag(exId, userId) {
+  if (!recommendations[exId]) recommendations[exId] = {}
+  if (!increaseFlags[exId]) increaseFlags[exId] = {}
+  if (!letzteEinheit[exId]) letzteEinheit[exId] = {}
+
+  // Alle Saetze der letzten Einheit OHNE das laufende Workout — sonst wuerde
+  // nach dem ersten Satz von heute "letztes Mal" zu "heute"
+  const letzte = await getLastSets(exId, userId, workoutStore.activeWorkout?.id)
+  letzteEinheit[exId][userId] = letzte
+
+  const shouldInc = letzte.some(s => s.increaseNextTime)
+  increaseFlags[exId][userId] = shouldInc
+
+  // Der Satz fuer die Karte: mit einem Satz je Uebung der zuletzt
+  // eingetragene (wie bis v2.3), mit mehreren Saetzen deren Satz 1
+  const basis = vorschlagsSatz(letzte, authStore.satzZahl(userId))
+  if (basis) {
+    // Steigern-Merker wirkt direkt auf den Vorschlag: Schrittweite aufschlagen,
+    // der Pfeil im UI zeigt dann nur noch an, DASS erhoeht wurde.
+    const weight = shouldInc
+      ? Math.round((basis.weight + getWeightStep(exId)) * 100) / 100
+      : basis.weight
+    // basis traegt die Wdh dieses Satzes mit — getLastReps liest sie von
+    // hier. Ein Eintrag, ein Paar: das Rad startet mit dem, was die Karte
+    // zeigt, und ein leeres Abfrageergebnis kann kein halbes Paar hinterlassen.
+    recommendations[exId][userId] = { ...basis, weight }
+  }
+}
+
+// Vorschlag fuer Satz n aus der letzten Einheit, inkl. Steigerung. Satz 1
+// (bzw. der eine Referenzwert) ist genau der Eintrag in `recommendations`,
+// den auch Karte und Sperrbildschirm zeigen; jeder weitere Satz kommt aus
+// demselben Satz der letzten Einheit — Gewicht und Wdh aus einem Datensatz.
+function satzVorschlag(exId, userId, n) {
+  if (n === 1) {
+    const rec = recommendations[exId]?.[userId]
+    return rec ? { weight: rec.weight, reps: getLastReps(exId, userId) } : null
+  }
+  const satz = satzAusEinheit(letzteEinheit[exId]?.[userId] || [], n)
+  if (!satz) return null
+  const weight = increaseFlags[exId]?.[userId]
+    ? Math.round((satz.weight + getWeightStep(exId)) * 100) / 100
+    : satz.weight
+  return { weight, reps: satz.reps }
 }
 
 // --- Workout-Notiz und Zyklustag (P11): beide Felder liegen am workoutLog ---
@@ -836,10 +1038,19 @@ async function merkeStandard(index, userId) {
   await workoutStore.persistWorkoutExercises(workoutExercises.value)
 }
 
+// Richtung der Schiebe-Animation beim Wechsel (Gabriel 26.09.2026): vorwaerts
+// (Tipp, Wisch nach links) rutscht die Uebung nach links weg und die neue
+// kommt von rechts; rueckwaerts (Wisch nach rechts) umgekehrt. Die
+// Transitions haengen am Schluessel der Uebung — der Karten-Schluessel
+// bleibt beim Ringwechsel gleich, sonst gaebe es keine Animation.
+const schiebeRichtung = ref('vor')
+const schiebeName = computed(() => `schieben-${schiebeRichtung.value}`)
+
 async function cycleRingUser(index, userId, dir = 1) {
   const entry = workoutExercises.value[index]
   const nextId = naechsteImRing(entry, userId, dir)
   if (!nextId) return
+  schiebeRichtung.value = dir > 0 ? 'vor' : 'zurueck'
   workoutExercises.value[index] = mitNutzerUebung(entry, userId, nextId)
   // Gleicher Weg wie beim Tausch: Abweichung am Log sichern, Empfehlungen
   // und Notification nachziehen
@@ -888,61 +1099,67 @@ function onCardTouchEnd(e, index) {
 function openExerciseInput(index) {
   if (istWischNachklick()) return
   activeExerciseIndex.value = index
-  const ex = workoutExercises.value[index]
   // Standard-Nutzer vorausgewaehlt (pro Geraet); nicht aktiv -> erster aktiver
-  pickerUserId.value = preferredUserId.value
-
-  // Pre-fill with saved value or recommendation — fuer die aktive Uebung
-  // DIESES Nutzers (Schnellwechsel-Ring)
-  const exId = aktiveId(ex, pickerUserId.value)
-  const saved = workoutStore.getSetsForExercise(exId, pickerUserId.value).find(s => s.setNumber === 1)
-  if (saved) {
-    pickerWeight.value = saved.weight
-    pickerReps.value = saved.reps
-  } else {
-    const rec = recommendations[exId]?.[pickerUserId.value]
-    // ?? statt ||: 0 kg (Koerpergewichtsuebung) ist ein gueltiger Wert
-    pickerWeight.value = rec?.weight ?? 20
-    pickerReps.value = getLastReps(exId, pickerUserId.value) ?? 10
-  }
-
+  waehleImRad(preferredUserId.value)
   showWheelPicker.value = true
 }
 
-// When switching user in picker, load their saved/recommended values
-watch(pickerUserId, (userId) => {
-  if (activeExerciseIndex.value < 0) return
+// Offener Satz einer Person an der Karte im Rad (fuer die aktive Uebung
+// DIESER Person, Schnellwechsel-Ring) — null, wenn alle gespeichert sind
+function offenerSatzImRad(userId) {
   const ex = workoutExercises.value[activeExerciseIndex.value]
+  if (!ex) return null
   const exId = aktiveId(ex, userId)
-  const saved = workoutStore.getSetsForExercise(exId, userId).find(s => s.setNumber === 1)
-  if (saved) {
-    pickerWeight.value = saved.weight
-    pickerReps.value = saved.reps
-  } else {
-    const rec = recommendations[exId]?.[userId]
-    pickerWeight.value = rec?.weight ?? 20
-    pickerReps.value = getLastReps(exId, userId) ?? 10
-  }
-})
+  return offenerSatz(slotsFuer(exId, userId), saetzeHeute(exId, userId))
+}
+
+// Person (und Satz) im Rad waehlen und die Raeder vorbelegen. Ohne Satz:
+// der erste offene, sind alle gespeichert, der letzte (zum Korrigieren).
+function waehleImRad(userId, satz = null) {
+  pickerUserId.value = userId
+  pickerSatz.value = satz ?? offenerSatzImRad(userId) ?? pickerSlots.value
+  radVorbelegen()
+}
+
+function waehleSatz(n) {
+  pickerSatz.value = n
+  radVorbelegen()
+}
+
+// Vorbelegung fuer den gewaehlten Satz (Regel: vorbelegung in utils/saetze.js):
+// heute gespeichert -> dieser Satz, sonst der Satz davor von heute, sonst der
+// Vorschlag aus der letzten Einheit, sonst 20 kg x 10. ?? statt ||: 0 kg
+// (Koerpergewichtsuebung) ist ein gueltiger Wert.
+function radVorbelegen() {
+  const exId = pickerExId.value
+  if (!exId) return
+  const userId = pickerUserId.value
+  const v = vorbelegung(saetzeHeute(exId, userId), pickerSatz.value, satzVorschlag(exId, userId, pickerSatz.value))
+  pickerWeight.value = v?.weight ?? 20
+  pickerReps.value = v?.reps ?? 10
+  pickerQuelle.value = v?.quelle || null
+}
 
 async function savePickerValues() {
   const ex = workoutExercises.value[activeExerciseIndex.value]
+  const userId = pickerUserId.value
   // Der Satz gehoert zur aktiven Uebung DES NUTZERS — Lisas Latzug-Satz
   // landet bei Latzug, Gabs Klimmzug-Satz bei Klimmzug
-  await workoutStore.saveSet(aktiveId(ex, pickerUserId.value), pickerUserId.value, 1, pickerWeight.value, pickerReps.value)
+  await workoutStore.saveSet(aktiveId(ex, userId), userId, pickerSatz.value, pickerWeight.value, pickerReps.value)
 
-  // Auto-Wechsel: reihum zum naechsten AKTIVEN Nutzer ohne gespeicherten Satz
-  // (gemessen an SEINER aktiven Uebung). Bei einem aktiven Nutzer laeuft die
-  // Schleife leer, das Rad schliesst sich.
-  const active = authStore.activeUsers
-  const startIdx = active.findIndex(u => u.id === pickerUserId.value)
-  for (let i = 1; i < active.length; i++) {
-    const candidate = active[(startIdx + i + active.length) % active.length]
-    const candidateSaved = workoutStore.getSetsForExercise(aktiveId(ex, candidate.id), candidate.id).find(s => s.setNumber === 1)
-    if (!candidateSaved) {
-      pickerUserId.value = candidate.id
-      return
-    }
+  // Auto-Wechsel (Regel: naechsterSchritt in utils/saetze.js): reihum der
+  // naechste AKTIVE Nutzer mit offenem Satz (gemessen an SEINER aktiven
+  // Uebung), sonst der naechste Satz desselben Nutzers, sonst schliessen.
+  // Mit einem Satz je Uebung und einem aktiven Nutzer schliesst das Rad.
+  const schritt = naechsterSchritt(authStore.activeUsers.map(u => u.id), userId, offenerSatzImRad)
+  if (schritt) {
+    waehleImRad(schritt.userId, schritt.satz)
+    // Bleibt das Rad beim selben Nutzer (naechster Satz), beginnt jetzt seine
+    // Pause — oft mit gesperrtem Handy: der Sperrbildschirm soll den
+    // gespeicherten Satz schon kennen. Beim Wechsel zum Partner wie bisher
+    // erst beim Schliessen.
+    if (schritt.userId === userId) updateNotification()
+    return
   }
 
   showWheelPicker.value = false
@@ -1015,27 +1232,29 @@ function buildNotificationQuickLog() {
     userNames[user.id] = user.name
     const queue = []
     for (const ex of workoutExercises.value) {
-      // Warteschlange je Nutzer ueber SEINE aktive Uebung (Schnellwechsel-Ring)
+      // Warteschlange je Nutzer ueber SEINE aktive Uebung (Schnellwechsel-Ring).
+      // Mit einem Satz je Uebung ein Eintrag (Satz 1, falls offen), mit
+      // mehreren Saetzen jeder offene Satz der Reihe nach — vorbelegt wie im
+      // Rad (Regel: quickLogFolge in utils/saetze.js).
       const exId = aktiveId(ex, user.id)
-      const saved = workoutStore.getSetsForExercise(exId, user.id).find(s => s.setNumber === 1)
-      if (saved) continue
-      const rec = recommendations[exId]?.[user.id]
-      const weight = rec?.weight ?? 20
-      const reps = getLastReps(exId, user.id) ?? 10
-      queue.push({
-        label: `${getExerciseName(exId)} ${weight}kg x${reps}`,
-        set: {
-          workoutLogId: aw.id,
-          exerciseId: exId,
-          userId: user.id,
-          setNumber: 1,
-          weight,
-          reps,
-          isWarmup: false,
-          date: aw.date,
-          increaseNextTime: false
-        }
-      })
+      const slots = slotsFuer(exId, user.id)
+      const folge = quickLogFolge(slots, saetzeHeute(exId, user.id), n => satzVorschlag(exId, user.id, n))
+      for (const satz of folge) {
+        queue.push({
+          label: `${getExerciseName(exId)}${slots > 1 ? ` S${satz.setNumber}` : ''} ${satz.weight}kg x${satz.reps}`,
+          set: {
+            workoutLogId: aw.id,
+            exerciseId: exId,
+            userId: user.id,
+            setNumber: satz.setNumber,
+            weight: satz.weight,
+            reps: satz.reps,
+            isWarmup: false,
+            date: aw.date,
+            increaseNextTime: false
+          }
+        })
+      }
     }
     queues[user.id] = queue
   }
@@ -1064,7 +1283,8 @@ function updateNotification() {
     recommendations,
     getSavedValue,
     getLastReps,
-    aktiveId
+    aktiveId,
+    satzPunkte
   )
   const { actions, data } = buildNotificationQuickLog()
   showWorkoutNotification(currentDay.value.title, lines, { actions, data })
@@ -1222,6 +1442,9 @@ onMounted(async () => {
   await loadExercises()
   await plansStore.loadPlans()
   await authStore.loadUserNames()
+  // Vor den Vorschlaegen: wer mehrere Saetze erfasst, bekommt Satz 1 der
+  // letzten Einheit als Vorschlag statt des zuletzt eingetragenen Satzes
+  await authStore.loadSatzZahlen()
 
   // Show notification banner if not yet permitted
   if (isNotificationSupported() && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
@@ -1472,8 +1695,13 @@ onUnmounted(() => {
   font-size: var(--font-size-sm);
 }
 
+/* Kompakte Karte (Variante A, Gabriel 26.09.2026): weniger Rand, kleines
+   Vorschaubild nur neben dem Titel, die Personen-Bereiche nutzen die volle
+   Kartenbreite. Auf 360 px passen so etwa 5 statt gut 3 Uebungen auf den
+   Bildschirm. */
 .exercise-card {
-  margin-bottom: var(--space-sm);
+  margin-bottom: 6px;
+  padding: var(--space-sm) 12px;
   cursor: pointer;
   transition: box-shadow 0.15s;
 }
@@ -1482,45 +1710,45 @@ onUnmounted(() => {
   box-shadow: var(--shadow-md);
 }
 
-.exercise-row {
+.exercise-kopf {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-sm);
+  min-height: 32px;
+  margin-bottom: var(--space-xs);
 }
 
 .exercise-thumb {
   flex-shrink: 0;
-  width: 44px;
-  padding-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .thumb-foto {
   display: block;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-white);
 }
 
-.exercise-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.exercise-name-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-sm);
-}
-
 .exercise-name {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
   flex: 1;
   min-width: 0;
+}
+
+.exercise-kopf .btn-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
 }
 
 .exercise-notes-inline {
@@ -1544,14 +1772,104 @@ onUnmounted(() => {
   background: var(--color-bg);
 }
 
-/* Schnellwechsel-Knopf: Symbol mit Punktreihe darunter (ein Punkt je
-   Ring-Position, aktiver Punkt in Akzentfarbe). Statische Farben, kein
-   color-mix (alte Android-WebViews). */
-/* Schnellwechsel-Zeile JE NUTZER: Symbol + aktive Uebung, rechts der Stern
-   zum Merken des Standards. Volle Breite unterhalb der Wertezeile
-   (flex-basis 100% + wrap am .user-value). Statische Farben, kein color-mix. */
+/* Werte je Person: 2 nebeneinander, 1 und 3 in voller Breite (3
+   untereinander — nebeneinander waere auf Handybreite zu schmal) */
+.exercise-values {
+  display: flex;
+  gap: 6px;
+}
+
+.exercise-values.users-3 {
+  flex-direction: column;
+  gap: 3px;
+}
+
+.user-value {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border-left: 3px solid;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--color-bg);
+  font-size: var(--font-size-sm);
+}
+
+/* Zeile 1: Farbkreis, Wert (+ Satz-Punkte), rechts der Steigern-Knopf */
+.user-value-zeile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  min-width: 0;
+}
+
+/* Wer eintraegt, erkennt man am Farbkreis mit Anfangsbuchstaben — wie im
+   Workout-Kopf; der Name steht fuer Vorleseprogramme am Bereich */
+.user-kreis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: var(--color-white);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+}
+
+/* Darf umbrechen: grosse Werte ("102.5 × 10") passen bei 360 px nicht immer
+   in die halbe Karte. Getrennt wird nur vor dem "×" (.value-reps bleibt
+   zusammen), die Satz-Punkte rutschen dann mit in die zweite Zeile. */
+.user-value-data {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.value-reps {
+  white-space: nowrap;
+}
+
+.user-value-data .increase-hint {
+  margin-left: 2px;
+}
+
+/* Ein Punkt je Satz in der Nutzerfarbe, voll = gespeichert */
+.satz-punkte {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 5px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.satz-punkte i {
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid;
+  border-radius: 50%;
+}
+
+/* Zeile 2 (nur mit Alternativen oder abweichender Uebung): eigene Uebung in
+   der Nutzerfarbe, darunter der Wechsel-Knopf mit dem ZIEL und der Stern
+   zum Merken des Standards. Statische Farben, kein color-mix. */
+.user-wechsel {
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.user-eigene {
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .user-ring-row {
-  flex-basis: 100%;
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -1563,7 +1881,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 6px;
+  min-height: 24px;
+  padding: 2px 6px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-white);
@@ -1585,13 +1904,13 @@ onUnmounted(() => {
 
 .user-star-btn {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-white);
   color: var(--color-border);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -1600,50 +1919,89 @@ onUnmounted(() => {
   border-color: var(--user-color);
 }
 
-.exercise-values {
+/* Volle Breite (1 oder 3 Personen): Wert links, Wechsel rechts in derselben
+   Reihe. Der Wert schrumpft nie; ohne Wechsel fuellt er die Reihe
+   (Steigern-Knopf rechts), mit Wechsel nimmt der fast den ganzen Rest
+   (Wachstum 100 zu 1) und kuerzt lange Namen mit "…". Erst wenn nicht mal
+   72 px uebrig sind, rutscht der Wechsel in eine zweite Zeile. */
+.users-1 .user-value,
+.users-3 .user-value {
   display: flex;
-  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-sm);
 }
 
-/* Drei aktive Nutzer: Zeilen untereinander — nebeneinander waere auf
-   Handybreite zu schmal. 1 Nutzer fuellt die Zeile (flex: 1), 2 wie bisher. */
-.exercise-values.users-3 {
-  flex-direction: column;
+.users-1 .user-value-zeile,
+.users-3 .user-value-zeile {
+  flex: 1 0 auto;
 }
 
-.user-value {
-  flex: 1;
+.users-1 .user-wechsel,
+.users-3 .user-wechsel {
   display: flex;
   align-items: center;
-  /* wrap: die Schnellwechsel-Zeile (.user-ring-row) rutscht als volle
-     Breite unter Name + Werte */
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-sm);
-  border-left: 3px solid;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--color-bg);
-  font-size: var(--font-size-sm);
+  gap: 6px;
+  flex: 100 1 72px;
   min-width: 0;
+  margin-top: 0;
 }
 
-.user-value-name {
-  color: var(--color-text-light);
-  flex-shrink: 0;
+/* Eigene Uebung neben dem Knopf: sie wird zuerst gekuerzt, der Knopf (die
+   Aktion) soll lesbar bleiben */
+.users-1 .user-eigene,
+.users-3 .user-eigene {
+  flex: 0 3 auto;
+  min-width: 0;
+  max-width: 38%;
 }
 
-.user-value-data {
-  font-weight: var(--font-weight-semibold);
+.users-1 .user-ring-row,
+.users-3 .user-ring-row {
   flex: 1;
-  text-align: right;
-  /* Darf umbrechen: "42.5kg x 10" passt bei 360 px nicht in die halbe Karte.
-     Getrennt wird nur vor dem "x" (.value-reps bleibt zusammen). */
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-top: 0;
 }
 
-.value-reps {
-  white-space: nowrap;
+/* Schiebe-Animation beim Uebungswechsel (Gabriel 26.09.2026): vorwaerts
+   rutscht die alte Uebung nach links weg, die neue kommt von rechts;
+   rueckwaerts umgekehrt. Kurz genug, dass sie beim schnellen Wechseln nicht
+   bremst. */
+.schieben-vor-enter-active,
+.schieben-zurueck-enter-active {
+  transition: transform 0.17s ease-out, opacity 0.17s ease-out;
+}
+
+.schieben-vor-leave-active,
+.schieben-zurueck-leave-active {
+  transition: transform 0.11s ease-in, opacity 0.11s ease-in;
+}
+
+.schieben-vor-leave-to,
+.schieben-zurueck-enter-from {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+
+.schieben-vor-enter-from,
+.schieben-zurueck-leave-to {
+  transform: translateX(24px);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schieben-vor-enter-active,
+  .schieben-zurueck-enter-active,
+  .schieben-vor-leave-active,
+  .schieben-zurueck-leave-active {
+    transition: opacity 0.1s linear;
+  }
+
+  .schieben-vor-leave-to,
+  .schieben-zurueck-enter-from,
+  .schieben-vor-enter-from,
+  .schieben-zurueck-leave-to {
+    transform: none;
+  }
 }
 
 .rec-hint {
@@ -1660,8 +2018,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--radius-full);
@@ -1716,6 +2075,52 @@ onUnmounted(() => {
   border-color: var(--user-color);
   color: var(--user-color);
   background: color-mix(in srgb, var(--user-color) 5%, white);
+}
+
+/* Satz-Reiter im Rad (nur wer mehrere Saetze erfasst): gespeicherte Saetze
+   zeigen Wert und Haken, der gewaehlte ist in der Nutzerfarbe umrandet */
+.satz-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.satz-tab {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: var(--space-xs) 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-text-light);
+  font-size: var(--font-size-xs);
+  line-height: 1.3;
+}
+
+.satz-tab.active {
+  border: 2px solid var(--user-color);
+  color: var(--user-color);
+  /* 1 px weniger Innenabstand gleicht den dickeren Rand aus (kein Springen) */
+  padding: 3px 1px;
+}
+
+.satz-tab-titel {
+  font-weight: var(--font-weight-semibold);
+}
+
+.satz-tab-wert {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.satz-tab-wert.fertig {
+  color: var(--color-success);
 }
 
 .picker-rec {
