@@ -1,8 +1,8 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="modelValue" class="modal-overlay" @click.self="close">
-        <div class="modal-content" :class="{ 'modal-full': fullHeight }">
+      <div v-if="modelValue" ref="overlayEl" class="modal-overlay" :style="overlayStil" @click.self="close">
+        <div class="modal-content" :class="{ 'modal-full': fullHeight, 'mit-tastatur': tastatur }">
           <div class="modal-grabber" aria-hidden="true"></div>
           <div class="modal-header">
             <h2 class="modal-title">{{ title }}</h2>
@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { watch, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -34,6 +34,65 @@ const emit = defineEmits(['update:modelValue'])
 
 function close() {
   emit('update:modelValue', false)
+}
+
+// Bildschirmtastatur (Android, Chrome ab 108): Die Tastatur legt sich UEBER
+// die Seite, statt sie zu verkleinern. Das Fenster klebt unten am Rand und
+// rutschte so hinter die Tastatur — beim Suchen verschwanden die Treffer,
+// sobald die Liste kuerzer wurde. Solange das Modal offen ist, misst es
+// darum den sichtbaren Bereich (visualViewport) und legt die Ueberlagerung
+// genau darauf; ohne Tastatur bleibt alles wie vorher (inset: 0).
+// Suchfenster (fullHeight) bleiben bei offener Tastatur voll hoch, damit die
+// Treffer direkt unter dem Suchfeld stehen, statt beim Tippen zu springen.
+const overlayEl = ref(null)
+const tastatur = ref(null) // null = keine Tastatur; sonst { top, hoehe } in px
+
+// Ab so viel verdeckter Hoehe gilt die Tastatur als offen. Bleibt unter
+// jeder echten Tastatur (ab ca. 200 px), liegt aber ueber der Adressleiste
+// im Browser-Tab (ca. 56 px), die den sichtbaren Bereich ebenfalls kuerzt.
+const TASTATUR_AB_PX = 100
+
+function messeSichtbarenBereich() {
+  const vv = window.visualViewport
+  // Beim Zoomen ist der sichtbare Bereich auch ohne Tastatur klein — dann
+  // nichts nachfuehren
+  if (!vv || vv.scale > 1.01) {
+    tastatur.value = null
+    return
+  }
+  // clientHeight = Hoehe der Seite ohne Tastatur (die Tastatur verkleinert
+  // nur den sichtbaren Bereich, nicht die Seite)
+  const verdeckt = document.documentElement.clientHeight - vv.offsetTop - vv.height
+  const vorher = tastatur.value
+  tastatur.value = verdeckt > TASTATUR_AB_PX
+    ? { top: Math.round(vv.offsetTop), hoehe: Math.round(vv.height) }
+    : null
+  // Gerade aufgegangen: das Eingabefeld im nun kleineren Fenster sichtbar
+  // halten (der Browser hat vor der Verkleinerung gescrollt)
+  if (!vorher && tastatur.value) {
+    nextTick(() => {
+      const aktiv = document.activeElement
+      if (aktiv && overlayEl.value?.contains(aktiv)) aktiv.scrollIntoView({ block: 'nearest' })
+    })
+  }
+}
+
+const overlayStil = computed(() => tastatur.value
+  ? { top: `${tastatur.value.top}px`, height: `${tastatur.value.hoehe}px`, bottom: 'auto' }
+  : null)
+
+function tastaturBeobachten(an) {
+  const vv = window.visualViewport
+  if (!vv) return
+  if (an) {
+    vv.addEventListener('resize', messeSichtbarenBereich)
+    vv.addEventListener('scroll', messeSichtbarenBereich)
+    messeSichtbarenBereich()
+  } else {
+    vv.removeEventListener('resize', messeSichtbarenBereich)
+    vv.removeEventListener('scroll', messeSichtbarenBereich)
+    tastatur.value = null
+  }
 }
 
 // Android-Zurueck (bzw. Browser-Back) soll ein offenes Modal schliessen statt
@@ -52,6 +111,7 @@ function onPopState() {
 watch(
   () => props.modelValue,
   (open) => {
+    tastaturBeobachten(open)
     if (open) {
       history.pushState({ modal: true }, '')
       pushedState = true
@@ -72,6 +132,7 @@ watch(
 // der verbleibende Eintrag kostet schlimmstenfalls einen zusaetzlichen Back.
 onUnmounted(() => {
   window.removeEventListener('popstate', onPopState)
+  tastaturBeobachten(false)
 })
 </script>
 
@@ -108,6 +169,18 @@ onUnmounted(() => {
 
 .modal-content.modal-full {
   max-height: 95vh;
+}
+
+/* Offene Tastatur: die Ueberlagerung ist per Inline-Stil auf den sichtbaren
+   Bereich verkleinert, Hoehen beziehen sich jetzt darauf (vh wuerde hinter
+   die Tastatur reichen). Suchfenster bleiben voll hoch, damit die Treffer
+   beim Tippen nicht nach unten wandern. */
+.modal-content.mit-tastatur {
+  max-height: calc(100% - var(--space-sm));
+}
+
+.modal-content.modal-full.mit-tastatur {
+  height: calc(100% - var(--space-sm));
 }
 
 .modal-header {
