@@ -3,6 +3,56 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.4.0] — 2026-09-26
+
+Feinschliff nach den ersten Wochen mit den Alternativ-Uebungen (Wuensche
+Gabriel und Lisa): jeder Satz laesst sich einzeln erfassen, die Karten sind
+kompakter, der Wechsel zur Alternative schiebt sichtbar zur Seite.
+
+### Features
+- **Jeder Satz einzeln (Einstellung je Person):** Einstellungen -> "Saetze je
+  Uebung" 1 bis 5. Bei 1 bleibt alles wie bisher, ab 2 zeigt die Karte je
+  Satz einen Punkt und das Rad Reiter "Satz 1/2/3" mit Wert und Haken. Ein
+  neuer Satz startet mit den Werten des vorigen Satzes; darueber steht, was
+  die Person letztes Mal in diesem Satz geschafft hat. Nach dem Speichern
+  kommt erst der Partner dran, dann der naechste eigene Satz. Der
+  Sperrbildschirm-Knopf traegt Satz fuer Satz ein ("Latzug S2 ..."), die
+  Zeilen zeigen den Stand ("(2/3)"). Die Einstellung gilt auf allen Handys.
+- **Kompaktere Tracking-Karten (Variante A aus zwei Skizzen, Wahl Gabriel):**
+  kleines Vorschaubild neben dem Titel, Farbkreis mit Anfangsbuchstaben statt
+  Name, weniger Rand. Eine Karte ist rund 30 % niedriger, zu zweit
+  zwei Bereiche nebeneinander, allein und zu dritt je Person eine Zeile.
+- **Wechsel-Knopf nennt die Alternative:** Statt der aktuellen Uebung (die
+  schon im Titel steht) zeigt der Knopf, wohin ein Tipp wechselt. Macht
+  jemand gerade eine andere Uebung als im Titel, steht ihr Name in seiner
+  Farbe dabei.
+- **Schiebe-Animation beim Wechsel:** Nach Tipp oder Wisch rutscht die Uebung
+  zur Seite weg und die neue kommt von der anderen Seite herein (Wisch nach
+  rechts: umgekehrt).
+- **Planung: Alternativen sichtbar** eingerueckt mit Pfeil unter der 1. Wahl,
+  jede mit eigenem x zum Entfernen; Tipp auf den Namen oeffnet die Auswahl.
+
+### Fixes
+- **Suche hinter der Tastatur:** Beim Tippen in "Uebung waehlen" (und allen
+  anderen Suchfenstern) verschwanden die Treffer hinter der Tastatur. Die
+  Fenster rutschen jetzt ueber die Tastatur, die Treffer stehen direkt unter
+  dem Suchfeld.
+- "Letztes Mal" und die Empfehlung im Rad zeigen nach einem Neuladen mitten
+  im Training wieder die letzte Einheit statt der Saetze von heute.
+
+### Technik
+- Neue Regeln als reine Funktionen: `utils/saetze.js` mit Vertragstest
+  `scripts/saetze-test.mjs` (im Pruef-Gate), dazu `wechselAnzeige` in
+  `utils/uebungsRing.js` mit erweitertem Ring-Test.
+- Keine Schema-Aenderung: weitere Saetze sind normale setLogs mit
+  `setNumber` 2..n, die Einstellung liegt in `db.meta` (`saetze_<userId>`).
+  History und CSV zeigen pro Tag weiterhin den schwersten Satz.
+
+### Hinweise
+- Nach dem Update beide Handys neu starten. Eine alte App-Version zeigt
+  Lisas Saetze 2 und 3 nicht an, verliert sie aber nicht.
+- Fuer Lisa einmal Einstellungen -> "Saetze je Uebung" -> 3 tippen.
+
 ## [2.3.0] — 2026-09-24
 
 Nutzer-Anzeige und Notiz-Knopf im Tracking sitzen jetzt stimmig im Layout
