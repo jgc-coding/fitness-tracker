@@ -103,27 +103,46 @@
                 </button>
               </div>
 
-              <!-- Exercises in this day -->
-              <div v-for="(ex, idx) in day.exercises" :key="idx" class="day-exercise">
-                <span class="day-exercise-name">{{ getExerciseName(ex.exerciseId) }}</span>
-                <div class="day-exercise-controls">
-                  <input
-                    type="number"
-                    :value="ex.sets"
-                    @change="updateExerciseSets(day, idx, $event)"
-                    class="sets-input"
-                    min="1"
-                    max="10"
-                  />
-                  <span class="sets-label">Sets</span>
+              <!-- Exercises in this day: je Eintrag die 1. Wahl, darunter
+                   eingerueckt ihre Alternativen (Gabriel 26.09.2026) -->
+              <div v-for="(ex, idx) in day.exercises" :key="idx" class="day-exercise-group">
+                <div class="day-exercise">
+                  <span class="day-exercise-name">{{ getExerciseName(ex.exerciseId) }}</span>
+                  <div class="day-exercise-controls">
+                    <input
+                      type="number"
+                      :value="ex.sets"
+                      @change="updateExerciseSets(day, idx, $event)"
+                      class="sets-input"
+                      min="1"
+                      max="10"
+                    />
+                    <span class="sets-label">Sets</span>
+                    <button
+                      class="btn-icon small alt-btn"
+                      :class="{ 'has-alts': (ex.alternativen || []).length > 0 }"
+                      @click="openAlternativenPicker(day, idx)"
+                      title="Alternativen hinterlegen"
+                    >⇄<span v-if="(ex.alternativen || []).length" class="alt-count">{{ ex.alternativen.length }}</span></button>
+                    <button class="btn-icon small" @click="removeExerciseFromDay(day, idx)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <!-- Alternativen: Tipp auf den Namen oeffnet die Auswahl, das x
+                     entfernt genau diese Alternative -->
+                <div v-for="altId in (ex.alternativen || [])" :key="altId" class="day-alternative">
+                  <button class="day-alternative-name" title="Alternativen bearbeiten" @click="openAlternativenPicker(day, idx)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6v6a3 3 0 0 0 3 3h10l-4-4m0 8l4-4"/></svg>
+                    <span>{{ getExerciseName(altId) }}</span>
+                  </button>
                   <button
-                    class="btn-icon small alt-btn"
-                    :class="{ 'has-alts': (ex.alternativen || []).length > 0 }"
-                    @click="openAlternativenPicker(day, idx)"
-                    title="Alternativen hinterlegen"
-                  >⇄<span v-if="(ex.alternativen || []).length" class="alt-count">{{ ex.alternativen.length }}</span></button>
-                  <button class="btn-icon small" @click="removeExerciseFromDay(day, idx)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    class="btn-icon small"
+                    :aria-label="`Alternative ${getExerciseName(altId)} entfernen`"
+                    title="Alternative entfernen"
+                    @click="removeAlternative(day, idx, altId)"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
               </div>
@@ -568,6 +587,19 @@ async function finishAltPicker() {
   await plansStore.updateTrainingDay(dayId, { exercises: updatedExercises })
 }
 
+// Eine Alternative direkt in der Liste entfernen (x neben dem Namen). Ein
+// darauf gemerkter Standard (`bevorzugt`) bleibt stehen, wirkt aber nicht
+// mehr — vorbelegungAusBevorzugt nimmt nur Ziele im Ring, wie beim Abwaehlen
+// in der Auswahl.
+async function removeAlternative(day, index, altId) {
+  const currentDay = plansStore.trainingDays.find(d => d.id === day.id)
+  const list = currentDay?.exercises || []
+  if (!list[index]) return
+  const updatedExercises = list.map(kopiereUebungsEintrag)
+  updatedExercises[index].alternativen = updatedExercises[index].alternativen.filter(id => id !== altId)
+  await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
+}
+
 onMounted(async () => {
   await loadExercises()
   await plansStore.loadPlans()
@@ -707,12 +739,48 @@ onMounted(async () => {
   border-bottom: 2px solid var(--color-accent);
 }
 
+/* Eine Gruppe = 1. Wahl plus ihre Alternativen; die Trennlinie steht erst
+   nach der letzten Alternative */
+.day-exercise-group {
+  border-bottom: 1px solid var(--color-border);
+}
+
 .day-exercise {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--color-border);
+}
+
+/* Alternative: eingerueckt unter der 1. Wahl, kleiner und gedaempft */
+.day-alternative {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -2px;
+  padding: 0 0 var(--space-xs) var(--space-md);
+}
+
+.day-alternative-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 28px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  text-align: left;
+}
+
+.day-alternative-name svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.day-alternative-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .day-exercise-name {
