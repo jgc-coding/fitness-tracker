@@ -58,6 +58,10 @@ src/
     saetze.js            Saetze je Uebung und Person: offener Satz,
                          Vorbelegung, Rad-Reihenfolge, Quick-Log-Folge
                          (reine Funktionen)
+    uebungsDubletten.js  doppelte Uebungen finden und zusammenfuehren,
+                         Namens-Bremse (reine Funktionen, Browser + Node)
+    planReihenfolge.js   Umsortieren eines Trainingstags: Zielplatz,
+                         Platz machen, Verschieben (reine Funktionen)
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
@@ -74,11 +78,15 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          uebungsbilder-schneiden (KI-Sammelbilder aus
                          uebungsbilder-quellen/ zerschneiden nach der Tabelle
                          uebungsbilder-zuschnitt.mjs; --bogen = Pruefbogen,
-                         --vermessen = Koordinatengitter fuer neue Bilder)
+                         --vermessen = Koordinatengitter fuer neue Bilder),
+                         uebungen-dubletten (doppelte Uebungen in der Cloud
+                         zusammenfuehren; ohne --jetzt Trockenlauf, Zugang
+                         ueber lib/cloud-rest.mjs)
                          Vertragstests: laufplan-merge-test, runmatch-test,
                          pace-modell-test, musclemap-pruefen,
                          uebungsbilder-matching-test, uebungsring-test,
-                         saetze-test
+                         saetze-test, uebungsdubletten-test,
+                         planreihenfolge-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
                          garmin-anbindung, plan-fittrack-v2
@@ -148,6 +156,21 @@ npm run preview   # Build lokal testen (Port 4173)
   (Service Worker) muessen gleich bleiben.
 - **Gewichtsschritte:** 1.25 kg fuer Barbell/Machine-Weight, 1 kg sonst.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
+- **Umsortieren in der Planung (27.09.2026):** langer Druck (HALTEN_MS) auf eine
+  Uebungsgruppe hebt sie an, Ziehen verschiebt sie samt Alternativen. Touch-
+  und Maus-Events, KEINE Pointer-Events: nur ein nicht-passiver `touchmove`
+  kann das Scrollen stoppen, nachdem der Finger stillgehalten hat. Gescrollt
+  wird `.app-main`, nicht das Fenster. Bis der Store die neue Reihenfolge hat,
+  zeigt `eintraege(day)` sie aus `gespeichert` — sonst springt die Liste kurz
+  zurueck. Regeln: `utils/planReihenfolge.js`, Vertrag
+  `scripts/planreihenfolge-test.mjs`.
+- **"Standard-Uebungen laden" vergleicht mit der Cloud, nie nur mit dem Geraet**
+  (`holeCloudUebungen`, `getDocsFromServer`): ein frisches Handy ohne Sync hielt
+  am 27.09.2026 alle 36 Standard-Uebungen fuer neu und legte sie doppelt an.
+  Ohne Anmeldung/Netz legt der Knopf nichts an. Zusammenfuehren vorhandener
+  Dubletten: `scripts/uebungen-dubletten.mjs` (Original = aeltestes
+  `createdAt`, jeder Verweis wird umgebogen, Kopie per Tombstone geloescht,
+  Namens-Bremse vor dem Schreiben).
 - **Bildschirmtastatur ueberdeckt, statt zu verkleinern** (Android, Chrome ab 108):
   `Modal.vue` misst waehrend es offen ist den sichtbaren Bereich
   (`visualViewport`) und legt die Ueberlagerung darauf; Suchfenster (`fullHeight`)
