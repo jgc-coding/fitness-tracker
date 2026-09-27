@@ -302,6 +302,11 @@ npm run preview   # Build lokal testen (Port 4173)
   als Notiz in `actual.note`. Beim Backyard 2026 sind das 12:00 h gegen 9:24 h. Das
   Dateiformat kennt nur EIN Minutenfeld — ein zusaetzliches Feld in `actual` ginge beim
   Status-Export still verloren.
+- **Der Pace Umrechner liest mit** (`C:\Projekte\Pace Umrechner`, eigene PWA): er holt
+  `runPlans`, `runSessions` und `meta/userName_user1|2` per REST, nur lesend, und baut aus
+  `targets` (label, paceFrom/paceTo "m:ss") Bahn-Tabellen; die Dauer liest er aus dem
+  label ("Steigerungen 20 s"). Wer hier das Format, die Labels oder das Firebase-Projekt
+  aendert, zieht dort `src/lib/cloud.ts` bzw. `src/lib/training.ts` mit.
 - **Schluessel fuer intervals.icu sind GERAETE-lokal** (`localStorage`): nicht in
   `db.meta`, nicht in der Cloud, nicht im Backup-Export. Die Athleten-Id steckt dagegen
   in jeder `externalId` und ist damit Teil der gesyncten Daten — gewollt, sie ist kein
