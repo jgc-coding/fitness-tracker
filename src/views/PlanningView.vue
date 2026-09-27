@@ -104,8 +104,19 @@
               </div>
 
               <!-- Exercises in this day: je Eintrag die 1. Wahl, darunter
-                   eingerueckt ihre Alternativen (Gabriel 26.09.2026) -->
-              <div v-for="(ex, idx) in day.exercises" :key="idx" class="day-exercise-group">
+                   eingerueckt ihre Alternativen (Gabriel 26.09.2026).
+                   Lange druecken und ziehen sortiert um (27.09.2026), die
+                   Alternativen wandern mit. -->
+              <div
+                v-for="(ex, idx) in eintraege(day)"
+                :key="idx"
+                class="day-exercise-group"
+                :class="{ 'wird-gezogen': istGezogen(day.id, idx) }"
+                :style="gruppenStil(day.id, idx)"
+                @touchstart.passive="onHalteStart($event, day.id, idx)"
+                @mousedown="onHalteStart($event, day.id, idx)"
+                @contextmenu="onKontextmenue"
+              >
                 <div class="day-exercise">
                   <span class="day-exercise-name">{{ getExerciseName(ex.exerciseId) }}</span>
                   <div class="day-exercise-controls">
@@ -146,6 +157,13 @@
                   </button>
                 </div>
               </div>
+
+              <p v-if="sortierFehler?.dayId === day.id" class="sortier-hinweis fehler" role="alert">
+                {{ sortierFehler.text }}
+              </p>
+              <p v-else-if="(day.exercises || []).length > 1" class="sortier-hinweis">
+                Lange druecken und ziehen, um die Reihenfolge zu aendern
+              </p>
 
               <button class="btn btn-ghost btn-sm" @click="openExercisePicker(day)">
                 + Uebung hinzufuegen
@@ -294,7 +312,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, shallowRef, computed, onMounted, onBeforeUnmount, reactive } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
@@ -302,6 +320,7 @@ import { usePlansStore } from '../stores/plans.js'
 import { useExercises } from '../composables/useExercises.js'
 import { PLAN_TYPES, MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
+import { verschiebe, zielIndex, versatz } from '../utils/planReihenfolge.js'
 
 const plansStore = usePlansStore()
 const { exercises, loadExercises, getExerciseById } = useExercises()
@@ -600,6 +619,178 @@ async function removeAlternative(day, index, altId) {
   await plansStore.updateTrainingDay(day.id, { exercises: updatedExercises })
 }
 
+// --- Umsortieren per langem Druck (Gabriel 27.09.2026) ----------------------
+// Finger auf einen Eintrag, HALTEN_MS still halten (kurzes Vibrieren), ziehen,
+// loslassen. Bewegt sich der Finger vorher um mehr als WACKEL_PX, ist es
+// Scrollen, und nichts passiert. Waehrend des Ziehens blockiert ein nicht-
+// passiver touchmove-Listener das Scrollen der Seite; am oberen und unteren
+// Rand scrollt die Seite selbst mit. Die Regeln (Zielplatz, Platz machen,
+// Verschieben) stehen in utils/planReihenfolge.js.
+const HALTEN_MS = 450
+const WACKEL_PX = 10
+const RAND_PX = 70
+const RAND_TEMPO = 10
+// { dayId, von, nach, dy, hoehe, mitten, startY, scrollStart }
+const ziehen = ref(null)
+// Neue Reihenfolge, bis der Store sie hat — sonst sprang die Liste nach dem
+// Loslassen kurz auf die alte Reihenfolge zurueck
+const gespeichert = shallowRef(null) // { dayId, liste }
+const sortierFehler = ref(null) // { dayId, text }
+let halten = null // { dayId, idx, x, y, el, timer }
+let letztesY = 0
+let scroller = null
+let randSchleife = null
+
+function eintraege(day) {
+  return gespeichert.value?.dayId === day.id ? gespeichert.value.liste : (day.exercises || [])
+}
+
+function istGezogen(dayId, idx) {
+  return ziehen.value?.dayId === dayId && ziehen.value.von === idx
+}
+
+function gruppenStil(dayId, idx) {
+  const z = ziehen.value
+  if (!z || z.dayId !== dayId) return null
+  if (idx === z.von) return { transform: `translateY(${z.dy}px)` }
+  return { transform: `translateY(${versatz(idx, z.von, z.nach, z.hoehe)}px)`, transition: 'transform 0.15s ease' }
+}
+
+function punkt(e) {
+  const t = e.touches?.[0] || e.changedTouches?.[0]
+  return t ? { x: t.clientX, y: t.clientY } : { x: e.clientX, y: e.clientY }
+}
+
+// Gescrollt wird nicht das Fenster, sondern .app-main (App.vue)
+function scrollBehaelter(el) {
+  for (let n = el?.parentElement; n; n = n.parentElement) {
+    const oy = getComputedStyle(n).overflowY
+    if (oy === 'auto' || oy === 'scroll') return n
+  }
+  return document.scrollingElement || document.documentElement
+}
+
+function onHalteStart(e, dayId, idx) {
+  if (ziehen.value || halten) return
+  if (e.type === 'mousedown' && e.button !== 0) return
+  // Satz-Feld, Alternativen-Knopf, x und Alternativen-Zeilen behalten ihre
+  // eigene Bedienung
+  if (e.target.closest('input, button, select, textarea')) return
+  const p = punkt(e)
+  halten = { dayId, idx, x: p.x, y: p.y, el: e.currentTarget, timer: setTimeout(hebeAn, HALTEN_MS) }
+  letztesY = p.y
+  window.addEventListener('touchmove', onBewegung, { passive: false })
+  window.addEventListener('touchend', onLoslassen)
+  window.addEventListener('touchcancel', onAbbruch)
+  window.addEventListener('mousemove', onBewegung)
+  window.addEventListener('mouseup', onLoslassen)
+}
+
+function hebeAn() {
+  const h = halten
+  if (!h) return
+  h.timer = null
+  const gruppen = [...h.el.parentElement.children].filter(c => c.classList.contains('day-exercise-group'))
+  scroller = scrollBehaelter(h.el)
+  const oben = scroller.scrollTop
+  const rects = gruppen.map(g => g.getBoundingClientRect())
+  if (!rects[h.idx]) return beendeHalten()
+  sortierFehler.value = null
+  ziehen.value = {
+    dayId: h.dayId,
+    von: h.idx,
+    nach: h.idx,
+    dy: 0,
+    hoehe: rects[h.idx].height,
+    // Mitten im Inhalt gemessen, damit Mitscrollen sie nicht verschiebt
+    mitten: rects.map(r => r.top + oben + r.height / 2),
+    startY: h.y,
+    scrollStart: oben
+  }
+  try { navigator.vibrate?.(30) } catch { /* Vibrieren ist nur ein Hinweis */ }
+  randSchleife = requestAnimationFrame(randScroll)
+}
+
+function folgeFinger() {
+  const z = ziehen.value
+  if (!z) return
+  z.dy = letztesY - z.startY + (scroller.scrollTop - z.scrollStart)
+  z.nach = zielIndex(z.mitten, z.mitten[z.von] + z.dy, z.von)
+}
+
+function onBewegung(e) {
+  const p = punkt(e)
+  if (!ziehen.value) {
+    if (halten && Math.hypot(p.x - halten.x, p.y - halten.y) > WACKEL_PX) beendeHalten()
+    return
+  }
+  if (e.cancelable) e.preventDefault() // Seite scrollt nicht mit dem Finger
+  letztesY = p.y
+  folgeFinger()
+}
+
+// Am Rand scrollt die Seite mit; unten liegt die Navigationsleiste ueber dem Inhalt
+function randScroll() {
+  if (!ziehen.value) return
+  const box = scroller.getBoundingClientRect()
+  const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 0
+  const oben = Math.max(box.top, 0)
+  const unten = Math.min(box.bottom, window.innerHeight) - nav
+  const tempo = letztesY < oben + RAND_PX ? -RAND_TEMPO : letztesY > unten - RAND_PX ? RAND_TEMPO : 0
+  if (tempo) {
+    scroller.scrollTop += tempo
+    folgeFinger()
+  }
+  randSchleife = requestAnimationFrame(randScroll)
+}
+
+function beendeHalten() {
+  if (halten?.timer) clearTimeout(halten.timer)
+  halten = null
+  if (randSchleife) cancelAnimationFrame(randSchleife)
+  randSchleife = null
+  window.removeEventListener('touchmove', onBewegung)
+  window.removeEventListener('touchend', onLoslassen)
+  window.removeEventListener('touchcancel', onAbbruch)
+  window.removeEventListener('mousemove', onBewegung)
+  window.removeEventListener('mouseup', onLoslassen)
+}
+
+async function onLoslassen() {
+  const z = ziehen.value
+  beendeHalten()
+  if (!z) return
+  if (z.von === z.nach) {
+    ziehen.value = null
+    return
+  }
+  // Frische Kopien aus dem Store (keine Vue-Proxys nach Dexie)
+  const currentDay = plansStore.trainingDays.find(d => d.id === z.dayId)
+  const liste = verschiebe((currentDay?.exercises || []).map(kopiereUebungsEintrag), z.von, z.nach)
+  gespeichert.value = { dayId: z.dayId, liste }
+  ziehen.value = null
+  try {
+    await plansStore.updateTrainingDay(z.dayId, { exercises: liste })
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Reihenfolge nicht gespeichert:', err)
+    sortierFehler.value = { dayId: z.dayId, text: 'Reihenfolge nicht gespeichert — bitte erneut versuchen.' }
+  } finally {
+    gespeichert.value = null
+  }
+}
+
+function onAbbruch() {
+  beendeHalten()
+  ziehen.value = null
+}
+
+// Android zeigt bei langem Druck sonst das Kontextmenue
+function onKontextmenue(e) {
+  if (halten || ziehen.value) e.preventDefault()
+}
+
+onBeforeUnmount(onAbbruch)
+
 onMounted(async () => {
   await loadExercises()
   await plansStore.loadPlans()
@@ -742,7 +933,28 @@ onMounted(async () => {
 /* Eine Gruppe = 1. Wahl plus ihre Alternativen; die Trennlinie steht erst
    nach der letzten Alternative */
 .day-exercise-group {
+  position: relative;
   border-bottom: 1px solid var(--color-border);
+  /* Langer Druck soll ziehen, nicht das Android-Menue oeffnen */
+  -webkit-touch-callout: none;
+}
+
+/* Angehobene Gruppe beim Umsortieren: folgt dem Finger, liegt ueber den anderen */
+.day-exercise-group.wird-gezogen {
+  z-index: 5;
+  background: var(--color-white);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 20px rgba(30, 31, 35, 0.18);
+}
+
+.sortier-hinweis {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.sortier-hinweis.fehler {
+  color: var(--color-danger);
 }
 
 .day-exercise {
@@ -785,6 +997,8 @@ onMounted(async () => {
 
 .day-exercise-name {
   font-size: var(--font-size-sm);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .day-exercise-controls {

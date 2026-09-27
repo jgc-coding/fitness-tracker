@@ -74,7 +74,7 @@
       <!-- Seed exercises -->
       <div class="card settings-card">
         <h2 class="settings-title">Uebungskatalog</h2>
-        <p class="settings-desc">Lade Standard-Uebungen in den Katalog. Bereits vorhandene Uebungen werden nicht doppelt angelegt.</p>
+        <p class="settings-desc">Lade Standard-Uebungen in den Katalog. Bereits vorhandene Uebungen werden nicht doppelt angelegt. Geht nur mit Cloud-Anmeldung.</p>
         <button class="btn btn-secondary btn-block" @click="seedExercises">
           Standard-Uebungen laden
         </button>
@@ -237,7 +237,8 @@ import {
   pendingPushCount,
   signIn,
   signOutSync,
-  resyncAll
+  resyncAll,
+  holeCloudUebungen
 } from '../services/syncService.js'
 import { exportToJSON, importFromJSON } from '../utils/exportData.js'
 import { useExercises } from '../composables/useExercises.js'
@@ -353,14 +354,26 @@ async function updateName(userId, event) {
 const DEFAULT_EXERCISES = STANDARD_UEBUNGEN
 
 async function seedExercises() {
-  const existing = await db.exercises.toArray()
-  const existingNames = new Set(existing.map(e => e.name.toLowerCase()))
+  // Nur mit dem Stand der Cloud vergleichen, nie allein mit diesem Geraet:
+  // ein Handy, das noch nicht synchronisiert hat, haelt alles fuer neu
+  // (27.09.2026: 36 Uebungen doppelt). Ohne Cloud wird nichts angelegt.
+  let cloud
+  try {
+    cloud = await holeCloudUebungen()
+  } catch (e) {
+    console.warn('[Fitness Tracker] [WARN] Standard-Uebungen nicht geladen, Cloud nicht erreichbar:', e?.code || e?.message)
+    seedMessage.value = 'Geht nur mit Cloud-Anmeldung und Internet — sonst entstehen doppelte Uebungen.'
+    setTimeout(() => { seedMessage.value = '' }, 6000)
+    return
+  }
+  const existing = [...(await db.exercises.toArray()), ...cloud]
+  const existingNames = new Set(existing.map(e => String(e.name || '').trim().toLowerCase()))
 
   let added = 0
   const now = new Date().toISOString()
 
   for (const ex of DEFAULT_EXERCISES) {
-    if (!existingNames.has(ex.name.toLowerCase())) {
+    if (!existingNames.has(ex.name.trim().toLowerCase())) {
       const exercise = {
         id: generateId(),
         name: ex.name,

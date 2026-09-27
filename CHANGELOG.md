@@ -3,6 +3,38 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.5.0] — 2026-09-27
+
+Die Uebungsliste der Planung war doppelt; dazu laesst sich die Reihenfolge
+eines Trainingstags jetzt mit dem Finger aendern (Wunsch Gabriel).
+
+### Features
+- **Reihenfolge per Finger aendern:** In der Planung lange auf eine Uebung
+  druecken, bis es kurz vibriert, dann nach oben oder unten ziehen und
+  loslassen. Die Alternativen, gemerkten Standards, Saetze und Notiz wandern
+  mit. Die anderen Uebungen machen Platz, am Bildschirmrand scrollt die
+  Seite mit. Wer den Finger sofort bewegt, scrollt wie gewohnt; Satz-Feld und
+  Knoepfe reagieren wie bisher.
+
+### Fixes
+- **Alle Uebungen doppelt in der Planung:** "Standard-Uebungen laden" hatte
+  am 27.09. auf einem Handy, das die Cloud noch nicht kannte, alle 36
+  Standard-Uebungen ein zweites Mal angelegt. Der Knopf vergleicht jetzt mit
+  dem Stand direkt in der Cloud und geht nur noch mit Anmeldung und Internet.
+  Die vorhandenen Kopien fuehrt das neue PC-Skript
+  `scripts/uebungen-dubletten.mjs` zusammen: jeder Verweis (Plan,
+  Alternativen, Standards, Trainings, Saetze, Notizen) zeigt danach auf das
+  Original, die Kopien werden mit Merker geloescht. Eine Bremse vergleicht
+  vorher und nachher nach Uebungsnamen und schreibt bei jeder Abweichung
+  nichts.
+
+### Intern
+- Neue Vertragstests `scripts/uebungsdubletten-test.mjs` und
+  `scripts/planreihenfolge-test.mjs` (beide im Pruef-Gate), Regeln in
+  `src/utils/uebungsDubletten.js` und `src/utils/planReihenfolge.js`.
+- `scripts/lib/cloud-rest.mjs`: Anmeldung und Firestore-Zugriff fuer
+  PC-Skripte an einer Stelle (bisher nur vom Dubletten-Skript genutzt).
+
 ## [2.4.0] — 2026-09-26
 
 Feinschliff nach den ersten Wochen mit den Alternativ-Uebungen (Wuensche

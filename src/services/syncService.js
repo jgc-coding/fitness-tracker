@@ -233,7 +233,8 @@ export async function initSync() {
       setDoc: fsMod.setDoc,
       deleteDoc: fsMod.deleteDoc,
       onSnapshot: fsMod.onSnapshot,
-      getDocs: fsMod.getDocs
+      getDocs: fsMod.getDocs,
+      getDocsFromServer: fsMod.getDocsFromServer
     }
 
     // Sync runs only for a signed-in email/password account (the shared
@@ -434,6 +435,18 @@ export async function flushQueue() {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => flushQueue())
+}
+
+// Alle Uebungen direkt vom Server — nie aus dem Zwischenspeicher, der auf
+// einem frischen Geraet leer ist. Wirft ohne Anmeldung oder ohne Netz.
+// Grund: "Standard-Uebungen laden" hat am 27.09.2026 auf einem Handy, das die
+// Cloud noch nicht kannte, alle Standard-Uebungen doppelt angelegt.
+export async function holeCloudUebungen() {
+  if (!fb || !auth?.currentUser) throw new Error('nicht angemeldet')
+  const snap = await fb.getDocsFromServer(fb.collection(firestore, 'exercises'))
+  const out = []
+  snap.forEach((d) => out.push({ ...d.data(), id: d.id }))
+  return out
 }
 
 // Full re-reconcile on demand, e.g. after a backup import brought in local
