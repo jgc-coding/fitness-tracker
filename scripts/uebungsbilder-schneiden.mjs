@@ -38,7 +38,10 @@
 //              Vermessen der Rahmen fuer ein neues oder getauschtes Bild
 // Neue Sammelbilder muessen im Massstab der bisherigen vorliegen (Karofeld
 // 5-6 px, Schilder hoechstens 64 px hoch). Bleibt beim Vermessen Karo stehen
-// und fehlen Schilder, das Bild vorher verkleinern (so bei 7-dips.webp).
+// und fehlen Schilder, das Bild vorher verkleinern (so frueher bei 7-dips.webp).
+// Seit v2.6.0 liegen nur noch Reihenbilder mit weissem Grund im Quellordner
+// (neu-01 bis neu-12); die Sammelbilder 1-7 gibt es nur noch in der
+// Git-Historie. Karo- und Schilder-Erkennung bleiben fuer solche Bilder da.
 // Deterministisch: gleiche Quellen und Tabelle ergeben dieselben Dateien. Die
 // Ausgaben werden immer neu geschrieben. Jede Abweichung (Quellbild fehlt oder
 // hat andere Masse, Schilderzahl stimmt nicht, Phase ohne Rahmen) bricht mit

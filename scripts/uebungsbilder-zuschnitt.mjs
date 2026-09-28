@@ -10,8 +10,8 @@
 // Jeder Auftrag bekam dasselbe Stil-Vorbild (gute Figuren der alten Bilder).
 // Die Rahmen hat ein Hilfsskript aus Trennlinien und Inhalt gemessen
 // (Reihe finden, Luecke zwischen START und ENDE, Inhalt + 10 px Rand).
-// Die alten Sammelbilder 1-7 liegen noch im Quellordner, die Tabelle nutzt
-// sie nicht mehr.
+// Die alten Sammelbilder 1-7 (bis v2.5.0) stehen nur noch in der
+// Git-Historie.
 //
 // Rahmen = [links, oben, rechts, unten] in Pixeln des Quellbilds (rechts und
 // unten exklusiv): grosszuegig um Figur und Geraet, aber ohne Nachbar-Phasen
