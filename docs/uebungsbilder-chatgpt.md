@@ -44,6 +44,26 @@ Halteuebungen (Plank): "ONE single figure centered across the whole row
    den Bogen ansehen: springt die Figur in der Ueberblendung (dritte Spalte),
    `ausrichtung: 'mitte'` setzen; Vorschau in der Endhaltung mit `vorschau: 3`.
 
+## Technik: Claude bedient ChatGPT in Gabriels Chrome
+
+So lief es am 28.09.2026 ueber die Chrome-Erweiterung (Gabriel unterwegs):
+- **Herunterladen braucht Gabriels ausdrueckliches Ja** — vorher Anzahl,
+  Quelle und Groesse nennen (je Bild ca. 1,5 MB PNG von chatgpt.com, landet als
+  "ChatGPT-Bild <Datum>.png" in `C:\Users\chime\Downloads`, danach verschieben).
+  Soweit bekannt verbieten OpenAIs Nutzungsbedingungen automatisches Abgreifen;
+  Gabriel kennt das Risiko und hat zugestimmt.
+- **Gesperrter Bildschirm:** der Tab ist dann "hidden" — Screenshots laufen in
+  den Timeout, Tippen und Klicks per CDP gehen trotzdem. Eingabefeld per JS
+  fokussieren (`#prompt-textarea`), Text tippen, Laenge per JS pruefen, mit
+  Enter senden, Erfolg am Seitentext pruefen ("Bild wird erstellt").
+- **Bild holen:** letztes `img[alt^="Generiertes Bild"]` per JS anklicken
+  (oeffnet die Grossansicht), Mitte des Knopfs mit `aria-label`
+  "Herunterladen" per `getBoundingClientRect` messen, auf das Screenshot-Raster
+  umrechnen (x 1568 / innerWidth) und per Koordinate klicken.
+- Nur EIN Tab zur Zeit: Hintergrund-Tabs rendern nicht; zwischen Chats per
+  `navigate` wechseln. Die Anhaenge hochladen per `file_upload` auf das
+  versteckte `input[type=file]` "Fotos anhaengen" (Ref vorher frisch suchen).
+
 ## Muskelgrafik
 
 Eine einzige farbige Figur (`muskelfigur-farbig.webp`, vorn links, hinten
