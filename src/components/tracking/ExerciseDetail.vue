@@ -21,13 +21,14 @@
       </div>
 
       <!-- Muskel-Grafik: primaer/sekundaer aus dem Manifest, ohne
-           Manifest-Eintrag die Grobgruppe der Uebung -->
+           Manifest-Eintrag die Grobgruppe der Uebung. 240 px breit: die
+           KI-Figur (seit v2.6.0) braucht mehr Platz als die alten Flaechen -->
       <div class="detail-map">
         <MuscleMap
           :primary="eintrag?.primaer || []"
           :secondary="eintrag?.sekundaer || []"
           :fallback-group="exercise.muscleGroup || ''"
-          :size="170"
+          :size="240"
         />
       </div>
 

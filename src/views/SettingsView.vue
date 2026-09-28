@@ -208,8 +208,10 @@
         </div>
         <!-- Bildnachweis: Pflicht der Lizenz CC BY-SA 4.0 (Urheber nennen,
              Lizenz verlinken, Aenderung kennzeichnen) — nie entfernen,
-             solange noch eine Workout-Guide-Zeichnung im Manifest steht.
-             Gleicher Nachweis in public/uebungsbilder/LIZENZ.md. -->
+             solange noch eine Workout-Guide-Zeichnung ausgeliefert wird
+             (seit v2.6.0 nicht mehr im Manifest, die SVG-Dateien liegen aber
+             noch unter public/uebungsbilder/). Gleicher Nachweis in
+             public/uebungsbilder/LIZENZ.md. -->
         <p class="bildnachweis">
           Linienzeichnungen:
           <a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide</a>

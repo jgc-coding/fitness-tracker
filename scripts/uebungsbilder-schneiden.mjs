@@ -78,6 +78,10 @@ const SCHILD_RAND = 6 // die unscharfen Bilder haben einen grauen Schein um die 
 const TINTE_HELL = 238 // heller als das und farblos = Hintergrund
 const INSEL_MIN = 40 // lose Inseln unter dieser Pixelzahl sind Kruemel, keine Figurteile
 const LEINWAND_RAND = 6
+// Weisser Hintergrund (Reihenbilder ab 28.09.2026): ab dieser Helligkeit und
+// unter dieser Farbigkeit wird ein Pixel reinweiss
+const WEISS_AB = 236
+const WEISS_FARBE = 10
 const AUSRICHT_SUCHE = 40 // max. Verschiebung (px) beim Ausrichten der zweiten Phase
 const WEBP_QUALITAET = 82
 const VORSCHAU_KANTE = 128
@@ -127,11 +131,20 @@ async function ladeQuelle(datei) {
       else if (data[i] > 235) data[i] = 255
     }
     pipeline = sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
-  } else if (spec.hintergrund !== 'karo') {
+  } else if (spec.hintergrund !== 'karo' && spec.hintergrund !== 'weiss') {
     throw new Error(`Unbekannter Hintergrund "${spec.hintergrund}" fuer ${datei}`)
   }
   const { data, info } = await pipeline.flatten({ background: '#ffffff' }).removeAlpha().raw()
     .toBuffer({ resolveWithObject: true })
+  if (spec.hintergrund === 'weiss') {
+    // ChatGPTs Weiss ist leicht grau (~248): fast weisse, farblose Pixel auf
+    // reines Weiss, sonst zeigt die App einen grauen Kasten um die Figur
+    for (let i = 0; i < data.length; i += 3) {
+      const max = Math.max(data[i], data[i + 1], data[i + 2])
+      const min = Math.min(data[i], data[i + 1], data[i + 2])
+      if (min > WEISS_AB && max - min < WEISS_FARBE) data[i] = data[i + 1] = data[i + 2] = 255
+    }
+  }
   return { daten: data, breite: info.width, hoehe: info.height }
 }
 
@@ -632,12 +645,16 @@ async function schneiden() {
       const weiss = karoEntfernen(bild, spec)
       console.log(`[uebungsbilder] ${datei}: Karomuster entfernt (${(100 * weiss / (bild.breite * bild.hoehe)).toFixed(1)} % weiss)`)
     }
-    const schilder = findeSchilder(bild)
-    if (schilder.length !== spec.schilder) {
-      throw new Error(`${datei}: ${schilder.length} Schilder gefunden, erwartet ${spec.schilder} — ` +
-        'Schild beruehrt eine dunkle Flaeche? Dann eine Maske in die Tabelle.')
+    // Bilder ohne Beschriftung (schilder: 0) gar nicht erst absuchen — die
+    // grossen Gewichtsstapel der neuen Bilder saehen sonst wie Schilder aus
+    if (spec.schilder > 0) {
+      const schilder = findeSchilder(bild)
+      if (schilder.length !== spec.schilder) {
+        throw new Error(`${datei}: ${schilder.length} Schilder gefunden, erwartet ${spec.schilder} — ` +
+          'Schild beruehrt eine dunkle Flaeche? Dann eine Maske in die Tabelle.')
+      }
+      for (const s of schilder) weissMalen(bild, s)
     }
-    for (const s of schilder) weissMalen(bild, s)
     sammelbilder.set(datei, bild)
   }
 
