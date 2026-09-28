@@ -1,0 +1,54 @@
+# Uebungsbilder mit ChatGPT erzeugen
+
+So sind am 28.09.2026 alle 36 Uebungsbilder (v2.6.0) entstanden. Gleicher Weg
+fuer neue Uebungen oder einzelne Nachbesserungen, damit der Stil gleich bleibt.
+
+## Grundregeln
+
+- **Drei Uebungen je Auftrag.** Mehr macht jede Figur kleiner (ab fuenf
+  sichtbar schlechter), eine einzelne kostet dreimal so viele Auftraege.
+- **Immer dasselbe Stil-Vorbild anhaengen:**
+  `scripts/uebungsbilder-quellen/stil-vorbild.png` (vier neue Figuren). Fuer
+  Spezialgeraete zusaetzlich ein Foto des echten Geraets (vorher verkleinern,
+  Metadaten entfernen — Fotos tragen oft den Aufnahmeort).
+- **Weisser Grund, keine Schrift, Reihen durch hellgraue Linien.** Das
+  Schneide-Skript rechnet damit (`hintergrund: 'weiss'`, `schilder: 0`).
+- **"seen from exactly the same camera angle"** gehoert in jeden Auftrag —
+  ohne den Satz zeichnet ChatGPT das ENDE-Bild gern aus anderem Winkel, und
+  die Ueberblendung in der Detailansicht springt.
+- **Nur den Hauptmuskel rot** (primaer im Manifest). Welche Muskeln arbeiten,
+  zeigt ohnehin die Muskelgrafik unter dem Bild.
+- Laeuft im selben Chat weiter, solange die Bilder passen; ChatGPT sieht dann
+  die frueheren Bilder und bleibt naeher am Stil.
+
+## Prompt-Vorlage (englisch, ein Absatz)
+
+```text
+Create ONE new image in exactly the same style, with the same man, the same equipment style and the same layout rules as your previous images; the attached image is ONLY the style reference (same man: short dark hair, athletic build, black shorts, barefoot; same grayscale anatomical illustration style with fine line work and soft shading; same black/dark-grey gym equipment; target muscles in the same red-orange). Do not copy the poses or machines of the reference. FORMAT: portrait 2:3 (1024x1536), pure white background (no checkerboard, no transparency, no floor, only a very soft contact shadow), absolutely NO text, labels, numbers or arrows. LAYOUT: three rows of equal height, separated by thin light-grey horizontal lines. Each row shows one exercise: START position on the left half, END position on the right half, both figures the same size and seen from exactly the same camera angle, each figure with its equipment completely inside its own half with a clear margin. ROW 1, <Geraet und Blickwinkel>: <Haltung>. START: <...>. END: <...>. Highlight only the <Muskel> in red-orange. ROW 2, ... ROW 3, ...
+```
+
+Halteuebungen (Plank): "ONE single figure centered across the whole row
+(static hold, no second figure)".
+
+## Einbau
+
+1. Bild herunterladen, als `scripts/uebungsbilder-quellen/neu-<nn>.webp`
+   ablegen (WebP, Qualitaet 95).
+2. Rahmen messen: `node ./scripts/uebungsbilder-reihen-messen.mjs
+   scripts/uebungsbilder-quellen/neu-<nn>.webp <key> <key> <key>` — die
+   Ausgabe kommt in `scripts/uebungsbilder-zuschnitt.mjs`.
+3. Neue Uebung: Manifest-Eintrag (`src/data/uebungskatalog.json`) mit
+   `quelle: "ki"`, `frame-1.webp` + `frame-3.webp`, Muskeln, Aliasse — ZUERST
+   den Vertrag `scripts/uebungsbilder-matching-test.mjs` erweitern.
+4. `node ./scripts/uebungsbilder-schneiden.mjs <key> --bogen <datei.png>` und
+   den Bogen ansehen: springt die Figur in der Ueberblendung (dritte Spalte),
+   `ausrichtung: 'mitte'` setzen; Vorschau in der Endhaltung mit `vorschau: 3`.
+
+## Muskelgrafik
+
+Eine einzige farbige Figur (`muskelfigur-farbig.webp`, vorn links, hinten
+rechts, jede Muskelgruppe eigene Farbe, Nachbarn verschieden). Daraus baut
+`node ./scripts/muskelgrafik-bauen.mjs --bogen <datei.png>` die graue Figur und
+18 Masken unter `public/muskelgrafik/`; der Bogen zeigt jeden Muskel einzeln.
+Die Zuordnung Farbe -> Muskel steht als Regel im Skript (`MUSKEL_REGELN`) und
+passt nur zu diesem Bild — bei einer neuen Figur Regeln und Bogen pruefen.

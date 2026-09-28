@@ -13,13 +13,16 @@ export const STANDARD_UEBUNGEN = [
   { name: 'Hack Squat', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'Leg Press', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'Leg curl', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'hip thrusts', muscleGroup: 'legs', equipment: 'barbell' },
+  // Geraete von hip thrusts, lunges und chest supported row am 28.09.2026 von
+  // Gabriel korrigiert (so stehen sie im Studio). In der Cloud tragen die drei
+  // Uebungen noch das alte Geraet — die Liste wirkt nur beim Neuanlegen.
+  { name: 'hip thrusts', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: '"bad girl"', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: '"good girl"', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'seated leg curl', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'seated leg extension', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'calve raises', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: 'lunges', muscleGroup: 'legs', equipment: 'dumbbell' },
+  { name: 'lunges', muscleGroup: 'legs', equipment: 'barbell' },
 
   // Chest
   { name: 'DB Bench press', muscleGroup: 'chest', equipment: 'dumbbell' },
@@ -38,7 +41,7 @@ export const STANDARD_UEBUNGEN = [
   { name: 'weighted pull up', muscleGroup: 'back', equipment: 'bodyweight' },
   { name: 'Chin Up', muscleGroup: 'back', equipment: 'bodyweight' },
   { name: 'Latzug', muscleGroup: 'back', equipment: 'machine_cable' },
-  { name: 'chest supported row', muscleGroup: 'back', equipment: 'dumbbell' },
+  { name: 'chest supported row', muscleGroup: 'back', equipment: 'machine_weight' },
   { name: 'low row', muscleGroup: 'back', equipment: 'machine_cable' },
   { name: 'cable row (without chest support)', muscleGroup: 'back', equipment: 'machine_cable' },
   { name: 'lower back', muscleGroup: 'back', equipment: 'machine_weight' },

@@ -5,20 +5,27 @@ steht im Manifest `src/data/uebungskatalog.json` (Feld `quelle`).
 
 ## KI-generierte Bilder (`quelle: "ki"`, Dateien `frame-<n>.webp`)
 
-Die farbigen Bilder von 33 Uebungen (28 seit Version 2.1.0, die vier
-Arm-Uebungen und Dips seit 2.2.0) wurden mit einem KI-Bildgenerator im
-Auftrag des Projekts erstellt. Sie stammen nicht aus der Sammlung Workout
-Guide; die CC-BY-SA-Lizenz unten gilt fuer sie nicht.
+Seit Version 2.6.0 zeigen alle 36 Uebungen KI-Bilder: am 28.09.2026 mit
+ChatGPT im Auftrag des Projekts neu erstellt, je Auftrag drei Uebungen mit
+Start- und Endhaltung, alle nach demselben Stil-Vorbild (gute Figuren der
+frueheren KI-Bilder aus Version 2.1.0 bis 2.2.0). Sie stammen nicht aus der
+Sammlung Workout Guide; die CC-BY-SA-Lizenz unten gilt fuer sie nicht.
 
-Zugeschnitten mit `scripts/uebungsbilder-schneiden.mjs` aus den Sammelbildern
-in `scripts/uebungsbilder-quellen/`: Hintergrund-Karomuster entfernt,
-Beschriftungen entfernt, je Uebung zwei Bewegungsphasen und ein Vorschaubild.
+Zugeschnitten mit `scripts/uebungsbilder-schneiden.mjs` aus den Reihenbildern
+`neu-01.webp` bis `neu-12.webp` in `scripts/uebungsbilder-quellen/`: je
+Uebung zwei Bewegungsphasen (die Plank eine) und ein Vorschaubild.
+
+Die Muskelgrafik (`public/muskelgrafik/`) ist ebenfalls KI-generiert: eine
+farbig markierte Figur von ChatGPT (`muskelfigur-farbig.webp`), daraus baut
+`scripts/muskelgrafik-bauen.mjs` die graue Figur und eine Maske je Muskel.
 
 ## Linienzeichnungen aus Workout Guide (`quelle: "workout-guide"`, Dateien `frame-<n>.svg`)
 
-Betrifft die Ordner `lying-leg-curl`, `plank` und `reverse-pec-deck` (seit
-Version 2.3.0, fuer "Butterfly reverse"). Die Arm-Uebungen
-(`concentration-curl`, `cable-curl`, `rope-tricep-pushdown`,
+Betraf die Ordner `lying-leg-curl`, `plank` und `reverse-pec-deck` (Version
+2.3.0 bis 2.5.0, fuer "Butterfly reverse" ab 2.3.0). Seit Version 2.6.0
+nutzt das Manifest keine dieser Zeichnungen mehr; die SVG-Dateien liegen noch
+in den Ordnern, bis sie geloescht werden — so lange bleibt dieser Nachweis.
+Die Arm-Uebungen (`concentration-curl`, `cable-curl`, `rope-tricep-pushdown`,
 `overhead-tricep-extension`) zeigten bis Version 2.1.0 ebenfalls Zeichnungen
 aus dieser Sammlung.
 

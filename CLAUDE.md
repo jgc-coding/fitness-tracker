@@ -36,7 +36,8 @@ src/
   components/shared/     Modal (Android-Back schliesst! folgt bei offener
                          Tastatur dem sichtbaren Bereich), EmptyState,
                          WheelPicker, UserSelectModal (Startdialog), MuscleMap
-                         (Inline-SVG, 18 data-muscle-Ids, Grobgruppen-Fallback)
+                         (graue KI-Figur + Maske je markiertem Muskel,
+                         multiply; Grobgruppen-Fallback)
   components/tracking/ExerciseDetail.vue  Detailansicht: Ueberblendung Start-/
                          Endbild alle 1,2 s, MuscleMap, Notizfeld je Nutzer
   data/uebungskatalog.json  Bild-Manifest: key, quelle (ki|workout-guide),
@@ -45,6 +46,9 @@ src/
   data/standardUebungen.js  Standardliste (Name, Gruppe, Geraet): liest die App
                          ("Standard-Uebungen laden"), der Bild-Vertrag und
                          der Cloud-Abgleich
+  data/muskelgrafik.js   18 Muskel-Ids, Grobgruppen, Dateien und Masse der
+                         Muskelgrafik (public/muskelgrafik/) — Komponente,
+                         Bau-Skript und Tests lesen nur hier
   utils/
     runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
     runPlanMerge.js      Merge-Regeln des Imports (reine Funktion)
@@ -75,10 +79,13 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          lesen; aus dem Worktree mit --konto <Hauptbaum>),
                          uebungsbilder-holen (Zeichnungen von Workout Guide
                          holen und einfaerben, idempotent, --neu = alles neu),
-                         uebungsbilder-schneiden (KI-Sammelbilder aus
+                         uebungsbilder-schneiden (KI-Bilder aus
                          uebungsbilder-quellen/ zerschneiden nach der Tabelle
                          uebungsbilder-zuschnitt.mjs; --bogen = Pruefbogen,
                          --vermessen = Koordinatengitter fuer neue Bilder),
+                         uebungsbilder-reihen-messen (Tabellenzeilen fuer ein
+                         neues ChatGPT-Reihenbild), muskelgrafik-bauen (graue
+                         Figur + 18 Masken aus der farbigen KI-Figur),
                          uebungen-dubletten (doppelte Uebungen in der Cloud
                          zusammenfuehren; ohne --jetzt Trockenlauf, Zugang
                          ueber lib/cloud-rest.mjs)
@@ -89,7 +96,8 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          planreihenfolge-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
-                         garmin-anbindung, plan-fittrack-v2
+                         garmin-anbindung, plan-fittrack-v2,
+                         uebungsbilder-chatgpt (Ablauf + Prompt-Vorlage)
 ```
 Views (6 Reiter), Router, Stores `auth`/`plans`/`workout`, `styles/`, `main.js` und
 `App.vue` heissen wie ihr Inhalt.
@@ -212,17 +220,22 @@ npm run preview   # Build lokal testen (Port 4173)
   `src/data/uebungskatalog.json` verbindet Katalognamen (`aliasse`) mit
   Bildern und Muskeln (`primaer`/`sekundaer` fuer die MuscleMap). `quelle`
   bestimmt das zustaendige Skript, keins fasst die Eintraege des anderen an:
-  `ki` = farbige KI-Bilder, `frame-<n>.webp` = Phase n des Sammelbilds
-  (1 START, 2 MITTE, 3 ENDE), geschnitten von `scripts/uebungsbilder-schneiden.mjs`
-  nach der Tabelle `scripts/uebungsbilder-zuschnitt.mjs`; `workout-guide` =
+  `ki` = farbige KI-Bilder, `frame-<n>.webp` = Phase n (1 START, 2 MITTE,
+  3 ENDE), geschnitten von `scripts/uebungsbilder-schneiden.mjs` nach der
+  Tabelle `scripts/uebungsbilder-zuschnitt.mjs`; `workout-guide` =
   Linienzeichnungen, `frame-<n>.svg` = Frame n der Quelle, von
   `scripts/uebungsbilder-holen.mjs`. Keys (Workout-Guide-Slugs) bleiben beim
   Quellwechsel stabil, gespeicherte `imageKey` zeigen dann sofort das neue Bild.
-  `bilder` nennt 1 Frame (Standbild) oder 2 (Detailansicht blendet ueber),
-  Wahl je Uebung per Augenschein — in den KI-Bildern ist MITTE oft eine Kopie.
-  Die KI-Sammelbilder haben das Transparenz-Karomuster eingemalt: das Skript
-  erkennt es am Muster, nicht an der Helligkeit (sonst bleicht die Haut aus);
-  nach jeder Tabellen-Aenderung den `--bogen` ansehen. `vorschau.webp`
+  Seit v2.6.0 zeigen alle 36 KI-Bilder aus ChatGPT-Reihenbildern
+  (`neu-<nn>.webp`: drei Uebungen je Bild, START links, ENDE rechts, weisser
+  Grund), `bilder` = frame-1 + frame-3, die Plank ein Standbild. Neue oder
+  nachgebesserte Bilder genau so: Ablauf, Stil-Vorbild und Prompt-Vorlage in
+  `docs/uebungsbilder-chatgpt.md`. Die Karomuster-Erkennung des Skripts gilt
+  nur den alten Sammelbildern 1-7. Nach jeder Tabellen-Aenderung den
+  `--bogen` ansehen (springt die Figur in der Ueberblendung, `ausrichtung:
+  'mitte'`). Die Muskelgrafik ist EINE farbige KI-Figur, zerlegt in 18
+  Masken (`scripts/muskelgrafik-bauen.mjs`); welche Muskeln je Uebung
+  leuchten, entscheidet allein das Manifest. `vorschau.webp`
   (128 px) dient Karte und Katalog. Pfade loesen `bildUrl`/`vorschauUrl` auf
   (nie selbst zusammenbauen). Uebungen tragen optional `imageKey` (nie
   `undefined`, immer `null` — Firestore lehnt undefined ab); ohne Bild zeigt
@@ -231,7 +244,7 @@ npm run preview   # Build lokal testen (Port 4173)
   Zuordnung aendern will, nimmt den alten Key aus dem Manifest (so v2.1.0 bei
   den geteilten Keys `machine-chest-press`/`seated-row`). Vertraege:
   `scripts/uebungsbilder-matching-test.mjs` (Matching, Quelle, Pfade, Dateien,
-  Schnitt-Tabelle — zuerst Test, dann Regeln), die 18 Muskel-Ids per
+  Schnitt-Tabelle — zuerst Test, dann Regeln), Muskel-Ids und Masken per
   `scripts/musclemap-pruefen.mjs`.
 - **In der App nachgetragene Uebungen sind keine Sonderfaelle:** Katalog ->
   "+ Neu" legt Uebungen nur in der Datenbank an, der Code kennt sie nicht.

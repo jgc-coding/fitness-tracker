@@ -10,8 +10,11 @@
 // Workout-Guide-Sammlung (Zeichnungen, CC BY-SA 4.0); seit v2.1.0 zeigen die
 // meisten davon KI-generierte Bilder (quelle "ki", zugeschnitten von
 // scripts/uebungsbilder-schneiden.mjs), seit v2.2.0 auch die vier
-// Arm-Uebungen, dazu neu Dips. Wer Matching-Regeln, das Manifest
-// oder die Schnitt-Tabelle aendert, erweitert ZUERST diesen Test.
+// Arm-Uebungen, dazu neu Dips. Seit v2.6.0 (28.09.2026) kommen ALLE 36 aus
+// neuen ChatGPT-Reihenbildern (je Bild drei Uebungen, START links, ENDE
+// rechts, weisser Grund) — keine Zeichnung mehr im Manifest. Wer
+// Matching-Regeln, das Manifest oder die Schnitt-Tabelle aendert, erweitert
+// ZUERST diesen Test.
 //
 // Aufruf:  node ./scripts/uebungsbilder-matching-test.mjs
 
@@ -28,6 +31,7 @@ import {
 } from '../src/utils/uebungsBilder.js'
 import { QUELLEN, UEBUNGEN } from './uebungsbilder-zuschnitt.mjs'
 import { STANDARD_UEBUNGEN } from '../src/data/standardUebungen.js'
+import { MUSKEL_IDS } from '../src/data/muskelgrafik.js'
 
 const projektWurzel = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const katalog = JSON.parse(
@@ -179,8 +183,18 @@ const ENDUNG = { 'workout-guide': 'svg', ki: 'webp' }
 const quelleFalsch = katalog.filter(e => !ENDUNG[e.quelle]).map(e => e.key)
 pruefe(`jede Quelle ist workout-guide oder ki${quelleFalsch.length ? ' (falsch: ' + quelleFalsch.join(', ') + ')' : ''}`,
   quelleFalsch.length === 0)
-pruefe('33 KI-Bilder, 3 Zeichnungen (Leg Curl liegend, Core, Butterfly reverse)',
-  katalog.filter(e => e.quelle === 'ki').length === 33 && katalog.filter(e => e.quelle === 'workout-guide').length === 3)
+pruefe('36 KI-Bilder, keine Zeichnung mehr (seit v2.6.0 auch Leg Curl liegend, Core, Butterfly reverse)',
+  katalog.filter(e => e.quelle === 'ki').length === 36 && katalog.filter(e => e.quelle === 'workout-guide').length === 0)
+// Die Reihenbilder zeigen je Uebung START (Phase 1) und ENDE (Phase 3); nur
+// die Plank ist eine Halteuebung mit einem einzigen Bild
+const phasenFalsch = katalog.filter(e => {
+  const soll = e.key === 'plank'
+    ? [`uebungsbilder/${e.key}/frame-1.webp`]
+    : [`uebungsbilder/${e.key}/frame-1.webp`, `uebungsbilder/${e.key}/frame-3.webp`]
+  return JSON.stringify(e.bilder) !== JSON.stringify(soll)
+}).map(e => e.key)
+pruefe(`jede Uebung zeigt START + ENDE, die Plank ein Standbild${phasenFalsch.length ? ' (falsch: ' + phasenFalsch.join(', ') + ')' : ''}`,
+  phasenFalsch.length === 0)
 // Die Arm-Keys bleiben beim Quellwechsel gleich — gespeicherte Zuordnungen
 // zeigen so ohne neues "Bilder automatisch zuordnen" das KI-Bild
 const armKeys = ['concentration-curl', 'cable-curl', 'rope-tricep-pushdown', 'overhead-tricep-extension']
@@ -199,9 +213,8 @@ for (const e of katalog) {
 pruefe(`kein Alias zeigt auf zwei Eintraege${aliasDoppelt.length ? ' (doppelt: ' + aliasDoppelt.join(', ') + ')' : ''}`,
   aliasDoppelt.length === 0)
 
-// Die 18 Muskel-Ids der MuscleMap stehen als data-muscle in der Komponente
-const mapQuelle = readFileSync(path.join(projektWurzel, 'src', 'components', 'shared', 'MuscleMap.vue'), 'utf-8')
-const muskelIds = new Set([...mapQuelle.matchAll(/data-muscle="([a-z_]+)"/g)].map(m => m[1]))
+// Die 18 Muskel-Ids der Muskelgrafik (Vertrag: scripts/musclemap-pruefen.mjs)
+const muskelIds = new Set(MUSKEL_IDS)
 
 for (const e of katalog) {
   const bilder = Array.isArray(e.bilder) ? e.bilder : []

@@ -3,6 +3,38 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.6.0] — 2026-09-28
+
+Neue Uebungsbilder und eine neue Muskelgrafik (Wunsch Gabriel): alles aus
+einem Guss, im Stil der bisher besten Bilder.
+
+### Features
+- **Alle 36 Uebungsbilder neu:** mit ChatGPT gezeichnet, je Uebung Start-
+  und Endhaltung, meist mehr als doppelt so gross wie bisher und scharf
+  (die Rueckenuebungen waren vorher verwaschen). Leg curl, Core und
+  Butterfly reverse zeigen jetzt ebenfalls farbige Bilder statt
+  Strichzeichnungen. Der Rueckenstrecker ("lower back") zeigt das Geraet aus
+  dem Studio, gezeichnet nach Gabriels Foto.
+- **Neue Muskelgrafik:** eine gezeichnete Figur von vorn und hinten statt
+  Rechtecken und Kreisen. Die App faerbt je Uebung den Hauptmuskel kraeftig
+  und die Hilfsmuskeln hell ein; in der Detailansicht ist sie groesser.
+
+### Aenderungen
+- Standardliste: Geraete von lunges (Langhantel), hip thrusts (Maschine) und
+  chest supported row (Maschine) korrigiert. Das wirkt nur beim Neuanlegen;
+  die vorhandenen Uebungen in der App tragen noch das alte Geraet.
+
+### Intern
+- `scripts/muskelgrafik-bauen.mjs` baut aus der farbigen KI-Figur
+  (`muskelfigur-farbig.webp`) die graue Grundfigur und je Muskel eine Maske
+  (`public/muskelgrafik/`). Muskel-Ids und Grobgruppen stehen jetzt in
+  `src/data/muskelgrafik.js`; Komponente, Bau-Skript und Tests lesen sie dort.
+- Schneide-Skript kennt weissen Hintergrund ohne Beschriftung
+  (`hintergrund: 'weiss'`, `schilder: 0`); die Schnitt-Tabelle nutzt nur noch
+  die Reihenbilder `neu-01` bis `neu-12`.
+- Vertragstests angepasst: 36 KI-Bilder, START + ENDE je Uebung (Plank ein
+  Standbild); die MuscleMap-Pruefung prueft Grundfigur und alle 18 Masken.
+
 ## [2.5.0] — 2026-09-27
 
 Die Uebungsliste der Planung war doppelt; dazu laesst sich die Reihenfolge
