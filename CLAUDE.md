@@ -66,12 +66,14 @@ src/
                          Namens-Bremse (reine Funktionen, Browser + Node)
     planReihenfolge.js   Umsortieren eines Trainingstags: Zielplatz,
                          Platz machen, Verschieben (reine Funktionen)
+    radWerte.js          Rad-Werte + Vorwert ausserhalb des Rasters (nie
+                         still auf den ersten Wert springen; reine Funktion)
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
-public/uebungsbilder/    je Manifest-Key frame-<n>.webp (KI) oder .svg (Workout
-                         Guide) + vorschau.webp (im Repo, precached),
-                         LIZENZ.md = Bildnachweis beider Quellen
+public/uebungsbilder/    je Manifest-Key frame-<n>.webp + vorschau.webp (im
+                         Repo, precached), LIZENZ.md = Bildnachweis
+public/muskelgrafik/     grundfigur.webp + je Muskel-Id eine Maske <id>.png
 scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf,
                          uebungen-cloud (alle Uebungen der App aus der Cloud
@@ -93,7 +95,7 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          pace-modell-test, musclemap-pruefen,
                          uebungsbilder-matching-test, uebungsring-test,
                          saetze-test, uebungsdubletten-test,
-                         planreihenfolge-test
+                         planreihenfolge-test, radwerte-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
                          garmin-anbindung, plan-fittrack-v2,
@@ -231,7 +233,7 @@ npm run preview   # Build lokal testen (Port 4173)
   Grund), `bilder` = frame-1 + frame-3, die Plank ein Standbild. Neue oder
   nachgebesserte Bilder genau so: Ablauf, Stil-Vorbild und Prompt-Vorlage in
   `docs/uebungsbilder-chatgpt.md`. Die Karomuster-Erkennung des Skripts gilt
-  nur den alten Sammelbildern 1-7. Nach jeder Tabellen-Aenderung den
+  nur alten Sammelbildern (Git-Historie bis v2.5.0). Nach jeder Tabellen-Aenderung den
   `--bogen` ansehen (springt die Figur in der Ueberblendung, `ausrichtung:
   'mitte'`). Die Muskelgrafik ist EINE farbige KI-Figur, zerlegt in 18
   Masken (`scripts/muskelgrafik-bauen.mjs`); welche Muskeln je Uebung
@@ -253,10 +255,12 @@ npm run preview   # Build lokal testen (Port 4173)
   `src/data/standardUebungen.js` und in den Bild-Vertrag (der Test verlangt
   fuer jede Standard-Uebung ein Bild).
 - **Bildnachweis ist Pflicht, nicht Deko:** Einstellungen -> Info und
-  `public/uebungsbilder/LIZENZ.md` nennen beide Quellen — nie entfernen, bei
-  neuen Bildquellen ergaenzen. Die Workout-Guide-Zeichnungen (auch bearbeitet)
-  stehen unter CC BY-SA 4.0; die Angabe bleibt, solange eine davon im Manifest
-  steht. Bilder aus dem Screenshot-Stil (Gymvisual, ExerciseDB und deren
+  `public/uebungsbilder/LIZENZ.md` nennen jede Quelle, deren Bilder die App
+  ausliefert — nie entfernen, bei neuen Bildquellen ergaenzen. Seit v2.6.0
+  (28.09.2026, auf Gabriels Freigabe) nur KI-Bilder; die Workout-Guide-
+  Zeichnungen (CC BY-SA 4.0) sind geloescht, ihr Nachweis steht als Historie
+  in LIZENZ.md und muss zurueck in die App, sobald wieder eine davon ins
+  Manifest kommt. Bilder aus dem Screenshot-Stil (Gymvisual, ExerciseDB und deren
   GitHub-Kopien) sind kostenpflichtig und duerfen nicht ins oeffentliche Repo —
   die KI-Bilder aehneln dem Stil, sind aber neu erzeugt.
 - **Alternativen-Ring mit Standard-Uebung JE NUTZER:** In der Planung traegt

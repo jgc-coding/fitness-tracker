@@ -30,14 +30,6 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       Nachtrag 2026-09-23: zusaetzlich wechselt `ubuntu-latest` ab 19.10.2026 auf
       Ubuntu 26 (Hinweis im Lauf 35912764194) — beim Anheben mit pruefen.
       Beleg: Actions-Lauf 34761917049; deploy.yml nutzt Actions @v4 und node-version 20. · Aufwand: S
-- [ ] **V15** (B) Gewichts-Rad springt auf den kleinsten Wert, wenn der Vorwert nicht ins Raster passt — gefunden 2026-09-28
-      Das Rad kennt nur Vielfache des Schritts (1,25 kg bei Langhantel/Maschine, sonst
-      1 kg). Liegt der Vorwert daneben, etwa 22 kg nach dem Umstellen einer Uebung von
-      Kurzhantel auf Maschine, markiert es 1,25 kg statt des naechsten Werts. Akut, sobald
-      lunges und chest supported row im Katalog ihr richtiges Geraet bekommen (Standard-
-      liste seit v2.6.0 korrigiert, in der Cloud noch das alte Geraet).
-      Beleg: WheelPicker.vue `selectedIndex` faellt bei `indexOf === -1` auf 0; Raster in
-      TrackingView.vue `weightValues`. · Aufwand: S
 
 ## Ideen
 - **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S

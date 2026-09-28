@@ -7,7 +7,7 @@
       <div class="wheel-highlight"></div>
       <div class="wheel-scroll" ref="scrollRef" :style="{ transform: `translateY(${offset}px)` }">
         <div
-          v-for="val in values"
+          v-for="val in werte"
           :key="val"
           class="wheel-item"
           :class="{ selected: val === modelValue }"
@@ -22,6 +22,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { werteMitVorwert } from '../../utils/radWerte.js'
 
 const props = defineProps({
   modelValue: { type: Number, default: 0 },
@@ -41,8 +42,22 @@ const containerRef = ref(null)
 
 const centerOffset = Math.floor(VISIBLE_ITEMS / 2) * ITEM_HEIGHT
 
+// Ein Vorwert ausserhalb des Rasters (22 kg bei 1,25-kg-Schritten, nachdem
+// eine Uebung ein anderes Geraet bekommen hat) steht als eigene Position im
+// Rad, statt dass es still auf den ersten Wert springt (V15, Regel in
+// utils/radWerte.js). Der Zusatz bleibt, solange der Nutzer selbst dreht —
+// sonst verschoebe sich die Liste unter dem Finger — und wird fuer jeden Wert
+// neu bestimmt, der von aussen kommt.
+const zusatz = ref(null)
+let eigeneAusgabe = null
+function zusatzBestimmen() {
+  zusatz.value = props.values.includes(props.modelValue) ? null : props.modelValue
+}
+zusatzBestimmen()
+const werte = computed(() => werteMitVorwert(props.values, zusatz.value))
+
 const selectedIndex = computed(() => {
-  const idx = props.values.indexOf(props.modelValue)
+  const idx = werte.value.indexOf(props.modelValue)
   return idx >= 0 ? idx : 0
 })
 
@@ -68,12 +83,13 @@ function setOffsetFromIndex(index) {
 
 function snapToNearest() {
   const rawIndex = Math.round((centerOffset - offset.value) / ITEM_HEIGHT)
-  const clampedIndex = Math.max(0, Math.min(props.values.length - 1, rawIndex))
+  const clampedIndex = Math.max(0, Math.min(werte.value.length - 1, rawIndex))
 
   animateToIndex(clampedIndex)
 
-  const newVal = props.values[clampedIndex]
+  const newVal = werte.value[clampedIndex]
   if (newVal !== props.modelValue) {
+    eigeneAusgabe = newVal
     emit('update:modelValue', newVal)
   }
 }
@@ -110,7 +126,7 @@ function momentumScroll() {
   velocity *= 0.92
 
   const maxOffset = centerOffset
-  const minOffset = centerOffset - (props.values.length - 1) * ITEM_HEIGHT
+  const minOffset = centerOffset - (werte.value.length - 1) * ITEM_HEIGHT
   if (offset.value > maxOffset || offset.value < minOffset) {
     offset.value = Math.max(minOffset, Math.min(maxOffset, offset.value))
     snapToNearest()
@@ -194,7 +210,18 @@ function onMouseDown(e) {
   document.addEventListener('mouseup', onMouseUp)
 }
 
-watch(() => props.modelValue, () => {
+watch(() => props.modelValue, neu => {
+  // Eigene Ausgabe (Nutzer hat gedreht): Liste bleibt, wie sie ist
+  if (neu !== eigeneAusgabe) zusatzBestimmen()
+  eigeneAusgabe = null
+  if (!isDragging) {
+    setOffsetFromIndex(selectedIndex.value)
+  }
+})
+
+// Anderes Raster (Uebung mit anderem Geraet im selben Rad)
+watch(() => props.values, () => {
+  zusatzBestimmen()
   if (!isDragging) {
     setOffsetFromIndex(selectedIndex.value)
   }

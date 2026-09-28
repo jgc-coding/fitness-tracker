@@ -19,10 +19,22 @@ einem Guss, im Stil der bisher besten Bilder.
   Rechtecken und Kreisen. Die App faerbt je Uebung den Hauptmuskel kraeftig
   und die Hilfsmuskeln hell ein; in der Detailansicht ist sie groesser.
 
+### Fixes
+- **Gewichts-Rad springt nicht mehr auf den kleinsten Wert:** Passte der
+  Vorwert nicht ins Raster (etwa 22 kg bei 1,25-kg-Schritten, nachdem eine
+  Uebung im Katalog ein anderes Geraet bekommen hat), markierte das Rad
+  1,25 kg. Jetzt steht genau der Vorwert als eigene Position im Rad; gleiches
+  gilt fuer Wdh und Zyklustag (V15).
+
 ### Aenderungen
 - Standardliste: Geraete von lunges (Langhantel), hip thrusts (Maschine) und
   chest supported row (Maschine) korrigiert. Das wirkt nur beim Neuanlegen;
-  die vorhandenen Uebungen in der App tragen noch das alte Geraet.
+  die vorhandenen Uebungen in der App tragen noch das alte Geraet (im Katalog
+  umstellbar, seit dem Rad-Fix gefahrlos).
+- Aufgeraeumt: die alten Strichzeichnungen, drei unbenutzte Zwischenbilder
+  und die sieben alten Sammelbilder sind geloescht (stehen in der
+  Git-Historie). Einstellungen -> Info nennt nur noch KI-Bilder; der
+  Workout-Guide-Nachweis steht als Historie in `LIZENZ.md`.
 
 ### Intern
 - `scripts/muskelgrafik-bauen.mjs` baut aus der farbigen KI-Figur
@@ -34,6 +46,9 @@ einem Guss, im Stil der bisher besten Bilder.
   die Reihenbilder `neu-01` bis `neu-12`.
 - Vertragstests angepasst: 36 KI-Bilder, START + ENDE je Uebung (Plank ein
   Standbild); die MuscleMap-Pruefung prueft Grundfigur und alle 18 Masken.
+- Neuer Vertragstest `scripts/radwerte-test.mjs` (im Pruef-Gate), Regel in
+  `src/utils/radWerte.js`; `scripts/uebungsbilder-reihen-messen.mjs` misst
+  neue Reihenbilder aus, Ablauf in `docs/uebungsbilder-chatgpt.md`.
 
 ## [2.5.0] — 2026-09-27
 
