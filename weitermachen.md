@@ -1,6 +1,18 @@
-# Weitermachen — Stand 2026-09-28 (v2.6.0 ist live)
+# Weitermachen — Stand 2026-09-30 (v2.7.0 ist live)
 
 ## Stand
+- **v2.7.0 ist LIVE (30.09.):** Nutzerwahl per Farbkreise auf dem
+  Startbildschirm statt Startdialog; in der Cloud haben seated leg curl und
+  seated leg extension Name und Bild getauscht (waren von Anfang an
+  vertauscht, gilt fuer Lisa und Gab), "bad girl"/"good girl" heissen Hip
+  Abduction/Adduction mit Spitznamen in Klammern. Tag `v2.7.0` auf
+  `b017825`, Actions-Lauf 36745027886 gruen; live gegengeprueft (Chunks mit
+  2.7.0, neuer Komponente und neuen Namen, `sw.js` precacht sie). Gate
+  gruen, Headless-Test auf frischer Adresse (Kreise, Tippen, Reload,
+  Training zu zweit, Beenden) ohne Konsolenfehler. Cloud-Sicherung vor dem
+  Tausch: `privat\cloud-sicherung-uebungen-2026-09-30T16-32-50-060Z.json`;
+  Rueckweg `node .\scripts\uebungen-korrigieren.mjs --zurueck --jetzt`.
+  Rueckkehrpunkt Code: `01031c1` (v2.6.0, gleiches Schema).
 - **v2.6.0 ist LIVE (28.09.):** Alle 36 Uebungsbilder neu aus ChatGPT (12
   Reihenbilder mit je drei Uebungen, Stil-Vorbild aus den besten alten Figuren,
   Rueckenstrecker nach Gabriels Studio-Foto), neue Muskelgrafik aus EINER
@@ -104,6 +116,7 @@
   — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.7.0 am Handy durchklicken** — App ganz schliessen und neu oeffnen, unter Settings steht 2.7.0; Liste: `docs/tests/v2.7.0-handy.md`. Bis BEIDE Handys 2.7.0 zeigen, nicht auf "Standard-Uebungen laden" tippen (eine alte Version wuerde "bad girl"/"good girl" neu anlegen) (seit 2026-09-30)
 - [ ] **v2.6.0 am Handy durchklicken** — App ganz schliessen und neu oeffnen, unter Settings steht 2.6.0; Liste: `docs/tests/v2.6.0-handy.md`; dabei sagen, welche Bilder nachgebessert werden sollen (seit 2026-09-28)
 - [ ] **Geraete im Katalog umstellen:** lunges auf Langhantel, hip thrusts und chest supported row auf Maschine (Gewichte) — die Standardliste ist schon korrigiert, die Eintraege in der App nicht; seit dem Rad-Fix gefahrlos (seit 2026-09-28)
 - [ ] **v2.5.0 am Handy durchklicken** — Liste: `docs/tests/v2.5.0-handy.md` (seit 2026-09-27)
