@@ -25,7 +25,7 @@ export const useWorkoutStore = defineStore('workout', () => {
         date: today,
         planId,
         trainingDayId: trainingDay.id,
-        // Wer heute trainiert (Startdialog) — Teil des Logs, damit History
+        // Wer heute trainiert (Startbildschirm) — Teil des Logs, damit History
         // und Resume die Besetzung kennen
         userIds: [...authStore.activeUserIds],
         startedAt: new Date().toISOString(),
@@ -38,7 +38,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     } else {
       // Re-opening a finished day — clear completedAt so new sets append to
       // the right session rather than a "finished" one. In beiden Faellen
-      // gilt die aktuelle Nutzer-Auswahl (der Start kam durch den Dialog).
+      // gilt die aktuelle Nutzer-Auswahl (Farbkreise auf dem Startbildschirm).
       const updatedAt = new Date().toISOString()
       const patch = { userIds: [...authStore.activeUserIds], updatedAt }
       if (existing.completedAt) patch.completedAt = null

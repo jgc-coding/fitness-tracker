@@ -46,6 +46,8 @@
           </button>
         </div>
 
+        <StartNutzerwahl />
+
         <p v-if="!plansStore.activePlan" class="no-plan-hint">
           Kein aktiver Trainingsplan — du kannst trotzdem ein individuelles Training
           starten oder in der <router-link to="/planning">Planung</router-link> einen Plan anlegen.
@@ -485,6 +487,7 @@ import { useRoute } from 'vue-router'
 import TopBar from '../components/layout/TopBar.vue'
 import Modal from '../components/shared/Modal.vue'
 import UserSelectModal from '../components/shared/UserSelectModal.vue'
+import StartNutzerwahl from '../components/tracking/StartNutzerwahl.vue'
 import ExerciseDetail from '../components/tracking/ExerciseDetail.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
 import MuscleMap from '../components/shared/MuscleMap.vue'
@@ -1297,6 +1300,7 @@ async function onSwMessage(e) {
   if (e.data?.type === 'workout-finished') {
     workoutStore.clearActiveWorkout()
     clearWorkoutView()
+    authStore.resetActiveUsers()
     dismissWorkoutNotification()
     flushQueue()
     return
@@ -1436,6 +1440,10 @@ async function finishWorkout() {
   await workoutStore.finishWorkout()
   clearWorkoutView()
   dismissWorkoutNotification()
+  // Der Startbildschirm beginnt wieder mit dem Standard-Nutzer. Nur hier und
+  // im Notification-Weg — "Tag wechseln" beendet ueber den Store und behaelt
+  // die Besetzung.
+  authStore.resetActiveUsers()
 }
 
 onMounted(async () => {

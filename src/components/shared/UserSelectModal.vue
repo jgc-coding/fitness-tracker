@@ -34,15 +34,13 @@ import { ref, watch } from 'vue'
 import Modal from './Modal.vue'
 import { useAuthStore } from '../../stores/auth.js'
 
-// Mehrfachauswahl "Wer trainiert heute?". Uebernommen wird die Auswahl NUR
-// ueber den Bestaetigen-Knopf — Schliessen per Android-Back oder X laesst die
-// bisherigen activeUserIds unveraendert gelten (selected ist nur lokal).
+// Mehrfachauswahl "Wer trainiert?" im laufenden Workout (Tipp auf die
+// Farbkreise im Kopf; vor dem Start waehlt man auf dem Startbildschirm, siehe
+// StartNutzerwahl). Uebernommen wird die Auswahl NUR ueber den
+// Bestaetigen-Knopf — Schliessen per Android-Back oder X laesst die bisherigen
+// activeUserIds unveraendert gelten (selected ist nur lokal).
 const props = defineProps({
-  modelValue: Boolean,
-  // Abweichende Vorauswahl NUR fuers Oeffnen (Array aus Nutzer-Ids). Der
-  // Startdialog haengt darueber den Standard-Nutzer an; ohne Prop (Chip-Weg
-  // im Workout) gilt die letzte bestaetigte Auswahl.
-  vorauswahl: { type: Array, default: null }
+  modelValue: Boolean
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm'])
@@ -50,11 +48,11 @@ const emit = defineEmits(['update:modelValue', 'confirm'])
 const authStore = useAuthStore()
 const selected = ref([])
 
-// Beim Oeffnen vorbelegen: uebergebene Vorauswahl, sonst die letzte Auswahl
+// Beim Oeffnen mit der aktuellen Besetzung vorbelegen
 watch(
   () => props.modelValue,
   (open) => {
-    if (open) selected.value = props.vorauswahl ? [...props.vorauswahl] : [...authStore.activeUserIds]
+    if (open) selected.value = [...authStore.activeUserIds]
   }
 )
 
