@@ -262,6 +262,12 @@ npm run preview   # Build lokal testen (Port 4173)
   "nur in der App" steht, kommt mit exaktem Namen, Gruppe und Geraet in
   `src/data/standardUebungen.js` und in den Bild-Vertrag (der Test verlangt
   fuer jede Standard-Uebung ein Bild).
+- **Uebung umbenennen = vier Stellen zugleich:** Standardliste, Alias im
+  Manifest (alter Name bleibt als Alias), Bild-Vertrag und die Cloud per
+  `scripts/uebungen-korrigieren.mjs` (Tabelle mit Id, vorher, nachher).
+  Vertauschte Uebungen tauschen dort Name und Bild statt Saetze umzuhaengen.
+  Bis alle Handys die neue Version haben, legt "Standard-Uebungen laden" auf
+  einer alten Version den alten Namen neu an.
 - **Bildnachweis ist Pflicht, nicht Deko:** Einstellungen -> Info und
   `public/uebungsbilder/LIZENZ.md` nennen jede Quelle, deren Bilder die App
   ausliefert — nie entfernen, bei neuen Bildquellen ergaenzen. Seit v2.6.0
