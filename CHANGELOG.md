@@ -3,6 +3,42 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.7.0] — 2026-09-30
+
+Wer trainiert, waehlt man jetzt direkt auf dem Startbildschirm; dazu zwei
+Korrekturen an Uebungsnamen (Wunsch Gabriel).
+
+### Features
+- **Nutzerwahl ohne Dialog:** Unter den Trainingskarten steht nach einem
+  duennen Strich je Person ein Farbkreis mit Anfangsbuchstaben. Der
+  Standard-Nutzer ist ausgewaehlt (volle Farbe mit Ring), ein Tipp nimmt
+  jemanden dazu oder heraus; einer bleibt immer ausgewaehlt. Wer allein
+  trainiert, tippt direkt auf den Trainingstag. Der Dialog "Wer trainiert?"
+  beim App-Start entfaellt; beim App-Start und nach "Workout beenden"
+  springt die Auswahl auf den Standard-Nutzer zurueck. Im laufenden Workout
+  aendert man die Besetzung wie bisher ueber die Kreise im Kopf.
+
+### Fixes
+- **Seated Leg Curl und Seated Leg Extension waren von Anfang an vertauscht**
+  eingetragen: Die beiden Uebungen haben in der Cloud Name und Bild
+  getauscht. Alle Saetze (Lisa und Gab, samt Ausgangswerten), Notizen und
+  Geraete-Einstellungen stehen damit bei der Uebung, die wirklich gemacht
+  wurde. Im Beinplan steht an Platz 3 jetzt Leg Extension, an Platz 7 Leg
+  Curl — so wurde trainiert; umsortieren geht per Finger in der Planung.
+
+### Aenderungen
+- "bad girl" heisst jetzt **Hip Abduction (Bad Girl)** (Beine auseinander),
+  "good girl" **Hip Adduction (Good Girl)** (Beine zusammen). Bilder und
+  Verlauf bleiben; die alten Namen finden weiter ihr Bild (alte Backups).
+
+### Intern
+- `scripts/uebungen-korrigieren.mjs`: benennt Uebungen in der Cloud um bzw.
+  tauscht Name und Bild zweier Uebungen (Tabelle im Skript, Trockenlauf,
+  Bremse bei laufendem Training, Sicherung, ein atomarer Schritt,
+  `--zurueck` als Rueckweg). Neue Komponente `StartNutzerwahl.vue`; der
+  Startdialog in `App.vue` und `startVorauswahl` im auth store sind weg,
+  dafuer `resetActiveUsers`.
+
 ## [2.6.0] — 2026-09-28
 
 Neue Uebungsbilder und eine neue Muskelgrafik (Wunsch Gabriel): alles aus

@@ -14,7 +14,7 @@ import { satzZahlGueltig } from '../utils/saetze.js'
 const DEFAULT_USER_KEY = `${db.name}:defaultUserId`
 
 // Wer heute trainiert, ist ebenfalls eine GERAETE-Einstellung (siehe oben):
-// die Auswahl im Startdialog gilt fuer dieses Handy, nicht fuer alle.
+// die Auswahl auf dem Startbildschirm gilt fuer dieses Handy, nicht fuer alle.
 const ACTIVE_USERS_KEY = `${db.name}:activeUserIds`
 // Nur Erstwert des ref — der echte Fallback ohne gespeicherte Auswahl ist der
 // Standard-Nutzer dieses Geraets (siehe loadActiveUsers), nie ein leeres Array.
@@ -28,11 +28,6 @@ export const useAuthStore = defineStore('auth', () => {
   const activeUsers = computed(() =>
     users.value.filter(u => activeUserIds.value.includes(u.id))
   )
-  // Vorauswahl NUR fuer den Startdialog: immer genau der Standard-Nutzer
-  // dieses Geraets (Entscheidung Gabriel 22.09.2026) — Mittrainierende werden
-  // im Dialog je Training dazugehakt. Der Chip-Weg im Workout nutzt das
-  // bewusst nicht, dort zaehlt allein die aktuelle Besetzung.
-  const startVorauswahl = computed(() => [defaultUserId.value])
 
   async function updateUserName(userId, name) {
     const user = users.value.find(u => u.id === userId)
@@ -153,6 +148,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Zurueck auf genau den Standard-Nutzer dieses Geraets (Entscheidung
+  // Gabriel 22.09.2026, seit v2.7 ohne Dialog): beim App-Start ohne offenes
+  // Workout und nach "Workout beenden". Mittrainierende tippt man auf dem
+  // Startbildschirm je Training dazu (StartNutzerwahl).
+  function resetActiveUsers() {
+    setActiveUsers([defaultUserId.value])
+  }
+
   function getUserName(userId) {
     return users.value.find(u => u.id === userId)?.name || userId
   }
@@ -168,7 +171,6 @@ export const useAuthStore = defineStore('auth', () => {
     defaultUserId,
     activeUserIds,
     activeUsers,
-    startVorauswahl,
     updateUserName,
     loadUserNames,
     satzZahlen,
@@ -177,6 +179,7 @@ export const useAuthStore = defineStore('auth', () => {
     setSatzZahl,
     setDefaultUser,
     setActiveUsers,
+    resetActiveUsers,
     getUserName
   }
 })

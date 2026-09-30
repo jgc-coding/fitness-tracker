@@ -60,8 +60,9 @@ const ERWARTET = [
   ['Leg Press', 'leg-press'],
   ['Leg curl', 'lying-leg-curl'],
   ['hip thrusts', 'hip-thrust'],
-  ['"bad girl"', 'hip-abduction-machine'],
-  ['"good girl"', 'hip-adduction-machine'],
+  // Seit v2.7.0 mit richtigem Namen, der Spitzname steht in Klammern dahinter
+  ['Hip Abduction (Bad Girl)', 'hip-abduction-machine'],
+  ['Hip Adduction (Good Girl)', 'hip-adduction-machine'],
   ['seated leg curl', 'seated-leg-curl'],
   ['seated leg extension', 'leg-extension'],
   ['calve raises', 'standing-calf-raise'],
@@ -126,7 +127,10 @@ for (const [name, key] of [
   ['Dips (Körpergewicht)', 'dips'],
   ['Dips (Koerpergewicht)', 'dips'],
   ['Bodyweight Dips', 'dips'],
-  ['Triceps Dips', 'dips']
+  ['Triceps Dips', 'dips'],
+  // Namen bis v2.6 (alte Backups, Handys vor dem Update)
+  ['"bad girl"', 'hip-abduction-machine'],
+  ['"good girl"', 'hip-adduction-machine']
 ]) {
   pruefe(`"${name}" -> ${key}`, findeImageKey(katalog, name) === key)
 }

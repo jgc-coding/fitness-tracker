@@ -430,14 +430,16 @@ const SEED_HISTORY = [
   // Legs
   ['Hack Squat', 22.5, 50],
   ['hip thrusts', 30, 50],
-  ['"bad girl"', 40, 60],
-  ['seated leg curl', 52.5, 85],
-  ['seated leg extension', 50, 70],
+  ['Hip Abduction (Bad Girl)', 40, 60],
+  // Curl und Extension waren von Anfang an vertauscht (Gabriel 30.09.2026) —
+  // die Werte stehen seit v2.7.0 bei der Uebung, die wirklich gemacht wurde
+  ['seated leg curl', 50, 70],
+  ['seated leg extension', 52.5, 85],
   ['calve raises', 25, 90],
   ['lunges', 20, 50],
   ['Leg Press', 0, 180],
   ['Leg curl', 0, 70],
-  ['"good girl"', 0, 0],
+  ['Hip Adduction (Good Girl)', 0, 0],
   // Chest
   ['DB Bench press', 12, 36],
   ['DB incline Bench press', 0, 34],

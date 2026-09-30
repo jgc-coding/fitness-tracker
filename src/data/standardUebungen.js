@@ -17,8 +17,10 @@ export const STANDARD_UEBUNGEN = [
   // Gabriel korrigiert (so stehen sie im Studio). In der Cloud tragen die drei
   // Uebungen noch das alte Geraet — die Liste wirkt nur beim Neuanlegen.
   { name: 'hip thrusts', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: '"bad girl"', muscleGroup: 'legs', equipment: 'machine_weight' },
-  { name: '"good girl"', muscleGroup: 'legs', equipment: 'machine_weight' },
+  // Bis v2.6 hiessen die beiden nur "bad girl" und "good girl" (Gabriel
+  // 30.09.2026: richtiger Name, Spitzname in Klammern)
+  { name: 'Hip Abduction (Bad Girl)', muscleGroup: 'legs', equipment: 'machine_weight' },
+  { name: 'Hip Adduction (Good Girl)', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'seated leg curl', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'seated leg extension', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'calve raises', muscleGroup: 'legs', equipment: 'machine_weight' },

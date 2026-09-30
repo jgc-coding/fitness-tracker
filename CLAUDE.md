@@ -35,11 +35,14 @@ src/
                          Leeren = text '', nie loeschen)
   components/shared/     Modal (Android-Back schliesst! folgt bei offener
                          Tastatur dem sichtbaren Bereich), EmptyState,
-                         WheelPicker, UserSelectModal (Startdialog), MuscleMap
+                         WheelPicker, UserSelectModal (Besetzung im
+                         laufenden Workout), MuscleMap
                          (graue KI-Figur + Maske je markiertem Muskel,
                          multiply; Grobgruppen-Fallback)
   components/tracking/ExerciseDetail.vue  Detailansicht: Ueberblendung Start-/
                          Endbild alle 1,2 s, MuscleMap, Notizfeld je Nutzer
+  components/tracking/StartNutzerwahl.vue  Farbkreise "Wer trainiert?" auf
+                         dem Startbildschirm
   data/uebungskatalog.json  Bild-Manifest: key, quelle (ki|workout-guide),
                          bilder (1-2 Frames), vorschau, primaer/sekundaer
                          (Muskel-Ids), aliasse (Katalognamen)
@@ -90,7 +93,10 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          Figur + 18 Masken aus der farbigen KI-Figur),
                          uebungen-dubletten (doppelte Uebungen in der Cloud
                          zusammenfuehren; ohne --jetzt Trockenlauf, Zugang
-                         ueber lib/cloud-rest.mjs)
+                         ueber lib/cloud-rest.mjs), uebungen-korrigieren
+                         (Uebungen in der Cloud umbenennen oder Name + Bild
+                         zweier Uebungen tauschen, Tabelle im Skript; ohne
+                         --jetzt Trockenlauf, --zurueck = Rueckweg)
                          Vertragstests: laufplan-merge-test, runmatch-test,
                          pace-modell-test, musclemap-pruefen,
                          uebungsbilder-matching-test, uebungsring-test,
@@ -192,13 +198,15 @@ npm run preview   # Build lokal testen (Port 4173)
   `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History, am Notification-Knopf.
   Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und beide Handys wuerden sich
   den Wert gegenseitig ueberschreiben.
-- **Nutzerwahl ist ebenfalls GERAETE-lokal:** Der Startdialog "Wer trainiert?"
-  (UserSelectModal, entfaellt bei heutigem unfertigem Workout) setzt
-  `activeUserIds` im auth store (localStorage, Fallback ohne gespeicherte
-  Auswahl: `[defaultUserId]`, nie leer). Vorausgewaehlt ist immer genau der
-  Standard-Nutzer (`startVorauswahl` — nur im Startdialog; die Farbkreise im
-  Workout-Kopf zeigen allein die aktuelle Besetzung); im Workout aenderbar
-  per Tipp auf die Farbkreise. Das Workout kennt nur
+- **Nutzerwahl ist ebenfalls GERAETE-lokal:** `activeUserIds` im auth store
+  (localStorage, Fallback ohne gespeicherte Auswahl: `[defaultUserId]`, nie
+  leer). Seit v2.7 ohne Startdialog: die Farbkreise unter den Trainingskarten
+  (`StartNutzerwahl`) schreiben die Auswahl bei jedem Tipp, der letzte
+  ausgewaehlte laesst sich nicht abwaehlen. `resetActiveUsers` (genau der
+  Standard-Nutzer) laeuft beim App-Start ohne heutiges unfertiges Workout
+  (App.vue) und nach "Workout beenden" (Knopf und Notification) — NICHT bei
+  "Tag wechseln", das die Besetzung behaelt. Im Workout aenderbar per Tipp
+  auf die Farbkreise im Kopf (UserSelectModal). Das Workout kennt nur
   `activeUsers` (Karten-Layout nach Anzahl, Auto-Wechsel reihum,
   Notification-Warteschlangen); `authStore.users` (alle drei) gehoert in
   History, Settings und die Notizfelder der Detailansicht. `startWorkout`
@@ -370,9 +378,7 @@ npm run preview   # Build lokal testen (Port 4173)
   eine eigene Herkunft ohne Anmeldung). `localhost` und `127.0.0.1` koennen aus einer
   frueheren Sitzung angemeldet sein — dann landet jeder gespeicherte Testsatz in der
   echten Cloud. Testdaten am schnellsten ueber den echten Backup-Import (Datei-Feld
-  in Settings per `DataTransfer` befuellen, `change` ausloesen). Der Startdialog
-  "Wer trainiert?" (App.vue) oeffnet bei JEDEM Laden und liegt dann als erstes
-  Modal im DOM — zuerst bestaetigen oder schliessen.
+  in Settings per `DataTransfer` befuellen, `change` ausloesen).
 - **Preview-Port 4173 ist oft von einer anderen Sitzung belegt** (alter Stand): nie
   beenden, sondern voruebergehend eine eigene Konfiguration mit anderem Port und
   `--strictPort` in `.claude/launch.json` (danach zuruecksetzen); Version in Settings

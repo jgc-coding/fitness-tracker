@@ -8,37 +8,36 @@
       </router-view>
     </main>
     <BottomNav />
-    <UserSelectModal v-model="showUserSelect" :vorauswahl="authStore.startVorauswahl" />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import BottomNav from './components/layout/BottomNav.vue'
-import UserSelectModal from './components/shared/UserSelectModal.vue'
 import { initSync } from './services/syncService.js'
 import { db } from './db/dexie.js'
 import { getToday } from './utils/dateHelpers.js'
 import { useAuthStore } from './stores/auth.js'
 
 const authStore = useAuthStore()
-const showUserSelect = ref(false)
 
 onMounted(async () => {
   initSync()
 
-  // Startdialog "Wer trainiert?" — aber nicht mitten in ein laufendes Training
-  // hinein: liegt heute ein unfertiges Workout in der DB (gleiche Abfrage wie
-  // resumeTodaysWorkout), gilt dessen Besetzung und der Dialog bleibt zu.
+  // Wer trainiert: jeder App-Start beginnt mit dem Standard-Nutzer (seit v2.7
+  // ohne Dialog — die Farbkreise auf dem Startbildschirm zeigen die Auswahl).
+  // Nicht mitten in ein laufendes Training hinein: liegt heute ein unfertiges
+  // Workout in der DB (gleiche Abfrage wie resumeTodaysWorkout), gilt dessen
+  // Besetzung.
   try {
     const logs = await db.workoutLogs.where({ date: getToday() }).toArray()
     if (!logs.some(l => !l.completedAt)) {
-      showUserSelect.value = true
+      authStore.resetActiveUsers()
     }
   } catch (e) {
-    // DB nicht lesbar: Dialog trotzdem zeigen — er aendert ohne Bestaetigung nichts
-    console.warn('[FitTrack] [WARN] Startdialog-Pruefung fehlgeschlagen:', e)
-    showUserSelect.value = true
+    // DB nicht lesbar: trotzdem zuruecksetzen — die Kreise zeigen es sichtbar an
+    console.warn('[FitTrack] [WARN] Pruefung auf offenes Workout fehlgeschlagen:', e)
+    authStore.resetActiveUsers()
   }
 })
 </script>
