@@ -1,6 +1,19 @@
-# Weitermachen — Stand 2026-10-01 (v2.7.1 ist live)
+# Weitermachen — Stand 2026-10-01 (v2.8.0 ist live)
 
 ## Stand
+- **v2.8.0 ist LIVE (01.10.):** "Verlauf ansehen" in der Detailansicht
+  (Workout und Katalog): SVG-Liniendiagramm je Nutzer, ein Punkt je
+  Trainingstag (schwerster Satz), Zeitraum 3 Mon./6 Mon./1 Jahr/Alle,
+  darunter alle Werte als Liste. Regeln `src/utils/verlauf.js`, Vertrag
+  `scripts/verlauf-test.mjs` (neu im Gate). Gate gruen (13 Befehle),
+  Headless-Test 360 px mit 14 Monaten Testdaten (27 Pruefungen: Zeitraeume,
+  Nutzerwechsel, Mehrfachsaetze, Aufwaermsatz, Koerpergewicht = Wdh,
+  Einzelpunkt, leerer Zeitraum, Antippen, Zurueck) ohne Konsolenfehler.
+  Tag `v2.8.0` auf `cd1f56d`, Actions-Lauf 36850918424 gruen, live per HTTP
+  gegengeprueft (Settings-Chunk 2.8.0, ExerciseDetail-Chunk mit Verlauf,
+  von `sw.js` precacht). Rueckkehrpunkt vor v2.8.0: `be06855`.
+- **Gabriels Antworten vom 01.10. (2):** Rueckmelde-Knopf nach dem Lauf
+  funktioniert, bei Lisa ist alles gut — beide Punkte gestrichen.
 - **v2.7.1 ist LIVE (01.10.):** nur der Deploy-Workflow (V14, Freigabe
   Gabriel): checkout@v7, setup-node@v7 mit Node 24, upload-pages-artifact@v5,
   deploy-pages@v5. Gate gruen, Actions-Lauf 36847706022 gruen ohne
@@ -67,8 +80,13 @@
   (Android-Back = abbrechen) — bei Umbauten beibehalten.
 
 ## Naechste Schritte (Claude)
-1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.7 abarbeiten**
-   (Checklisten in `docs/tests/`). v2.7: Kreise in
+1. **CLAUDE.md-Straffung vorschlagen** — Gabriel will das als Naechstes
+   (01.10.). Datei hat rund 29.500 Zeichen; nur vorschlagen, Kuerzungen erst
+   mit seinem Ok, keine Regel opfern.
+2. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.8 abarbeiten**
+   (Checklisten in `docs/tests/`). v2.8: Verlauf in
+   `components/tracking/UebungsVerlauf.vue` (Masse B/H/RL/RR/RO/RU,
+   Antippen `zeigeAuf`), Regeln zuerst in `scripts/verlauf-test.mjs`. v2.7: Kreise in
    `components/tracking/StartNutzerwahl.vue`, Zuruecksetzen ueber
    `resetActiveUsers` (auth store; Aufrufer App.vue und `finishWorkout`/
    `onSwMessage` in TrackingView). v2.4: Tastatur in `Modal.vue`
@@ -83,27 +101,27 @@
    Muskelgrafik `scripts/muskelgrafik-bauen.mjs`, Rad-Regel `utils/radWerte.js`
    (zuerst `scripts/radwerte-test.mjs`). Neue Uebungen in der App: zuerst
    `uebungen-cloud.mjs` laufen lassen.
-2. **Bilder nachbessern, wenn Gabriel am Handy geschaut hat** (er wollte erst
+3. **Bilder nachbessern, wenn Gabriel am Handy geschaut hat** (er wollte erst
    abwarten): Kandidaten sind die Brustpresse an der Maschine (Endbild zeigt
    eine andere Maschine) und der Ausfallschritt (Endbild gedreht); schwaecher
    Kurzhantel- und Schraegbank-Kurzhantel-Druecken (Endbild aus anderem Winkel,
    nach dem Ausrichten tragbar). Ein Auftrag mit drei Reihen, Ablauf
    `docs/uebungsbilder-chatgpt.md`; Herunterladen nur mit Gabriels Ja.
-3. **Vorgaben nachrechnen, sobald echte Laeufe da sind** (fruehestens nach dem
+4. **Vorgaben nachrechnen, sobald echte Laeufe da sind** (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
-4. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
+5. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
    `scripts/runmatch-test.mjs` erweitern, dann `src/utils/runMatch.js`.
-5. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
+6. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
    Regeln in `docs/laufplan-format.md` Abschnitt 5).
-6. Meldet Gabriel die Wdh-Luecke erneut: Diagnose in die App bauen
+7. Meldet Gabriel die Wdh-Luecke erneut: Diagnose in die App bauen
    (Trefferzahl je Uebung/Nutzer sichtbar machen), nicht raten. Die
    Vorschlaege laufen seit v2.4 ueber `ladeVorschlag` (eine Abfrage
    `getLastSets` ohne das laufende Workout).
-7. Probleme mit "Workout beenden"/Quick-Log: `public/sw-custom.js` und die
+8. Probleme mit "Workout beenden"/Quick-Log: `public/sw-custom.js` und die
    Notification-Payload in `TrackingView.vue` pruefen.
-8. Reiter zu eng auf Gabriels Handy: Schwelle der Label-Media-Query in
+9. Reiter zu eng auf Gabriels Handy: Schwelle der Label-Media-Query in
    `BottomNav.vue` anheben statt Labels kuerzen.
-9. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
+10. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
    ausdruecklicher Freigabe.
 
 ## Offen
@@ -119,6 +137,7 @@
   — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.8.0 am Handy durchklicken** — App ganz schliessen und neu oeffnen, unter Settings steht 2.8.0; Liste: `docs/tests/v2.8.0-handy.md` (seit 2026-10-01)
 - [ ] **v2.7.0 am Handy durchklicken** — App auf BEIDEN Handys ganz schliessen und neu oeffnen, unter Settings steht 2.7.0; Liste: `docs/tests/v2.7.0-handy.md`. Bis beide Handys 2.7.0 zeigen, nicht auf "Standard-Uebungen laden" tippen (seit 2026-09-30)
 - [ ] **v2.6.0 am Handy durchklicken** — Liste: `docs/tests/v2.6.0-handy.md`; dabei sagen, welche Bilder nachgebessert werden sollen (seit 2026-09-28)
 - [ ] **Geraete im Katalog umstellen:** lunges auf Langhantel, hip thrusts und chest supported row auf Maschine (Gewichte) — die Standardliste ist schon korrigiert, die Eintraege in der App nicht; seit dem Rad-Fix gefahrlos (seit 2026-09-28)
@@ -138,8 +157,3 @@
   - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\ubungen-system-refinements-64f8ad"`
   - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\fittrack-fortsetzung-ef2a20"`
   - `Remove-Item -LiteralPath "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387\.claude\autopilot" -Recurse -Force; git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387"`
-- [ ] Rueckmeldung nach dem Lauf am Handy testen (v1.6.0 ist live) (seit 2026-09-07)
-  - Laufen, Woche: einen erledigten Lauf antippen, Wie war es? tippen, Stufe und Notiz speichern
-  - Laufen, Plan: Nur Rueckmeldungen kopieren antippen und den Text in den Chat kleben
-- [ ] Lisas Handy: App neu starten, damit die Tempovorgaben ankommen (seit 2026-09-09)
-- [ ] Claude Rueckmeldung geben: Die Projekt-CLAUDE.md ist auf rund 29.000 Zeichen gewachsen — Straffung vorschlagen lassen? (seit 2026-09-28)
