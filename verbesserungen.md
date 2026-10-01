@@ -23,13 +23,6 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 - [ ] **V8** (C) Direkteingabe im Gewichts-Rad — zurueckgestellt 2026-08-16 (Gabriel)
       Tipp auf den Wert oeffnet Ziffernblock; Rad bleibt fuer Feinjustage.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
-- [ ] **V14** (C) Deploy-Workflow auf Node-24-faehige Actions heben — gefunden 2026-09-13
-      GitHub meldet beim Deploy "Node.js 20 is deprecated": checkout, setup-node und
-      upload-artifact laufen nur noch erzwungen auf Node 24. Heute gruen; faellt der
-      Zwang weg, bricht der Deploy. Versionen bewusst anheben, mit Test-Deploy pruefen.
-      Nachtrag 2026-09-23: zusaetzlich wechselt `ubuntu-latest` ab 19.10.2026 auf
-      Ubuntu 26 (Hinweis im Lauf 35912764194) — beim Anheben mit pruefen.
-      Beleg: Actions-Lauf 34761917049; deploy.yml nutzt Actions @v4 und node-version 20. · Aufwand: S
 
 ## Ideen
 - **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S
@@ -60,6 +53,10 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 (noch nichts — V8/I1/I5 sind zurueckgestellt, nicht abgelehnt)
 
 ## Erledigt
+- **V14** (C) Deploy-Workflow auf Node-24-faehige Actions heben — erledigt in
+  v2.7.1 (01.10.2026, Freigabe Gabriel): checkout@v7, setup-node@v7 mit Node 24,
+  upload-pages-artifact@v5, deploy-pages@v5. `ubuntu-latest` bleibt; der
+  Wechsel auf Ubuntu 26 ab 19.10.2026 zeigt sich erst im ersten Deploy danach.
 - **I6b** (Erweiterung) Laufplaner Paket 2 — erledigt in v1.5.0: Verbindung zu
   intervals.icu unter Laufen -> Plan, automatischer Abgleich beim Oeffnen und
   auf Knopfdruck, Zuordnung mit Ist-Werten, ungeplante Laeufe bleiben erhalten,
