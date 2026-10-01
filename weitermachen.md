@@ -1,6 +1,15 @@
-# Weitermachen — Stand 2026-09-30 (v2.7.0 ist live)
+# Weitermachen — Stand 2026-10-01 (v2.7.1 ist live)
 
 ## Stand
+- **v2.7.1 ist LIVE (01.10.):** nur der Deploy-Workflow (V14, Freigabe
+  Gabriel): checkout@v7, setup-node@v7 mit Node 24, upload-pages-artifact@v5,
+  deploy-pages@v5. Gate gruen, Actions-Lauf 36847706022 gruen ohne
+  Node-20-Warnung, live per HTTP gegengeprueft (Settings-Chunk 2.7.1). Offen
+  bleibt nur der Hinweis auf Ubuntu 26 ab 19.10. Tag `v2.7.1` auf `8a13e77`.
+- **Gabriels Antworten vom 01.10.:** Zeile "Erledigt ohne Rueckmeldung" im
+  kopierten Lauf-Kurztext bleibt; die Frage zu save-state clean und
+  privat-Dateien ist gestrichen (seit 23.09. entfernt clean keine Worktrees
+  mehr und meldet ignorierte Dateien).
 - **v2.7.0 ist LIVE (30.09.):** Nutzerwahl per Farbkreise auf dem
   Startbildschirm statt Startdialog (`StartNutzerwahl.vue`,
   `resetActiveUsers` beim App-Start und nach "Workout beenden"). In der
@@ -102,9 +111,9 @@
   nicht gelaufen); erster echter Garmin-Test mit seinem Plan-Lauf.
 - **Lisas erster Lauf ist der eigentliche Test der Garmin-Anbindung** — ihr
   intervals.icu-Konto bekommt nur Laeufe nach dem Verbinden (Stand 10.09.).
-- **V14** (Deploy-Actions anheben) wartet auf Gabriels Freigabe — jetzt mit
-  Frist: `ubuntu-latest` wechselt ab 19.10.2026 auf Ubuntu 26 (Hinweis auch
-  im Lauf 36745027886).
+- **Erster Deploy nach dem 19.10.2026** laeuft auf Ubuntu 26
+  (`ubuntu-latest`): Actions-Lauf dann ansehen; bricht er, `runs-on` in
+  `.github/workflows/deploy.yml` voruebergehend auf `ubuntu-24.04` setzen.
 - Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I7**, **I8**
   (alle Saetze eines Tages in der History), **I9** (einzelnen Satz loeschen)
   — Beschreibungen in `verbesserungen.md`.
@@ -133,8 +142,4 @@
   - Laufen, Woche: einen erledigten Lauf antippen, Wie war es? tippen, Stufe und Notiz speichern
   - Laufen, Plan: Nur Rueckmeldungen kopieren antippen und den Text in den Chat kleben
 - [ ] Lisas Handy: App neu starten, damit die Tempovorgaben ankommen (seit 2026-09-09)
-- [ ] Claude Rueckmeldung geben (Stand 16.09., ergaenzt 28.09.) (seit 2026-09-16)
-  - Soll die Zeile Erledigt ohne Rueckmeldung im kopierten Kurztext bleiben?
-  - save-state clean und ignorierte privat-Dateien: Skill anpassen?
-  - V14 freigeben: Deploy-Actions auf neue Version heben — vor dem 19.10.2026?
-  - Die Projekt-CLAUDE.md ist auf rund 28.500 Zeichen gewachsen: Straffung vorschlagen lassen?
+- [ ] Claude Rueckmeldung geben: Die Projekt-CLAUDE.md ist auf rund 29.000 Zeichen gewachsen — Straffung vorschlagen lassen? (seit 2026-09-28)
