@@ -4,7 +4,16 @@
     :title="titel"
     @update:model-value="v => emit('update:modelValue', v)"
   >
-    <div v-if="exercise" class="detail-content">
+    <!-- Verlauf (seit v2.8): ersetzt den Inhalt, bis "Zurueck zur Uebung" -->
+    <div v-if="exercise && ansicht === 'verlauf'" ref="inhaltEl" class="detail-content">
+      <button type="button" class="btn btn-ghost detail-zurueck" @click="zeigeAnsicht('uebung')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        Zurueck zur Uebung
+      </button>
+      <UebungsVerlauf :exercise-id="exercise.id" :start-user-id="verlaufStartNutzer" />
+    </div>
+
+    <div v-else-if="exercise" ref="inhaltEl" class="detail-content">
       <!-- Grosse Zeichnung: bei zwei Bildern (Start- und Endposition) blendet
            die Anzeige im Wechsel weich ueber (Bewegungs-Eindruck); ein Bild
            steht still. Beide Bilder liegen uebereinander im DOM, damit der
@@ -19,6 +28,11 @@
           :class="{ sichtbar: i === bildPosition }"
         />
       </div>
+
+      <button type="button" class="btn btn-secondary btn-block detail-verlauf-knopf" @click="zeigeAnsicht('verlauf')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>
+        Verlauf ansehen
+      </button>
 
       <!-- Muskel-Grafik: primaer/sekundaer aus dem Manifest, ohne
            Manifest-Eintrag die Grobgruppe der Uebung. 240 px breit: die
@@ -64,9 +78,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onUnmounted, nextTick } from 'vue'
 import Modal from '../shared/Modal.vue'
 import MuscleMap from '../shared/MuscleMap.vue'
+import UebungsVerlauf from './UebungsVerlauf.vue'
 import { useAuthStore } from '../../stores/auth.js'
 import { useExerciseNotes } from '../../composables/useExerciseNotes.js'
 import { toTitleCase } from '../../utils/formatters.js'
@@ -110,6 +125,28 @@ function startBildwechsel() {
     bildPosition.value = (bildPosition.value + 1) % anzahl
   }, 1200)
 }
+
+// Uebung oder Verlauf. Bewusst KEIN zweites Modal: zwei offene Modals
+// lauschen beide auf Android-Zurueck und gingen gemeinsam zu.
+const ansicht = ref('uebung')
+const inhaltEl = ref(null)
+
+function zeigeAnsicht(neu) {
+  ansicht.value = neu
+  // Der Modal-Koerper scrollt — die neue Ansicht beginnt oben
+  nextTick(() => {
+    const koerper = inhaltEl.value?.closest('.modal-body')
+    if (koerper) koerper.scrollTop = 0
+  })
+}
+
+// Verlauf zuerst fuer den Standard-Nutzer, wenn er mittrainiert — sonst fuer
+// den ersten, der trainiert (die Kreise im Verlauf schalten um)
+const verlaufStartNutzer = computed(() =>
+  authStore.activeUserIds.includes(authStore.defaultUserId)
+    ? authStore.defaultUserId
+    : authStore.activeUserIds[0] || authStore.defaultUserId
+)
 
 // Alle drei Nutzer, der Standard-Nutzer des Geraets zuoberst
 const geordneteNutzer = computed(() => [
@@ -158,6 +195,7 @@ watch(
   () => props.modelValue,
   (open) => {
     if (open && props.exercise) {
+      ansicht.value = 'uebung'
       gespeichertHinweis.value = false
       ladeNotizen()
       startBildwechsel()
@@ -197,6 +235,16 @@ onUnmounted(stopBildwechsel)
 
 .detail-bild.sichtbar {
   opacity: 1;
+}
+
+.detail-verlauf-knopf {
+  margin-bottom: var(--space-md);
+}
+
+.detail-zurueck {
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-sm) calc(-1 * var(--space-sm));
+  padding-left: var(--space-xs);
+  gap: 2px;
 }
 
 .detail-map {

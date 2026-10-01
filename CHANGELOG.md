@@ -3,6 +3,34 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.8.0] — 2026-10-01
+
+Gewichtsverlauf je Uebung direkt in der Detailansicht (Wunsch Gabriel).
+
+### Features
+- **"Verlauf ansehen"** in der Detailansicht einer Uebung (Tipp aufs
+  Vorschaubild im Workout oder im Katalog): ein Liniendiagramm mit einem
+  Punkt je Trainingstag (der schwerste Satz des Tages), darunter alle Werte
+  als Liste, juengste zuerst — bei mehreren Saetzen mit jedem Satz.
+- **Zeitraum** 3 Monate (Standard), 6 Monate, 1 Jahr oder Alle. Liegt im
+  Zeitraum nichts, nennt die Ansicht den letzten Eintrag und bietet "Alle
+  anzeigen" an.
+- **Wessen Verlauf:** Farbkreise wie auf dem Startbildschirm; zuerst der
+  Standard-Nutzer, wenn er mittrainiert, sonst der erste, der trainiert.
+- Antippen oder Ziehen im Diagramm liest den naechsten Punkt ab (Datum und
+  Gewicht x Wdh ueber dem Diagramm); Tipp auf eine Zeile der Liste markiert
+  ihren Punkt. Beschriftet sind nur der juengste und der hoechste Punkt.
+- Reine Koerpergewicht-Uebungen (ueberall 0 kg) zeigen die Wdh statt einer
+  flachen Null-Linie. Aufwaermsaetze zaehlen nicht.
+
+### Intern
+- Regeln in `src/utils/verlauf.js` (Zeitraum in Kalendermonaten, Punkt je
+  Tag, Achse mit runden Schritten, deutsches Komma, Monatsmarken), Vertrag
+  `scripts/verlauf-test.mjs` (40 Faelle, im Pruef-Gate). Diagramm als eigenes
+  SVG ohne neue Abhaengigkeit (`UebungsVerlauf.vue`). Der Verlauf ersetzt den
+  Inhalt der Detailansicht statt ein zweites Fenster zu oeffnen — zwei
+  offene Fenster gingen bei Android-Zurueck gemeinsam zu.
+
 ## [2.7.1] — 2026-10-01
 
 ### Intern

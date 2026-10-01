@@ -43,6 +43,10 @@ src/
                          Endbild alle 1,2 s, MuscleMap, Notizfeld je Nutzer
   components/tracking/StartNutzerwahl.vue  Farbkreise "Wer trainiert?" auf
                          dem Startbildschirm
+  components/tracking/UebungsVerlauf.vue  Gewichtsverlauf je Nutzer (SVG-
+                         Liniendiagramm + Liste); ersetzt den Inhalt der
+                         Detailansicht — nie als zweites Modal, zwei Modals
+                         gehen bei Android-Zurueck gemeinsam zu
   data/uebungskatalog.json  Bild-Manifest: key, quelle (ki|workout-guide),
                          bilder (1-2 Frames), vorschau, primaer/sekundaer
                          (Muskel-Ids), aliasse (Katalognamen)
@@ -71,6 +75,8 @@ src/
                          Platz machen, Verschieben (reine Funktionen)
     radWerte.js          Rad-Werte + Vorwert ausserhalb des Rasters (nie
                          still auf den ersten Wert springen; reine Funktion)
+    verlauf.js           Verlauf: Zeitraum, ein Punkt je Tag (schwerster
+                         Satz), Achse, Monatsmarken (reine Funktionen)
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
@@ -101,7 +107,7 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          pace-modell-test, musclemap-pruefen,
                          uebungsbilder-matching-test, uebungsring-test,
                          saetze-test, uebungsdubletten-test,
-                         planreihenfolge-test, radwerte-test
+                         planreihenfolge-test, radwerte-test, verlauf-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
                          garmin-anbindung, plan-fittrack-v2,

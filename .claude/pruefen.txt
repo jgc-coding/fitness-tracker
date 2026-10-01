@@ -5,6 +5,7 @@ node ./scripts/musclemap-pruefen.mjs
 node ./scripts/uebungsring-test.mjs
 node ./scripts/saetze-test.mjs
 node ./scripts/radwerte-test.mjs
+node ./scripts/verlauf-test.mjs
 node ./scripts/uebungsdubletten-test.mjs
 node ./scripts/planreihenfolge-test.mjs
 node ./scripts/laufplan-merge-test.mjs
