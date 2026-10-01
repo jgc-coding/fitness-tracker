@@ -3,6 +3,15 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.7.1] — 2026-10-01
+
+### Intern
+- **Deploy-Workflow angehoben (V14):** `actions/checkout@v7`,
+  `actions/setup-node@v7` mit Node 24 (wie lokal), `upload-pages-artifact@v5`,
+  `deploy-pages@v5`. Die alten v4-Bausteine liefen nur noch erzwungen auf
+  Node 24; ohne Anheben haette ein spaeterer Deploy brechen koennen. Die App
+  selbst ist unveraendert.
+
 ## [2.7.0] — 2026-09-30
 
 Wer trainiert, waehlt man jetzt direkt auf dem Startbildschirm; dazu zwei
