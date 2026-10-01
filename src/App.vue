@@ -18,6 +18,7 @@ import { initSync } from './services/syncService.js'
 import { db } from './db/dexie.js'
 import { getToday } from './utils/dateHelpers.js'
 import { useAuthStore } from './stores/auth.js'
+import { offenesTrainingDiesesGeraets } from './utils/trainingGeraet.js'
 
 const authStore = useAuthStore()
 
@@ -27,11 +28,13 @@ onMounted(async () => {
   // Wer trainiert: jeder App-Start beginnt mit dem Standard-Nutzer (seit v2.7
   // ohne Dialog — die Farbkreise auf dem Startbildschirm zeigen die Auswahl).
   // Nicht mitten in ein laufendes Training hinein: liegt heute ein unfertiges
-  // Workout in der DB (gleiche Abfrage wie resumeTodaysWorkout), gilt dessen
-  // Besetzung.
+  // Workout DIESES Geraets in der DB (gleiche Regel wie resumeTodaysWorkout,
+  // utils/trainingGeraet.js), gilt dessen Besetzung. Ein offenes Training des
+  // anderen Handys zaehlt nicht (v2.8.1).
   try {
-    const logs = await db.workoutLogs.where({ date: getToday() }).toArray()
-    if (!logs.some(l => !l.completedAt)) {
+    const heute = getToday()
+    const logs = await db.workoutLogs.where({ date: heute }).toArray()
+    if (!offenesTrainingDiesesGeraets(logs, heute, authStore.deviceId)) {
       authStore.resetActiveUsers()
     }
   } catch (e) {

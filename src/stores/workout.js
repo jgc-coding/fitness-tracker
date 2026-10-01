@@ -4,6 +4,7 @@ import { db, generateId } from '../db/dexie.js'
 import { getToday } from '../utils/dateHelpers.js'
 import { pushRecord } from '../services/syncService.js'
 import { useAuthStore } from './auth.js'
+import { offenesTrainingDiesesGeraets, logFuerTagDiesesGeraets } from '../utils/trainingGeraet.js'
 
 export const useWorkoutStore = defineStore('workout', () => {
   const authStore = useAuthStore()
@@ -15,9 +16,11 @@ export const useWorkoutStore = defineStore('workout', () => {
     const today = getToday()
     // Look for an existing log for THIS specific training day today — not just
     // any log on today's date. Otherwise switching training days on the same
-    // day would reuse the wrong workoutLog and mislabel history.
+    // day would reuse the wrong workoutLog and mislabel history. Und nur ein
+    // Log DIESES Geraets: Lisas Legs-Training von ihrem Handy ist nicht meins
+    // (v2.8.1, utils/trainingGeraet.js).
     const logs = await db.workoutLogs.where({ date: today }).toArray()
-    let existing = logs.find(l => l.trainingDayId === trainingDay.id) || null
+    let existing = logFuerTagDiesesGeraets(logs, today, trainingDay.id, authStore.deviceId)
 
     if (!existing) {
       existing = {
@@ -25,6 +28,7 @@ export const useWorkoutStore = defineStore('workout', () => {
         date: today,
         planId,
         trainingDayId: trainingDay.id,
+        deviceId: authStore.deviceId,
         // Wer heute trainiert (Startbildschirm) — Teil des Logs, damit History
         // und Resume die Besetzung kennen
         userIds: [...authStore.activeUserIds],
@@ -62,6 +66,7 @@ export const useWorkoutStore = defineStore('workout', () => {
       trainingDayId: null,
       isCustom: true,
       title: 'Individuelles Training',
+      deviceId: authStore.deviceId,
       userIds: [...authStore.activeUserIds],
       exercises: exercises.map(e => ({ ...e })),
       startedAt: new Date().toISOString(),
@@ -271,11 +276,11 @@ export const useWorkoutStore = defineStore('workout', () => {
   async function resumeTodaysWorkout() {
     const today = getToday()
     const logs = await db.workoutLogs.where({ date: today }).toArray()
-    // Bei mehreren unfertigen Logs (z.B. Individuell begonnen, dann Plan-Tag
-    // gestartet) gewinnt das zuletzt gestartete.
-    const unfinished = logs
-      .filter(l => !l.completedAt)
-      .sort((a, b) => String(b.startedAt || '').localeCompare(String(a.startedAt || '')))[0]
+    // Nur ein Training, das auf DIESEM Geraet gestartet wurde (v2.8.1) — das
+    // offene Training des anderen Handys kommt per Sync ebenfalls hier an.
+    // Bei mehreren unfertigen eigenen Logs (z.B. Individuell begonnen, dann
+    // Plan-Tag gestartet) gewinnt das zuletzt gestartete.
+    const unfinished = offenesTrainingDiesesGeraets(logs, today, authStore.deviceId)
     if (unfinished) {
       activeWorkout.value = unfinished
       // Die Besetzung des wiederaufgenommenen Workouts gilt weiter. Logs ohne

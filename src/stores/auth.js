@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { db } from '../db/dexie.js'
+import { db, generateId } from '../db/dexie.js'
 import { USERS } from '../utils/constants.js'
 import { pushRecord } from '../services/syncService.js'
 import { satzZahlGueltig } from '../utils/saetze.js'
@@ -16,6 +16,12 @@ const DEFAULT_USER_KEY = `${db.name}:defaultUserId`
 // Wer heute trainiert, ist ebenfalls eine GERAETE-Einstellung (siehe oben):
 // die Auswahl auf dem Startbildschirm gilt fuer dieses Handy, nicht fuer alle.
 const ACTIVE_USERS_KEY = `${db.name}:activeUserIds`
+// Kennung DIESES Geraets (v2.8.1): jeder Trainingsstart stempelt sie als
+// `deviceId` an den workoutLog, fortgesetzt wird nur ein eigenes Training
+// (utils/trainingGeraet.js) — sonst sprang ein Handy in das laufende Training
+// des anderen. Geraete-lokal wie der Standard-Nutzer, nie in db.meta.
+const DEVICE_ID_KEY = `${db.name}:deviceId`
+
 // Nur Erstwert des ref — der echte Fallback ohne gespeicherte Auswahl ist der
 // Standard-Nutzer dieses Geraets (siehe loadActiveUsers), nie ein leeres Array.
 const ACTIVE_USERS_FALLBACK = ['user1', 'user2']
@@ -25,6 +31,7 @@ export const useAuthStore = defineStore('auth', () => {
   const historyViewUser = ref('user1')
   const defaultUserId = ref(users.value[0].id)
   const activeUserIds = ref([...ACTIVE_USERS_FALLBACK])
+  const deviceId = ref(null)
   const activeUsers = computed(() =>
     users.value.filter(u => activeUserIds.value.includes(u.id))
   )
@@ -85,6 +92,23 @@ export const useAuthStore = defineStore('auth', () => {
     const record = { key, value: n, updatedAt: new Date().toISOString() }
     await db.meta.put(record)
     pushRecord('meta', key, record)
+  }
+
+  function loadDeviceId() {
+    let id = null
+    try {
+      id = localStorage.getItem(DEVICE_ID_KEY)
+      if (!id) {
+        id = 'g-' + generateId()
+        localStorage.setItem(DEVICE_ID_KEY, id)
+      }
+    } catch (e) {
+      // Gesperrter Speicher: Kennung nur fuer diese Sitzung — ein Neuladen
+      // setzt dann kein Training fort, springt aber nie in ein fremdes
+      console.warn('[FitTrack] [WARN] Geraete-Kennung nicht speicherbar, gilt nur bis zum Neuladen:', e)
+      id = id || 'g-' + generateId()
+    }
+    deviceId.value = id
   }
 
   function loadDefaultUser() {
@@ -162,6 +186,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Synchron beim Anlegen des Stores — jede View, die defaultUserId oder
   // activeUserIds liest, bekommt so ohne eigenen Ladeaufruf den richtigen Wert.
+  loadDeviceId()
   loadDefaultUser()
   loadActiveUsers()
 
@@ -170,6 +195,7 @@ export const useAuthStore = defineStore('auth', () => {
     historyViewUser,
     defaultUserId,
     activeUserIds,
+    deviceId,
     activeUsers,
     updateUserName,
     loadUserNames,
