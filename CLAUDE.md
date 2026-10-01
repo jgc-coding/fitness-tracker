@@ -4,9 +4,9 @@
 
 ## Projektbeschreibung
 PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer drei Personen
-(Lisa, Gab & Ben). Alle trainieren denselben Plan mit individuellen
-Gewichten/Wiederholungen. Offline-first auf Android, Daten lokal in IndexedDB,
-deployed auf GitHub Pages. Dazu der Reiter „Laufen" (Laufplaner, siehe unten).
+(user1 Lisa, user2 Gab, user3 Ben). Alle trainieren denselben Plan mit
+individuellen Gewichten/Wiederholungen. Offline-first auf Android, Daten lokal in
+IndexedDB, deployed auf GitHub Pages. Dazu der Reiter „Laufen" (Laufplaner).
 
 ## Tech-Stack
 - **Frontend:** Vue 3 (Composition API) + Vite 6, Vue Router 4 (Lazy Loading), Pinia
@@ -20,104 +20,58 @@ deployed auf GitHub Pages. Dazu der Reiter „Laufen" (Laufplaner, siehe unten).
 
 ## Design-Tokens (`src/styles/variables.css`)
 Hintergrund `#f3f6f7` · Akzent `#911f2f` · Text `#1e1f23` ·
-User 1 Lisa `#911f2f` (rot) · User 2 Gab `#2c5f8a` (blau) · User 3 Ben `#2f7d4f` (gruen)
+Lisa `#911f2f` (rot) · Gab `#2c5f8a` (blau) · Ben `#2f7d4f` (gruen)
 
 ## Dateistruktur (nur, was der Dateiname nicht verraet)
 ```
 src/
-  db/dexie.js            Schema v4: exercises, plans, trainingDays, workoutLogs,
+  db/dexie.js            Schema v4 (exercises, plans, trainingDays, workoutLogs,
                          setLogs, syncQueue, meta, deletions, runPlans,
-                         runSessions, exerciseNotes
+                         runSessions, exerciseNotes)
   services/syncService.js  Login, Firestore-Listener, Reconcile, Tombstones, Retry-Queue
   stores/running.js      Laufplaene, Laeufe, Import/Merge, Status-Export
   composables/useHistory.js  Spreadsheet-Daten, letzte Werte, Steigerungslogik
-  composables/useExerciseNotes.js  Notiz je Nutzer je Uebung (deterministische Id,
-                         Leeren = text '', nie loeschen)
-  components/shared/     Modal (Android-Back schliesst! folgt bei offener
-                         Tastatur dem sichtbaren Bereich), EmptyState,
-                         WheelPicker, UserSelectModal (Besetzung im
-                         laufenden Workout), MuscleMap
-                         (graue KI-Figur + Maske je markiertem Muskel,
-                         multiply; Grobgruppen-Fallback)
-  components/tracking/ExerciseDetail.vue  Detailansicht: Ueberblendung Start-/
-                         Endbild alle 1,2 s, MuscleMap, Notizfeld je Nutzer
-  components/tracking/StartNutzerwahl.vue  Farbkreise "Wer trainiert?" auf
-                         dem Startbildschirm
-  components/tracking/UebungsVerlauf.vue  Gewichtsverlauf je Nutzer (SVG-
-                         Liniendiagramm + Liste); ersetzt den Inhalt der
-                         Detailansicht — nie als zweites Modal, zwei Modals
-                         gehen bei Android-Zurueck gemeinsam zu
-  data/uebungskatalog.json  Bild-Manifest: key, quelle (ki|workout-guide),
-                         bilder (1-2 Frames), vorschau, primaer/sekundaer
-                         (Muskel-Ids), aliasse (Katalognamen)
-  data/standardUebungen.js  Standardliste (Name, Gruppe, Geraet): liest die App
-                         ("Standard-Uebungen laden"), der Bild-Vertrag und
-                         der Cloud-Abgleich
-  data/muskelgrafik.js   18 Muskel-Ids, Grobgruppen, Dateien und Masse der
-                         Muskelgrafik (public/muskelgrafik/) — Komponente,
-                         Bau-Skript und Tests lesen nur hier
-  utils/
-    runPlanSchema.js     Pruefmodul + Vokabular des Laufplan-Formats (reines JS)
-    runPlanMerge.js      Merge-Regeln des Imports (reine Funktion)
-    runMatch.js          Zuordnung Aktivitaet -> geplanter Lauf (reine Funktion)
-    intervalsApi.js      Abruf und Umrechnung von intervals.icu (Browser + Node)
-    exportData.js        CSV mit UTF-8-BOM, JSON-Backup (Import ist merge-only)
-    uebungsBilder.js     Manifest-Zugriff + Namens-Matching (reine Funktionen,
-                         Manifest kommt als Parameter)
-    uebungsRing.js       Schnellwechsel-Ring + Standard-Uebung je Nutzer
-                         (reine Funktionen)
-    saetze.js            Saetze je Uebung und Person: offener Satz,
-                         Vorbelegung, Rad-Reihenfolge, Quick-Log-Folge
-                         (reine Funktionen)
-    uebungsDubletten.js  doppelte Uebungen finden und zusammenfuehren,
-                         Namens-Bremse (reine Funktionen, Browser + Node)
-    planReihenfolge.js   Umsortieren eines Trainingstags: Zielplatz,
-                         Platz machen, Verschieben (reine Funktionen)
-    radWerte.js          Rad-Werte + Vorwert ausserhalb des Rasters (nie
-                         still auf den ersten Wert springen; reine Funktion)
-    verlauf.js           Verlauf: Zeitraum, ein Punkt je Tag (schwerster
-                         Satz), Achse, Monatsmarken (reine Funktionen)
-    trainingGeraet.js    welches offene Training dieses Handy fortsetzt
-                         (nur eigene, per deviceId; reine Funktionen)
-    dateHelpers.js       KW-Erkennung, Deload-Berechnung
-    formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
+  components/shared/     Modal (Android-Back schliesst; folgt der Tastatur),
+                         UserSelectModal (Besetzung im laufenden Workout),
+                         MuscleMap (graue KI-Figur + Maske je Muskel,
+                         ohne Manifest-Eintrag die Grobgruppe)
+  components/tracking/   ExerciseDetail (Bild-Ueberblendung, MuscleMap, Notizen,
+                         Verlauf), StartNutzerwahl (Farbkreise Startbildschirm),
+                         UebungsVerlauf (SVG-Diagramm + Liste)
+  data/uebungskatalog.json  Bild-Manifest: key, quelle, bilder, vorschau,
+                         primaer/sekundaer (Muskel-Ids), aliasse (Katalognamen)
+  data/standardUebungen.js  Standardliste — liest App, Bild-Vertrag, Cloud-Abgleich
+  data/muskelgrafik.js   18 Muskel-Ids, Grobgruppen, Dateien/Masse der Grafik —
+                         Komponente, Bau-Skript und Tests lesen NUR hier
+  utils/                 Regeln als reine Funktionen, je ein Vertragstest in
+                         scripts/ (zuerst Test, dann Regeln): saetze,
+                         uebungsRing, uebungsBilder, uebungsDubletten,
+                         planReihenfolge, radWerte (Vorwert ausserhalb des
+                         Rasters nie still ersetzen), verlauf, trainingGeraet,
+                         runPlanMerge, runMatch; dazu runPlanSchema (Format),
+                         intervalsApi (Browser + Node), exportData (CSV mit
+                         BOM, JSON-Backup, Import merge-only), formatters
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
-public/uebungsbilder/    je Manifest-Key frame-<n>.webp + vorschau.webp (im
-                         Repo, precached), LIZENZ.md = Bildnachweis
+public/uebungsbilder/    je Manifest-Key frame-<n>.webp + vorschau.webp, LIZENZ.md
 public/muskelgrafik/     grundfigur.webp + je Muskel-Id eine Maske <id>.png
-scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
-                         (+ lib/pace-modell-kern), lauf-cloud, intervals-abruf,
-                         uebungen-cloud (alle Uebungen der App aus der Cloud
-                         lesen und mit Standardliste/Bildern abgleichen, nur
-                         lesen; aus dem Worktree mit --konto <Hauptbaum>),
-                         uebungsbilder-holen (Zeichnungen von Workout Guide
-                         holen und einfaerben, idempotent, --neu = alles neu),
-                         uebungsbilder-schneiden (KI-Bilder aus
-                         uebungsbilder-quellen/ zerschneiden nach der Tabelle
-                         uebungsbilder-zuschnitt.mjs; --bogen = Pruefbogen,
-                         --vermessen = Koordinatengitter fuer neue Bilder),
-                         uebungsbilder-reihen-messen (Tabellenzeilen fuer ein
-                         neues ChatGPT-Reihenbild), muskelgrafik-bauen (graue
-                         Figur + 18 Masken aus der farbigen KI-Figur),
-                         uebungen-dubletten (doppelte Uebungen in der Cloud
-                         zusammenfuehren; ohne --jetzt Trockenlauf, Zugang
-                         ueber lib/cloud-rest.mjs), uebungen-korrigieren
-                         (Uebungen in der Cloud umbenennen oder Name + Bild
-                         zweier Uebungen tauschen, Tabelle im Skript; ohne
-                         --jetzt Trockenlauf, --zurueck = Rueckweg)
-                         Vertragstests: laufplan-merge-test, runmatch-test,
-                         pace-modell-test, musclemap-pruefen,
-                         uebungsbilder-matching-test, uebungsring-test,
-                         saetze-test, uebungsdubletten-test,
-                         planreihenfolge-test, radwerte-test, verlauf-test,
-                         training-geraet-test
+scripts/                 Aufruf und Flags stehen im Kopf jedes Skripts.
+                         Cloud (Zugang privat\firebase-konto.json, aus dem
+                         Worktree --konto <Hauptbaum>; schreibende nur mit
+                         --jetzt, sonst Trockenlauf): lauf-cloud,
+                         uebungen-cloud (nur lesen: Bestand vs. Standardliste
+                         und Bilder), uebungen-dubletten, uebungen-korrigieren
+                         (umbenennen/tauschen, --zurueck). Bilder:
+                         uebungsbilder-schneiden (--bogen, --vermessen),
+                         uebungsbilder-zuschnitt (Tabelle),
+                         uebungsbilder-reihen-messen, uebungsbilder-holen,
+                         muskelgrafik-bauen. Lauf: laufplan-pruefen,
+                         laufplan-vorgaben, pace-modell, intervals-abruf.
+                         Vertragstests: siehe .claude\pruefen.txt (das Gate)
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
                          garmin-anbindung, plan-fittrack-v2,
-                         uebungsbilder-chatgpt (Ablauf + Prompt-Vorlage)
+                         uebungsbilder-chatgpt, tests/ (Handy-Checklisten)
 ```
-Views (6 Reiter), Router, Stores `auth`/`plans`/`workout`, `styles/`, `main.js` und
-`App.vue` heissen wie ihr Inhalt.
 
 ## Befehle
 ```bash
@@ -131,284 +85,195 @@ npm run preview   # Build lokal testen (Port 4173)
   angemeldet) direkt nach Firestore; fehlgeschlagene Pushes landen in der `syncQueue`
   und werden nachgeholt (App-Start, online-Event, naechster Erfolg).
 - **Kein Sync ohne Login** (Status `auth-required`, Banner im Tracking). Anonyme
-  Alt-Sessions werden aktiv abgemeldet. Die App hat KEINE Registrierung — Konten
-  entstehen nur in der Firebase Console.
+  Alt-Sessions werden aktiv abgemeldet. KEINE Registrierung — Konten entstehen nur
+  in der Firebase Console.
 - **Loeschen = Tombstone:** `pushDelete` schreibt erst einen Merker in `deletions`
   (lokal, offline-faehig), dann Cloud. Reconcile ueberspringt tombstoned Records —
-  sonst laedt ein Offline-Geraet Geloeschtes wieder hoch ("Wiederauferstehung").
-- **Vue-Proxys nie direkt in Dexie schreiben:** reaktive Objekte/Arrays (z.B.
-  `day.exercises`) sprengen `put`/`update` mit `DataCloneError`. Vorher flach
-  kopieren (`list.map(e => ({ ...e }))`).
-- **Saetze je Uebung sind eine Einstellung JE PERSON** (Entscheidung Gabriel
-  2026-09-26, ersetzt "ein Satz je Uebung" vom 16.08.): Einstellungen -> "Saetze je
-  Uebung" 1-5, gespeichert in `db.meta` als `saetze_<userId>` (gesynct wie die
-  Namen, gilt also auf beiden Handys). 1 = ein Referenzwert wie bis v2.3 (Standard
-  fuer alle), ab 2 hat jeder Satz ein eigenes setLog mit `setNumber` 1..n (Lisa: 3).
-  Die Regeln stehen als reine Funktionen in `utils/saetze.js`, Vertrag
-  `scripts/saetze-test.mjs` (zuerst Test, dann Regeln): offener Satz (Luecken
-  zuerst), Vorbelegung (heute gespeichert -> Satz davor von heute -> Vorschlag aus
-  der letzten Einheit), Rad nach dem Speichern (reihum der naechste ANDERE Nutzer
-  mit offenem Satz, sonst der naechste Satz desselben Nutzers) und die
-  Quick-Log-Folge (jeder offene Satz einzeln, Label "S2"). Das Sets-Feld der
-  Planung bleibt reine Notiz.
-- **Vorwert = Gewicht x Wdh aus EINEM Datensatz:** Karte, Empfehlungszeile,
-  Rad-Vorbelegung, Quick-Log-Knopf und Sperrbildschirm lesen die Wdh nur ueber
-  `getLastReps` (TrackingView) — und die holt sie aus `recommendations`, also aus
-  demselben gespeicherten Satz, aus dem das Gewicht kommt. Zwei getrennte Speicher
-  gab es schon einmal: der Gewichtsvorschlag wurde nur bei einem Treffer
-  ueberschrieben, die Wdh dagegen immer, und ein leeres Abfrageergebnis liess das
-  Gewicht ohne Wdh stehen (v1.8.1). Mit mehreren Saetzen gilt dasselbe je Satz:
-  Satz 1 ist der Eintrag in `recommendations`, Satz n kommt aus Satz n der letzten
-  Einheit (`satzVorschlag`). "Letzte Einheit" heisst OHNE das laufende Workout
-  (`getLastSets(..., activeWorkout.id)`) — sonst wird nach dem ersten Satz von
-  heute "letztes Mal" zu "heute". Auf 360-px-Handys bricht der Wert vor dem "×"
-  um (`{{ ' ' }}` im Template ist Absicht, siehe Kommentar dort).
-- **Workout-Abweichungen liegen am Log:** Tausch/Quick-Add schreiben die aktuelle
-  Uebungsliste als `exercises`-Override an den `workoutLog` (persistWorkoutExercises);
-  Resume nutzt das Override, sonst die Plan-Liste. Individuelle Trainings liegen
-  ebenfalls in `db.workoutLogs` (isCustom) und ueberleben Reloads.
+  sonst laedt ein Offline-Geraet Geloeschtes wieder hoch.
+- **Neue Tabelle** (wie `exerciseNotes`, Dexie v4 additiv): in `SYNCED`,
+  `IMPORT_TABLES` und den JSON-Export aufnehmen, sonst fehlt sie in Sync/Backup.
+- **Vue-Proxys nie direkt in Dexie schreiben** (`DataCloneError`): reaktive
+  Objekte/Arrays vorher flach kopieren (`list.map(e => ({ ...e }))`).
+- **Saetze je Uebung sind eine Einstellung JE PERSON** (Gabriel 26.09.2026):
+  Einstellungen -> 1-5, in `db.meta` als `saetze_<userId>` (gesynct). 1 = ein
+  Referenzwert (Standard), ab 2 je Satz ein setLog mit `setNumber` 1..n (Lisa: 3).
+  Regeln (offener Satz, Vorbelegung, Rad nach dem Speichern, Quick-Log-Folge) in
+  `utils/saetze.js`. Das Sets-Feld der Planung bleibt reine Notiz.
+- **Vorwert = Gewicht x Wdh aus EINEM Datensatz:** Karte, Empfehlung, Rad,
+  Quick-Log und Sperrbildschirm lesen die Wdh nur ueber `getLastReps` aus
+  `recommendations` — demselben Satz, aus dem das Gewicht kommt (zwei getrennte
+  Speicher liessen in v1.8.1 Gewicht ohne Wdh stehen). Satz 1 ist der Eintrag in
+  `recommendations`, Satz n kommt aus Satz n der letzten Einheit (`satzVorschlag`); "letzte Einheit" = OHNE das laufende Workout
+  (`getLastSets(..., activeWorkout.id)`). Das `{{ ' ' }}` vor dem "×" ist Absicht
+  (Umbruch auf 360 px).
+- **Workout-Abweichungen liegen am Log:** Tausch/Quick-Add schreiben die Liste als
+  `exercises`-Override an den `workoutLog` (persistWorkoutExercises); Resume nutzt
+  das Override, sonst die Plan-Liste. Individuelle Trainings: `isCustom` im Log.
 - **Zuletzt benutzt:** `saveSet` stempelt `lastUsedAt`; Tausch-/Add-/Custom-Listen
-  sortieren danach, die Tausch-Liste gruppiert "gleiche Muskelgruppe zuerst".
-- **Quick-Log aus der Notification:** Die App legt je Nutzer eine Warteschlange
-  fertiger setLog-Datensaetze in `notification.data` (buildNotificationQuickLog); der
-  Service Worker schreibt sie bei Knopfdruck direkt in IndexedDB (zusaetzlich in die
-  syncQueue) — funktioniert ohne offene App.
-- **Nur ZWEI Notification-Knoepfe (Android-Limit):** Platz 1 Quick-Log des
-  Standard-Nutzers (leere Warteschlange -> naechster Nutzer rueckt nach), Platz 2 fest
-  "Workout beenden" (setzt completedAt, `data.workoutLogId`); danach meldet der SW
-  `workout-finished` an offene Fenster. Die Regel steht DOPPELT —
-  `buildNotificationActions` (TrackingView) und `showCompactNotification`
-  (Service Worker) muessen gleich bleiben.
+  sortieren danach, die Tausch-Liste zeigt die gleiche Muskelgruppe zuerst.
+- **Quick-Log aus der Notification:** je Nutzer eine Warteschlange fertiger
+  setLogs in `notification.data` (buildNotificationQuickLog); der Service Worker
+  schreibt sie per Knopf direkt in IndexedDB + syncQueue, auch ohne offene App.
+- **Nur ZWEI Notification-Knoepfe (Android):** Platz 1 Quick-Log des Standard-
+  Nutzers (leer -> naechster rueckt nach), Platz 2 "Workout beenden"
+  (`data.workoutLogId`, danach `workout-finished` an offene Fenster). Die Regel
+  steht DOPPELT — `buildNotificationActions` (TrackingView) und
+  `showCompactNotification` (Service Worker) gleich halten.
 - **Gewichtsschritte:** 1.25 kg fuer Barbell/Machine-Weight, 1 kg sonst.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
-- **Umsortieren in der Planung (27.09.2026):** langer Druck (HALTEN_MS) auf eine
-  Uebungsgruppe hebt sie an, Ziehen verschiebt sie samt Alternativen. Touch-
-  und Maus-Events, KEINE Pointer-Events: nur ein nicht-passiver `touchmove`
-  kann das Scrollen stoppen, nachdem der Finger stillgehalten hat. Gescrollt
-  wird `.app-main`, nicht das Fenster. Bis der Store die neue Reihenfolge hat,
-  zeigt `eintraege(day)` sie aus `gespeichert` — sonst springt die Liste kurz
-  zurueck. Regeln: `utils/planReihenfolge.js`, Vertrag
-  `scripts/planreihenfolge-test.mjs`.
+- **Umsortieren in der Planung:** langer Druck (HALTEN_MS) hebt eine Gruppe samt
+  Alternativen an. Touch- und Maus-Events, KEINE Pointer-Events (nur ein
+  nicht-passiver `touchmove` stoppt das Scrollen). Gescrollt wird `.app-main`.
+  `eintraege(day)` zeigt die Reihenfolge aus `gespeichert`, bis der Store sie hat.
 - **"Standard-Uebungen laden" vergleicht mit der Cloud, nie nur mit dem Geraet**
-  (`holeCloudUebungen`, `getDocsFromServer`): ein frisches Handy ohne Sync hielt
-  am 27.09.2026 alle 36 Standard-Uebungen fuer neu und legte sie doppelt an.
-  Ohne Anmeldung/Netz legt der Knopf nichts an. Zusammenfuehren vorhandener
-  Dubletten: `scripts/uebungen-dubletten.mjs` (Original = aeltestes
-  `createdAt`, jeder Verweis wird umgebogen, Kopie per Tombstone geloescht,
-  Namens-Bremse vor dem Schreiben).
+  (`getDocsFromServer`; ein frisches Handy legte am 27.09.2026 alles doppelt an).
+  Ohne Anmeldung/Netz legt der Knopf nichts an. Dubletten zusammenfuehren:
+  `scripts/uebungen-dubletten.mjs`.
 - **Bildschirmtastatur ueberdeckt, statt zu verkleinern** (Android, Chrome ab 108):
-  `Modal.vue` misst waehrend es offen ist den sichtbaren Bereich
-  (`visualViewport`) und legt die Ueberlagerung darauf; Suchfenster (`fullHeight`)
-  bleiben bei offener Tastatur voll hoch. Vorher klebte das Fenster am unteren Rand
-  und die Treffer rutschten beim Tippen hinter die Tastatur. Die Browser-Pane hat
-  keine Bildschirmtastatur: pruefbar nur mit einem nachgestellten `visualViewport`
-  (Objekt mit height/offsetTop/scale, resize-Event) und am Handy.
-- **Standard-Nutzer ist GERAETE-lokal** (`localStorage`, Schluessel mit DB-Namen, siehe
-  `stores/auth.js`): Vorauswahl im Gewichts-Rad, in der History, am Notification-Knopf.
-  Bewusst NICHT in `db.meta` — die Tabelle wird gesynct, und beide Handys wuerden sich
-  den Wert gegenseitig ueberschreiben.
-- **Nutzerwahl ist ebenfalls GERAETE-lokal:** `activeUserIds` im auth store
-  (localStorage, Fallback ohne gespeicherte Auswahl: `[defaultUserId]`, nie
-  leer). Seit v2.7 ohne Startdialog: die Farbkreise unter den Trainingskarten
-  (`StartNutzerwahl`) schreiben die Auswahl bei jedem Tipp, der letzte
-  ausgewaehlte laesst sich nicht abwaehlen. `resetActiveUsers` (genau der
-  Standard-Nutzer) laeuft beim App-Start ohne heutiges unfertiges Workout
-  (App.vue) und nach "Workout beenden" (Knopf und Notification) — NICHT bei
-  "Tag wechseln", das die Besetzung behaelt. Im Workout aenderbar per Tipp
-  auf die Farbkreise im Kopf (UserSelectModal). Das Workout kennt nur
-  `activeUsers` (Karten-Layout nach Anzahl, Auto-Wechsel reihum,
-  Notification-Warteschlangen); `authStore.users` (alle drei) gehoert in
-  History, Settings und die Notizfelder der Detailansicht. `startWorkout`
-  stempelt `userIds` an den workoutLog; Resume uebernimmt sie zurueck.
-- **Ein Training gehoert seinem Handy (v2.8.1):** jeder Start stempelt die
-  Geraete-Kennung (`deviceId`, auth store, localStorage) an den workoutLog.
-  Fortsetzen (`resumeTodaysWorkout`, App.vue) und Wiederverwenden
-  (`startWorkout`) NUR ueber `utils/trainingGeraet.js` — sonst springt ein
-  Handy per Sync in das laufende Training des anderen und schreibt dessen
-  Besetzung um (01.10.2026). Logs ohne `deviceId` gelten als fremd.
-- **Notiz und Zyklustag haengen am workoutLog** (`note` String, `cycleDays`
-  Objekt `{ userId: Zahl }`, beide optional — ueberall mit Fallback lesen).
-  Der Zyklustag-Knopf erscheint nur, wenn ein aktiver Nutzer `zyklus: true`
-  traegt (constants.js, nur Lisa). `cycleDays` wird IMMER als flache Kopie
-  gemergt (ein Schluessel gesetzt/geloescht), nie ersetzt. Im aktiven Workout
-  schreiben die Store-Funktionen (`updateWorkoutNote`, `setCycleDay`); das
-  nachtraegliche Editieren im Tages-Modal der History laeuft ueber einen
-  eigenen Weg (`patchLog`, HistoryView), weil die Store-Funktionen am aktiven
-  Workout haengen.
-- **Notizen je Nutzer je Uebung liegen in `exerciseNotes`** (Dexie v4, additiv;
-  in SYNCED, IMPORT_TABLES und JSON-Export). Schreiben NUR ueber
-  `useExerciseNotes`: deterministische Id `exerciseId + '_' + userId`,
-  Leeren schreibt `text: ''` statt zu loeschen (sonst braeuchte es Tombstones).
-  Die Detailansicht speichert auch beim Schliessen (Android-Back) — nur
-  Geaendertes wird gepusht.
-- **Uebungsbilder kommen aus dem Repo, nie von fremden Servern:** Das Manifest
-  `src/data/uebungskatalog.json` verbindet Katalognamen (`aliasse`) mit
-  Bildern und Muskeln (`primaer`/`sekundaer` fuer die MuscleMap). `quelle`
-  bestimmt das zustaendige Skript, keins fasst die Eintraege des anderen an:
-  `ki` = farbige KI-Bilder, `frame-<n>.webp` = Phase n (1 START, 2 MITTE,
-  3 ENDE), geschnitten von `scripts/uebungsbilder-schneiden.mjs` nach der
-  Tabelle `scripts/uebungsbilder-zuschnitt.mjs`; `workout-guide` =
-  Linienzeichnungen, `frame-<n>.svg` = Frame n der Quelle, von
-  `scripts/uebungsbilder-holen.mjs`. Keys (Workout-Guide-Slugs) bleiben beim
-  Quellwechsel stabil, gespeicherte `imageKey` zeigen dann sofort das neue Bild.
-  Seit v2.6.0 zeigen alle 36 KI-Bilder aus ChatGPT-Reihenbildern
-  (`neu-<nn>.webp`: drei Uebungen je Bild, START links, ENDE rechts, weisser
-  Grund), `bilder` = frame-1 + frame-3, die Plank ein Standbild. Neue oder
-  nachgebesserte Bilder genau so: Ablauf, Stil-Vorbild und Prompt-Vorlage in
-  `docs/uebungsbilder-chatgpt.md`. Die Karomuster-Erkennung des Skripts gilt
-  nur alten Sammelbildern (Git-Historie bis v2.5.0). Nach jeder Tabellen-Aenderung den
-  `--bogen` ansehen (springt die Figur in der Ueberblendung, `ausrichtung:
-  'mitte'`). Die Muskelgrafik ist EINE farbige KI-Figur, zerlegt in 18
-  Masken (`scripts/muskelgrafik-bauen.mjs`); welche Muskeln je Uebung
-  leuchten, entscheidet allein das Manifest. `vorschau.webp`
-  (128 px) dient Karte und Katalog. Pfade loesen `bildUrl`/`vorschauUrl` auf
-  (nie selbst zusammenbauen). Uebungen tragen optional `imageKey` (nie
-  `undefined`, immer `null` — Firestore lehnt undefined ab); ohne Bild zeigt
-  die Karte die MuscleMap mit Grobgruppen-Markierung. "Bilder automatisch
-  zuordnen" ersetzt NUR leere und verwaiste Keys: wer eine bestehende
-  Zuordnung aendern will, nimmt den alten Key aus dem Manifest (so v2.1.0 bei
-  den geteilten Keys `machine-chest-press`/`seated-row`). Vertraege:
-  `scripts/uebungsbilder-matching-test.mjs` (Matching, Quelle, Pfade, Dateien,
-  Schnitt-Tabelle — zuerst Test, dann Regeln), Muskel-Ids und Masken per
-  `scripts/musclemap-pruefen.mjs`.
-- **In der App nachgetragene Uebungen sind keine Sonderfaelle:** Katalog ->
-  "+ Neu" legt Uebungen nur in der Datenbank an, der Code kennt sie nicht.
-  Den echten Bestand zeigt `scripts/uebungen-cloud.mjs` (nur lesen); was dort
-  "nur in der App" steht, kommt mit exaktem Namen, Gruppe und Geraet in
-  `src/data/standardUebungen.js` und in den Bild-Vertrag (der Test verlangt
-  fuer jede Standard-Uebung ein Bild).
-- **Uebung umbenennen = vier Stellen zugleich:** Standardliste, Alias im
-  Manifest (alter Name bleibt als Alias), Bild-Vertrag und die Cloud per
-  `scripts/uebungen-korrigieren.mjs` (Tabelle mit Id, vorher, nachher).
-  Vertauschte Uebungen tauschen dort Name und Bild statt Saetze umzuhaengen.
-  Bis alle Handys die neue Version haben, legt "Standard-Uebungen laden" auf
-  einer alten Version den alten Namen neu an.
-- **Bildnachweis ist Pflicht, nicht Deko:** Einstellungen -> Info und
-  `public/uebungsbilder/LIZENZ.md` nennen jede Quelle, deren Bilder die App
-  ausliefert — nie entfernen, bei neuen Bildquellen ergaenzen. Seit v2.6.0
-  (28.09.2026, auf Gabriels Freigabe) nur KI-Bilder; die Workout-Guide-
-  Zeichnungen (CC BY-SA 4.0) sind geloescht, ihr Nachweis steht als Historie
-  in LIZENZ.md und muss zurueck in die App, sobald wieder eine davon ins
-  Manifest kommt. Bilder aus dem Screenshot-Stil (Gymvisual, ExerciseDB und deren
-  GitHub-Kopien) sind kostenpflichtig und duerfen nicht ins oeffentliche Repo —
-  die KI-Bilder aehneln dem Stil, sind aber neu erzeugt.
-- **Alternativen-Ring mit Standard-Uebung JE NUTZER:** In der Planung traegt
-  ein Eintrag in `day.exercises` optional `alternativen` (Array aus
-  exerciseId, hartes Maximum 4) und `bevorzugt` ({ userId: exerciseId } —
-  die gemerkte Standard-Uebung je Nutzer, gesynct); Uebungslisten dort NUR
-  ueber `kopiereUebungsEintrag` neu bauen (kopiert generisch alle Felder —
-  harte Feldaufzaehlung verliert Alternativen und Standards). Die Planung
-  listet die Alternativen eingerueckt unter der 1. Wahl, jede mit eigenem x
-  (`removeAlternative`); ein darauf gemerkter Standard bleibt stehen und
-  wirkt nicht mehr.
-  Im Workout ist der Ring `[basisExerciseId, ...alternativen]`, und JEDER
-  Nutzer hat darin seine eigene aktive Uebung: `userExerciseIds`
-  ({ userId: exerciseId }, nur Abweichungen) am Workout-Eintrag, aufgeloest
-  ueber `aktiveUebungId` — Regeln als reine Funktionen in
-  `utils/uebungsRing.js`, Vertrag in `scripts/uebungsring-test.mjs` (zuerst
-  Test, dann Regeln). `basisExerciseId` und `userExerciseIds` gehoeren dem
-  Workout-Log (Helfer `mitBasis`, belegt Standards aus `bevorzugt` vor),
-  nie dem Plan. Der Karten-Kopf zeigt die Uebung des bevorzugten Nutzers
-  (`kopfId`); Wechsel je Nutzer per Tipp auf die Wechsel-Zeile seines
-  Bereichs ODER horizontalem Wischen (|dx| > 40px und |dx| > 2|dy|, passive
-  Listener; auf einem `.user-value` wechselt dessen Nutzer, sonst der
-  bevorzugte). Der Wechsel-Knopf nennt das ZIEL des Tipps, nie die aktuelle
-  Uebung (die steht im Titel); weicht die Uebung eines Nutzers vom Titel ab,
-  steht ihr Name in seiner Farbe dabei — Regel `wechselAnzeige`. Jeder
-  Wechsel schiebt Titel und Werte zur Seite (`<Transition>` schieben-vor /
-  schieben-zurueck, Schluessel = aktive Uebung): der Karten-Schluessel darf
-  beim Ringwechsel NICHT wechseln, sonst gibt es keine Animation. Die
-  Karte selbst (Variante A, 26.09.2026): kleines Vorschaubild neben dem
-  Titel, je Person ein Bereich mit Farbkreis; zu zweit nebeneinander, allein
-  und zu dritt je eine Zeile. Der Stern in der Wechsel-Zeile schreibt
-  `bevorzugt` per updateTrainingDay in den Plan (Toggle). Saetze, Empfehlungen, Rad und
-  Notification laufen ueberall ueber `aktiveId(eintrag, userId)`. Der freie
-  Tausch bleibt eine Karten-Entscheidung: er setzt `exerciseId` und LEERT
-  `userExerciseIds`. Jeder Wechsel laeuft den Tausch-Weg
-  (persistWorkoutExercises, Empfehlungen, Notification). Ein
-  400ms-Nachklick-Schutz (`istWischNachklick`) faengt das click ab, das
-  WebViews nach einem Wisch feuern — nicht entfernen. Beim Persistieren
-  `alternativen`, `userExerciseIds` und `bevorzugt` als frische Kopien
-  schreiben (sonst DataCloneError).
+  `Modal.vue` legt die Ueberlagerung auf `visualViewport`; `fullHeight`-Fenster
+  bleiben voll hoch. Pruefbar nur am Handy oder mit nachgestelltem
+  `visualViewport` (height/offsetTop/scale, resize-Event).
+- **Nie zwei Modals uebereinander:** jedes lauscht auf Android-Zurueck, beide
+  gingen gemeinsam zu. Unteransichten ersetzen den Inhalt (so der Verlauf in
+  ExerciseDetail).
+- **Standard-Nutzer, Nutzerwahl und Geraete-Kennung sind GERAETE-lokal**
+  (localStorage, Schluessel mit DB-Namen, auth store) — nie in `db.meta`, die
+  Tabelle wird gesynct und beide Handys ueberschrieben sich gegenseitig. Der
+  Standard-Nutzer ist Vorauswahl im Rad, in der History und am Notification-Knopf.
+  `activeUserIds` ist nie leer (Fallback `[defaultUserId]`); die Farbkreise auf dem
+  Startbildschirm schreiben sie bei jedem Tipp, der letzte laesst sich nicht
+  abwaehlen. `resetActiveUsers` laeuft beim App-Start ohne eigenes offenes
+  Training und nach "Workout beenden" (Knopf und Notification) — NICHT bei "Tag
+  wechseln". Im Workout aendert man die Besetzung per Tipp auf die Kreise im Kopf.
+  Das Workout kennt nur `activeUsers`; `authStore.users` (alle drei) gehoert in
+  History, Settings und Detailansicht. `startWorkout` stempelt `userIds` an den
+  Log, Resume uebernimmt sie.
+- **Ein Training gehoert seinem Handy:** jeder Start stempelt `deviceId` an den
+  workoutLog. Fortsetzen (`resumeTodaysWorkout`, App.vue) und Wiederverwenden
+  (`startWorkout`) NUR ueber `utils/trainingGeraet.js` — sonst springt ein Handy
+  per Sync in das laufende Training des anderen und schreibt dessen Besetzung um
+  (01.10.2026). Logs ohne `deviceId` gelten als fremd.
+- **Notiz und Zyklustag haengen am workoutLog** (`note`, `cycleDays` `{ userId:
+  Zahl }`, beide optional — immer mit Fallback lesen). Zyklustag-Knopf nur, wenn
+  ein aktiver Nutzer `zyklus: true` traegt (constants.js, nur Lisa). `cycleDays` IMMER als flache
+  Kopie mergen, nie ersetzen. Aktives Workout: Store-Funktionen; nachtraeglich in
+  der History: eigener Weg `patchLog`.
+- **Notizen je Nutzer je Uebung (`exerciseNotes`)** schreibt NUR
+  `useExerciseNotes`: Id `exerciseId + '_' + userId`, Leeren = `text: ''` statt
+  loeschen (sonst braeuchte es Tombstones). Die Detailansicht speichert auch beim
+  Schliessen, nur Geaendertes.
+- **Uebungsbilder kommen aus dem Repo, nie von fremden Servern.** Das Manifest
+  verbindet Namen (`aliasse`) mit Bildern und Muskeln; welche Muskeln leuchten,
+  entscheidet allein das Manifest. `quelle` bestimmt das zustaendige Skript, keins
+  fasst die Eintraege des anderen an: `ki` = `frame-<n>.webp` (1 START, 2 MITTE,
+  3 ENDE) aus `uebungsbilder-schneiden` nach `uebungsbilder-zuschnitt`;
+  `workout-guide` = `frame-<n>.svg` aus `uebungsbilder-holen`. Keys bleiben beim
+  Quellwechsel stabil. Neue Bilder nur nach `docs/uebungsbilder-chatgpt.md`
+  (Reihenbilder, drei Uebungen, START links, ENDE rechts); nach jeder
+  Tabellen-Aenderung den `--bogen` ansehen (springt die Figur: `ausrichtung:
+  'mitte'`). Pfade nur ueber `bildUrl`/`vorschauUrl`.
+  `imageKey` ist `null`, nie `undefined` (Firestore lehnt ab); ohne Bild zeigt die
+  Karte die MuscleMap. "Bilder automatisch zuordnen" ersetzt NUR leere und
+  verwaiste Keys — eine bestehende Zuordnung aendert man mit dem Key aus dem
+  Manifest.
+- **In der App nachgetragene Uebungen sind keine Sonderfaelle:** "+ Neu" im
+  Katalog legt sie nur in der Datenbank an. Was `uebungen-cloud.mjs` als "nur in
+  der App" zeigt, kommt mit exaktem Namen, Gruppe und Geraet in die Standardliste
+  und den Bild-Vertrag (der verlangt fuer jede Standard-Uebung ein Bild).
+- **Uebung umbenennen = vier Stellen zugleich:** Standardliste, Alias im Manifest
+  (alter Name bleibt Alias), Bild-Vertrag, Cloud per `uebungen-korrigieren.mjs`.
+  Vertauschte Uebungen tauschen Name und Bild statt Saetze umzuhaengen. Bis alle
+  Handys aktualisiert sind, legt "Standard-Uebungen laden" auf einer alten Version
+  den alten Namen neu an.
+- **Bildnachweis ist Pflicht:** Einstellungen -> Info und
+  `public/uebungsbilder/LIZENZ.md` nennen jede ausgelieferte Bildquelle — nie
+  entfernen, neue ergaenzen. Seit v2.6.0 nur KI-Bilder; kommt eine
+  Workout-Guide-Zeichnung (CC BY-SA 4.0) zurueck, muss ihr Nachweis zurueck in die
+  App. Gymvisual-/ExerciseDB-Bilder (auch GitHub-Kopien) sind kostenpflichtig und
+  duerfen nicht ins oeffentliche Repo; die KI-Bilder aehneln dem Stil, sind aber
+  neu erzeugt.
+- **Alternativen-Ring mit Standard-Uebung JE NUTZER:** Ein Plan-Eintrag traegt
+  optional `alternativen` (exerciseIds, hartes Maximum 4) und `bevorzugt`
+  ({ userId: exerciseId }, gesynct). Uebungslisten dort NUR ueber
+  `kopiereUebungsEintrag` neu bauen (harte Feldaufzaehlung verliert Felder). Ein
+  Standard auf einer entfernten Alternative bleibt stehen und wirkt nicht mehr.
+  Im Workout ist der Ring `[basisExerciseId, ...alternativen]`; jeder Nutzer hat
+  seine aktive Uebung in `userExerciseIds` (nur Abweichungen) — beides gehoert dem
+  Workout-Log (`mitBasis` belegt aus `bevorzugt` vor), nie dem Plan. Saetze,
+  Empfehlungen, Rad und Notification laufen ueberall ueber `aktiveId(eintrag,
+  userId)`; der Karten-Kopf zeigt die Uebung des bevorzugten Nutzers (`kopfId`).
+  Wechsel per Tipp auf die Wechsel-Zeile oder Wischen (|dx| > 40 px und > 2|dy|,
+  passive Listener; auf einem `.user-value` wechselt dessen Nutzer, sonst der
+  bevorzugte). Der Knopf nennt das ZIEL, nie die aktuelle Uebung; weicht die
+  Uebung eines Nutzers vom Titel ab, steht ihr Name in seiner Farbe dabei
+  (`wechselAnzeige`). Der Karten-Schluessel darf beim Ringwechsel NICHT wechseln
+  (sonst keine Schiebe-Animation). Karten-Layout Variante A (Gabriel 26.09.):
+  Vorschaubild neben dem Titel, je Person ein Bereich mit Farbkreis, zu zweit
+  nebeneinander, sonst je eine Zeile. Der Stern schreibt `bevorzugt` per
+  updateTrainingDay. Der freie Tausch setzt `exerciseId` und LEERT
+  `userExerciseIds`; jeder Wechsel laeuft den Tausch-Weg (persist, Empfehlungen,
+  Notification). Der 400-ms-Nachklick-Schutz (`istWischNachklick`) faengt das
+  click nach einem Wisch ab — nicht entfernen. `alternativen`,
+  `userExerciseIds`, `bevorzugt` als frische Kopien persistieren.
 
 ## Architektur: Laufplaner
-- **Claude plant, die App zeigt und haelt fest.** Plaene entstehen NICHT in der App,
-  sondern als JSON-Datei von Claude (Vertrag: `docs/laufplan-format.md`). Der Import
-  prueft erst vollstaendig, zeigt eine Vorschau und schreibt dann in EINER
-  Dexie-Transaktion; Tombstones und Cloud-Push laufen danach.
-- **Merge-Regel:** Kennungen (`id`) sind die Klammer zwischen Claude und App. Erledigte
-  und ausgelassene Laeufe gewinnen immer lokal, noch geplante uebernimmt die Datei,
-  geloescht wird nur, was geplant UND in der Zukunft ist. Aendert sich nichts, wird
-  nichts geschrieben (der eigene Status-Export ergibt beim Re-Import "keine Aenderung").
+- **Claude plant, die App zeigt und haelt fest.** Plaene entstehen als JSON-Datei von
+  Claude (Vertrag: `docs/laufplan-format.md`). Der Import prueft vollstaendig, zeigt
+  eine Vorschau und schreibt in EINER Dexie-Transaktion; Tombstones und Push danach.
+- **Merge-Regel:** Kennungen (`id`) sind die Klammer. Erledigte und ausgelassene
+  Laeufe gewinnen lokal, noch geplante uebernimmt die Datei, geloescht wird nur, was
+  geplant UND in der Zukunft ist. Ohne Aenderung wird nichts geschrieben.
   Ausformuliert in `docs/laufplaner-plan.md` 5.4.
-- **Der Test ist der Vertrag, nicht der Code.** Wer Merge- oder Abgleich-Regeln
-  anfasst, erweitert ZUERST `scripts/laufplan-merge-test.mjs` bzw.
-  `scripts/runmatch-test.mjs`.
-- **Ein Satz je Lauf, ein Haken:** kein Lauf-Tracking in der App. Der Haken darf ohne
-  Ist-Werte gesetzt werden; in der Wochenbilanz zaehlt dann der Planwert.
-- **`targets` gehoert dem PLAN, `feedback` dem LAEUFER.** `targets` ist die Puls- und
-  Tempovorgabe (bis zu vier Abschnitte je Lauf, `{ label, hrFrom, hrTo, paceFrom,
-  paceTo }`, Tempo als Text "m:ss", leer = `null`); fehlt sie in einer neuen Datei, ist
-  sie zurueckgenommen. `feedback` ist `{ rpe 1-5, note, at }` und geht NIE verloren —
-  kein Import und kein Garmin-Abgleich fasst es an. `actual.note` gehoert dagegen der
-  Maschine (Zeitnotiz der Uhr, Grund fuers Auslassen).
-- **Die Tempozahlen kommen aus der eigenen Historie**, nicht aus einer Tabelle
-  (`docs/laufplan-vorgaben.md`). Ausserhalb des gemessenen Pulsbereichs wird die
-  Hochrechnung gedaempft, sonst entstuende ein Schwellentempo, das niemand laufen kann.
-  Das Trainingswissen (Pulsbereiche) liegt in `privat\pace-profil.json`, nie im Repo.
-- **Der PC kann direkt an die Cloud** (`scripts/lauf-cloud.mjs`,
-  `docs/laufplan-cloud.md`): dasselbe Konto, dieselben Regeln, derselbe Merge wie in
-  der App. Ohne `--jetzt` immer nur ein Trockenlauf, vor jedem Schreiben eine
-  Sicherung, beim Loeschen ein Tombstone. Zugangsdaten NUR in
+- **Der Test ist der Vertrag:** Merge- oder Abgleich-Regeln erst in
+  `laufplan-merge-test.mjs` bzw. `runmatch-test.mjs` aendern.
+- **Ein Satz je Lauf, ein Haken:** kein Lauf-Tracking. Haken ohne Ist-Werte erlaubt;
+  in der Wochenbilanz zaehlt dann der Planwert.
+- **`targets` gehoert dem PLAN, `feedback` dem LAEUFER.** `targets`: bis zu vier
+  Abschnitte `{ label, hrFrom, hrTo, paceFrom, paceTo }`, Tempo "m:ss", leer =
+  `null`; fehlt es in einer neuen Datei, ist es zurueckgenommen. `feedback`
+  `{ rpe 1-5, note, at }` geht NIE verloren — kein Import, kein Garmin-Abgleich
+  fasst es an. `actual.note` gehoert der Maschine.
+- **Die Tempozahlen kommen aus der eigenen Historie** (`docs/laufplan-vorgaben.md`);
+  ausserhalb des gemessenen Pulsbereichs gedaempft. Pulsbereiche nur in
+  `privat\pace-profil.json`, nie im Repo.
+- **Der PC kann direkt an die Cloud** (`lauf-cloud.mjs`, `docs/laufplan-cloud.md`):
+  gleiches Konto, gleiche Regeln. Ohne `--jetzt` Trockenlauf, vor jedem Schreiben
+  eine Sicherung, beim Loeschen ein Tombstone. Zugangsdaten NUR in
   `privat\firebase-konto.json`, nie im Chat.
-- **Garmin laeuft ueber intervals.icu, nicht direkt.** Die App holt fertige Aktivitaeten
-  (`intervalsApi.js`), ordnet sie dem geplanten Lauf desselben Tages zu (`runMatch.js`)
-  und setzt Haken samt Ist-Werten. Sie loescht nie etwas, entfernt nie einen Haken,
-  ergaenzt einen von Hand gesetzten nur; dieselbe Aktivitaet kommt nie zweimal herein
-  (`externalId` = `athleteId:id`).
-- **Zeit bei Laeufen: Runden zaehlen anders.** Fuer Lauf-Typ `loops` gilt die Gesamtzeit
-  (`elapsed_time`), sonst die Zeit in Bewegung (`moving_time`); der andere Wert landet
-  als Notiz in `actual.note`. Beim Backyard 2026 sind das 12:00 h gegen 9:24 h. Das
-  Dateiformat kennt nur EIN Minutenfeld — ein zusaetzliches Feld in `actual` ginge beim
-  Status-Export still verloren.
-- **Der Pace Umrechner liest mit** (`C:\Projekte\Pace Umrechner`, eigene PWA): er holt
-  `runPlans`, `runSessions` und `meta/userName_user1|2` per REST, nur lesend, und baut aus
-  `targets` (label, paceFrom/paceTo "m:ss") Bahn-Tabellen; die Dauer liest er aus dem
-  label ("Steigerungen 20 s"). Wer hier das Format, die Labels oder das Firebase-Projekt
-  aendert, zieht dort `src/lib/cloud.ts` bzw. `src/lib/training.ts` mit.
-- **Schluessel fuer intervals.icu sind GERAETE-lokal** (`localStorage`): nicht in
-  `db.meta`, nicht in der Cloud, nicht im Backup-Export. Die Athleten-Id steckt dagegen
-  in jeder `externalId` und ist damit Teil der gesyncten Daten — gewollt, sie ist kein
-  Geheimnis.
+- **Garmin laeuft ueber intervals.icu.** Die App holt fertige Aktivitaeten, ordnet
+  sie dem Lauf desselben Tages zu und setzt Haken samt Ist-Werten. Sie loescht nie,
+  entfernt nie einen Haken, ergaenzt einen von Hand gesetzten nur; dieselbe
+  Aktivitaet kommt nie zweimal (`externalId` = `athleteId:id`).
+- **Runden zaehlen anders:** Typ `loops` nimmt `elapsed_time`, sonst `moving_time`;
+  der andere Wert landet in `actual.note`. Das Format kennt nur EIN Minutenfeld —
+  ein zusaetzliches Feld in `actual` ginge beim Status-Export still verloren.
+- **Der Pace Umrechner liest mit** (`C:\Projekte\Pace Umrechner`): `runPlans`,
+  `runSessions`, `meta/userName_user1|2` per REST, nur lesend; Bahn-Tabellen aus
+  `targets`, Dauer aus dem label ("Steigerungen 20 s"). Wer Format, Labels oder
+  Firebase-Projekt aendert, zieht dort `src/lib/cloud.ts` bzw. `training.ts` mit.
+- **Schluessel fuer intervals.icu sind GERAETE-lokal:** nicht in `db.meta`, nicht in
+  der Cloud, nicht im Backup. Die Athleten-Id in `externalId` ist gewollt gesynct.
 
 ## Deploy und Umgebung
 - **Base-Path** `/fitness-tracker/` in Vite, Router und PWA-Manifest.
-- **Default-User:** Lisa (user1), Gab (user2), Ben (user3).
-- **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version** — der
-  Service Worker liefert bis dahin den alten Stand aus. Zum Live-Pruefen im Browser:
-  Service Worker abmelden, Caches leeren, dann von der Wurzel `/fitness-tracker/`
-  starten; ohne Service Worker enden Deeplinks wie `/settings` bei GitHub Pages im 404.
-  Ohne Browser belegt: das ausgelieferte `assets/SettingsView-*.js` (Name steht im
-  Hauptskript aus `index.html`) enthaelt die Versionsnummer.
-- **Die Browser-Pane registriert auf `http://*.localhost` keine Service Worker** —
-  auch ein Minimal-SW scheitert dort mit "unknown error when fetching the script"
-  (Gegenprobe 22.09.2026). Diese Konsolenfehler sind kein App-Fehler; Offline-/PWA-
-  Verhalten nur am Handy pruefen.
-- **Browser-Tests mit Testdaten nur auf einer frischen Adresse** wie
-  `http://reps-test.localhost:5173/fitness-tracker/` (jede `*.localhost`-Subdomain ist
-  eine eigene Herkunft ohne Anmeldung). `localhost` und `127.0.0.1` koennen aus einer
-  frueheren Sitzung angemeldet sein — dann landet jeder gespeicherte Testsatz in der
-  echten Cloud. Testdaten am schnellsten ueber den echten Backup-Import (Datei-Feld
-  in Settings per `DataTransfer` befuellen, `change` ausloesen).
-- **Preview-Port 4173 ist oft von einer anderen Sitzung belegt** (alter Stand): nie
-  beenden, sondern voruebergehend eine eigene Konfiguration mit anderem Port und
-  `--strictPort` in `.claude/launch.json` (danach zuruecksetzen); Version in Settings
-  gegenpruefen.
-- **Reine Doku-Commits mit `[skip ci]` im Betreff pushen** — jeder Push auf `master`
-  startet sonst einen Deploy, der denselben App-Stand neu baut.
-- **`privat\` gehoert in den Hauptbaum** (`C:\Projekte\Fitness Tracker\privat`). Ein
-  `privat\` in einem Worktree geht mit ihm verloren: `git worktree remove` loescht
-  ignorierte Dateien ohne Rueckfrage. Vorher `git status --porcelain --ignored` pruefen.
+- **Nach einem Deploy zeigt die PWA erst nach einem Neustart die neue Version.**
+  Live pruefen ohne Browser: das ausgelieferte `assets/SettingsView-*.js` (Name im
+  Hauptskript aus `index.html`) enthaelt die Versionsnummer. Im Browser: Service
+  Worker abmelden, Caches leeren, von der Wurzel starten (Deeplinks ohne Service
+  Worker enden bei GitHub Pages im 404).
+- **Die Browser-Pane registriert auf `http://*.localhost` keine Service Worker**
+  ("unknown error when fetching the script") — kein App-Fehler; Offline nur am Handy.
+- **Browser-Tests mit Testdaten nur auf einer frischen `*.localhost`-Subdomain**
+  (eigene Herkunft ohne Anmeldung); `localhost`/`127.0.0.1` koennen angemeldet sein,
+  dann landen Testsaetze in der echten Cloud. Testdaten ueber den echten
+  Backup-Import (Datei-Feld per `DataTransfer`, `change` ausloesen).
+  Verlaesslichster Weg: Headless-Chrome per DevTools-Protokoll (`--incognito`
+  ohne Profilordner, Emulation 360-390 px, vor Fotos 0,5 s warten).
+- **Preview-Port 4173 ist oft von einer anderen Sitzung belegt:** nie beenden,
+  eigenen Port mit `--strictPort` nehmen; Version in Settings gegenpruefen.
+- **Reine Doku-Commits mit `[skip ci]` pushen** — sonst baut jeder Push neu.
+- **`privat\` gehoert in den Hauptbaum:** `git worktree remove` loescht ignorierte
+  Dateien ohne Rueckfrage. Vorher `git status --porcelain --ignored` pruefen.
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
@@ -416,19 +281,16 @@ npm run preview   # Build lokal testen (Port 4173)
 
 ## Connectoren/APIs
 - Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth), Config in
-  `src/db/firebase.js`. Der API-Key ist bei Firebase kein Geheimnis — der Schutz liegt
-  in den Firestore-Rules und der gesperrten Registrierung.
-- **Zwei Logins mit derselben Adresse — die haeufigste Falle hier.** Die Firebase
-  Console gehoert Google und nimmt Gabriels GOOGLE-Passwort. Das App-Konto steht in der
-  Nutzerliste des Projekts (Anbieter nur E-Mail/Passwort, kein Google) und hat ein
-  EIGENES. Wer das Google-Passwort in `privat\firebase-konto.json` schreibt, bekommt
-  `INVALID_LOGIN_CREDENTIALS`, und Firebase sagt absichtlich nicht, welches von beiden
-  falsch war. Kandidaten durchprobieren: `privat\passwort-pruefen.html`.
-- **Dieses Repo ist OEFFENTLICH.** Keine personenbezogenen Daten in Repo-Dateien, auch
-  nicht in Doku. Die Konto-E-Mail bleibt als Platzhalter `FITNESS-KONTO@BEISPIEL.DE` in
-  `firestore.rules`; die echte Adresse existiert nur in der Firebase Console und in
-  Claudes lokalem Memory.
-- **Console-Arbeit** laeuft ueber Claude-in-Chrome (das Preview-Tool rendert sie nicht):
-  Der Rules-Editor ist CodeMirror 5 (`document.querySelector('.CodeMirror')
-  .CodeMirror.setValue(...)`); der Anonym-Anbieter-Dialog ist hoeher als das Fenster und
-  nicht scrollbar — Speichern dort per Skript-Klick ausloesen.
+  `src/db/firebase.js`. Der API-Key ist kein Geheimnis — der Schutz liegt in den
+  Firestore-Rules und der gesperrten Registrierung.
+- **Zwei Logins mit derselben Adresse — die haeufigste Falle.** Die Firebase
+  Console nimmt Gabriels GOOGLE-Passwort, das App-Konto (nur E-Mail/Passwort) hat
+  ein EIGENES. Das Google-Passwort in `privat\firebase-konto.json` ergibt
+  `INVALID_LOGIN_CREDENTIALS`. Kandidaten durchprobieren:
+  `privat\passwort-pruefen.html`.
+- **Dieses Repo ist OEFFENTLICH.** Keine personenbezogenen Daten, auch nicht in
+  Doku. Die Konto-E-Mail steht als Platzhalter `FITNESS-KONTO@BEISPIEL.DE` in
+  `firestore.rules`; die echte nur in der Firebase Console und Claudes Memory.
+- **Console-Arbeit** ueber Claude-in-Chrome: Rules-Editor ist CodeMirror 5
+  (`document.querySelector('.CodeMirror').CodeMirror.setValue(...)`); der
+  Anonym-Anbieter-Dialog ist nicht scrollbar — Speichern per Skript-Klick.
