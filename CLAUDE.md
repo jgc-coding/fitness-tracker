@@ -77,6 +77,8 @@ src/
                          still auf den ersten Wert springen; reine Funktion)
     verlauf.js           Verlauf: Zeitraum, ein Punkt je Tag (schwerster
                          Satz), Achse, Monatsmarken (reine Funktionen)
+    trainingGeraet.js    welches offene Training dieses Handy fortsetzt
+                         (nur eigene, per deviceId; reine Funktionen)
     dateHelpers.js       KW-Erkennung, Deload-Berechnung
     formatters.js        toTitleCase (Uebungsnamen, DB/BB-Abkuerzungen)
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
@@ -107,7 +109,8 @@ scripts/                 laufplan-pruefen, laufplan-vorgaben, pace-modell
                          pace-modell-test, musclemap-pruefen,
                          uebungsbilder-matching-test, uebungsring-test,
                          saetze-test, uebungsdubletten-test,
-                         planreihenfolge-test, radwerte-test, verlauf-test
+                         planreihenfolge-test, radwerte-test, verlauf-test,
+                         training-geraet-test
 docs/                    firebase-absicherung, laufplan-format (+ -beispiel.json),
                          laufplaner-plan, laufplan-cloud, laufplan-vorgaben,
                          garmin-anbindung, plan-fittrack-v2,
@@ -217,6 +220,12 @@ npm run preview   # Build lokal testen (Port 4173)
   Notification-Warteschlangen); `authStore.users` (alle drei) gehoert in
   History, Settings und die Notizfelder der Detailansicht. `startWorkout`
   stempelt `userIds` an den workoutLog; Resume uebernimmt sie zurueck.
+- **Ein Training gehoert seinem Handy (v2.8.1):** jeder Start stempelt die
+  Geraete-Kennung (`deviceId`, auth store, localStorage) an den workoutLog.
+  Fortsetzen (`resumeTodaysWorkout`, App.vue) und Wiederverwenden
+  (`startWorkout`) NUR ueber `utils/trainingGeraet.js` — sonst springt ein
+  Handy per Sync in das laufende Training des anderen und schreibt dessen
+  Besetzung um (01.10.2026). Logs ohne `deviceId` gelten als fremd.
 - **Notiz und Zyklustag haengen am workoutLog** (`note` String, `cycleDays`
   Objekt `{ userId: Zahl }`, beide optional — ueberall mit Fallback lesen).
   Der Zyklustag-Knopf erscheint nur, wenn ein aktiver Nutzer `zyklus: true`

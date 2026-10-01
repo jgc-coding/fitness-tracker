@@ -3,6 +3,25 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.8.1] — 2026-10-01
+
+### Fixes
+- **Kein Sprung mehr ins Training des anderen Handys:** Trainierte user1 auf
+  ihrem Handy, setzte user2 Handy beim Start ihr offenes Training fort — mit
+  user1 als Nutzerin, mitten im Workout (gemeldet von Gabriel am 01.10.;
+  der Fehler bestand seit beide Handys dieselben Daten teilen). Jedes Handy
+  hat jetzt eine eigene Kennung, jedes Training merkt sich, auf welchem
+  Handy es gestartet wurde, und nur dieses Handy setzt es fort oder startet
+  denselben Tag darin neu. Trainings von vor diesem Update gelten als fremd.
+- user1 Legs-Training vom 01.10. trug durch den Fehler user2 als Besetzung;
+  in der Cloud wieder auf user1 gestellt (ihre 15 Saetze waren unberuehrt,
+  Sicherung des Datensatzes in `privat\`).
+
+### Intern
+- Regel in `src/utils/trainingGeraet.js`, Vertrag
+  `scripts/training-geraet-test.mjs` (im Gate). Kennung im auth store
+  (`deviceId`, localStorage), als `deviceId` am workoutLog.
+
 ## [2.8.0] — 2026-10-01
 
 Gewichtsverlauf je Uebung direkt in der Detailansicht (Wunsch Gabriel).
