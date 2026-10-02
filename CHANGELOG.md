@@ -3,6 +3,30 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.9.0] — 2026-10-02
+
+Geschaetztes 1RM im Verlauf (Wunsch Gabriel: das Gewicht allein sagt wenig,
+die Wdh gehoeren dazu).
+
+### Features
+- **Geschaetztes 1RM als gestrichelte Linie** im Verlauf einer Uebung, auf
+  derselben kg-Achse wie das Gewicht (Gabriel 02.10.: eine Skala — eine
+  zweite Skala liesse die Linien sich scheinbar kreuzen). Steigt das Gewicht
+  und sinken dafuer die Wdh, zeigt die 1RM-Linie, ob man insgesamt staerker
+  geworden ist.
+- Formel nach Epley: Gewicht x (1 + Wdh/30), bei 1 Wdh das Gewicht selbst.
+  Je Tag zaehlt der beste aller Saetze, Aufwaermsaetze nicht. Ab etwa 12 Wdh
+  wird die Schaetzung grob.
+- Ueber dem Diagramm steht "47,5 kg × 9 · 1RM ≈ 62 kg" fuer den angetippten
+  Tag, darunter eine kleine Legende; in der Liste steht das 1RM klein und
+  grau vor jedem Eintrag. Angezeigt in ganzen kg.
+- Ohne Wdh gibt es fuer den Tag kein 1RM (die Linie laeuft darueber hinweg);
+  reine Koerpergewicht-Uebungen zeigen weiter nur die Wdh.
+
+### Intern
+- `einRM` und `mitEinRM` in `src/utils/verlauf.js`, `verlaufPunkte` liefert
+  je Tag `e1rm`; 16 neue Faelle in `scripts/verlauf-test.mjs`.
+
 ## [2.8.1] — 2026-10-01
 
 ### Fixes

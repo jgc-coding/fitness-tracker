@@ -4,12 +4,14 @@
 // Der Test ist der Vertrag: je Trainingstag EIN Punkt (der schwerste Satz,
 // bei Gleichstand der mit mehr Wdh), Aufwaermsaetze zaehlen nicht, der
 // Zeitraum rechnet in Kalendermonaten ohne Sommerzeit-Versatz, Zahlen stehen
-// mit deutschem Komma.
+// mit deutschem Komma. Das geschaetzte 1RM (Epley) ist je Tag das beste aller
+// Saetze; ohne Wdh gibt es keins, statt still das Gewicht zu nehmen.
 //
 // Aufruf:  node ./scripts/verlauf-test.mjs
 
 import {
-  ZEITRAEUME, zeitraumStart, verlaufPunkte, messgroesse, achse, formatZahl, naechsterIndex, monatsMarken
+  ZEITRAEUME, zeitraumStart, verlaufPunkte, messgroesse, achse, formatZahl, naechsterIndex, monatsMarken,
+  einRM, mitEinRM
 } from '../src/utils/verlauf.js'
 
 let fehler = 0
@@ -63,6 +65,35 @@ console.log('[verlauf-test] Messgroesse:')
 pruefe('Gewicht, sobald ein Punkt Gewicht traegt', messgroesse([{ weight: 0, reps: 8 }, { weight: 5, reps: 8 }]) === 'weight')
 pruefe('nur 0 kg (Koerpergewicht) -> Wdh', messgroesse([{ weight: 0, reps: 8 }, { weight: 0, reps: 10 }]) === 'reps')
 pruefe('nur 0 kg ohne Wdh -> Gewicht (nichts zu zeigen ausser 0)', messgroesse([{ weight: 0, reps: null }]) === 'weight')
+
+console.log('[verlauf-test] Geschaetztes 1RM (Epley):')
+const nahe = (a, b) => typeof a === 'number' && Math.abs(a - b) < 0.01
+pruefe('47,5 kg x 9 -> 61,75 (Gewicht x (1 + Wdh/30))', nahe(einRM(47.5, 9), 61.75), einRM(47.5, 9))
+pruefe('100 kg x 10 -> 133,33', nahe(einRM(100, 10), 133.33), einRM(100, 10))
+pruefe('1 Wdh -> das Gewicht selbst', einRM(100, 1) === 100, einRM(100, 1))
+pruefe('Wdh als Text "8" zaehlt wie 8', nahe(einRM(60, '8'), 76), einRM(60, '8'))
+pruefe('ohne Wdh -> kein 1RM (null), nicht das Gewicht', einRM(100, null) === null && einRM(100, undefined) === null, einRM(100, null))
+pruefe('0 Wdh -> kein 1RM', einRM(100, 0) === null, einRM(100, 0))
+pruefe('ohne Gewicht -> kein 1RM', einRM(null, 8) === null && einRM('abc', 8) === null)
+pruefe('0 kg -> 0 (Koerpergewicht, kein Fehler)', einRM(0, 10) === 0, einRM(0, 10))
+
+const besterSatz = verlaufPunkte([
+  s('2026-09-25', 50, 5, { setNumber: 1 }),
+  s('2026-09-25', 45, 10, { setNumber: 2 })
+])[0]
+pruefe('1RM des Tages = bester Satz (45 x 10 = 60), auch wenn 50 x 5 der schwerste ist',
+  besterSatz.weight === 50 && nahe(besterSatz.e1rm, 60), besterSatz)
+const e1rmAufwaermen = verlaufPunkte([s('2026-09-30', 60, 10, { isWarmup: true }), s('2026-09-30', 50, 5)])[0]
+pruefe('Aufwaermsatz zaehlt auch beim 1RM nicht', nahe(e1rmAufwaermen.e1rm, 58.33), e1rmAufwaermen.e1rm)
+pruefe('Tag ohne Wdh -> e1rm null', verlaufPunkte([s('2026-09-30', 50, null)])[0].e1rm === null)
+pruefe('ein Satz ohne Wdh, einer mit -> 1RM aus dem mit Wdh',
+  nahe(verlaufPunkte([s('2026-09-30', 70, null), s('2026-09-30', 60, 6, { setNumber: 2 })])[0].e1rm, 72))
+
+pruefe('1RM-Linie bei Gewichts-Uebungen', mitEinRM([{ weight: 40, reps: 10, e1rm: 53.3 }]) === true)
+pruefe('keine 1RM-Linie bei Koerpergewicht (Diagramm zeigt Wdh)',
+  mitEinRM([{ weight: 0, reps: 8, e1rm: 0 }, { weight: 0, reps: 10, e1rm: 0 }]) === false)
+pruefe('keine 1RM-Linie, wenn nirgends Wdh stehen', mitEinRM([{ weight: 40, reps: null, e1rm: null }]) === false)
+pruefe('keine Punkte -> keine 1RM-Linie', mitEinRM([]) === false)
 
 console.log('[verlauf-test] Achse:')
 const a1 = achse([85, 97.5])
