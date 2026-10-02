@@ -102,7 +102,6 @@
   — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **v2.9.2 am Handy ansehen:** Brustpresse, Ausfallschritt und seated leg curl antippen und die Ueberblendung von Start zu Ende anschauen (seit 2026-10-02)
 - [ ] **Alte Worktrees entfernen**, nur wenn in der Desktop-App keine Sitzung mehr darauf zeigt (seit 2026-09-22)
   Noch vier (Stand 02.10.). Ignoriert liegt darin nur `.claude/` und
   nachbaubares `dist/` bzw. `node_modules/`. Je Zeile ein Worktree (PowerShell):
