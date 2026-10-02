@@ -48,7 +48,9 @@ export const QUELLEN = {
   'neu-10.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
   'neu-11.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
   'neu-12.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
-  'neu-13.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 }
+  'neu-13.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
+  'neu-14.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
+  'neu-15.webp': { breite: 1536, hoehe: 1024, hintergrund: 'weiss', schilder: 0 }
 }
 
 export const UEBUNGEN = {
@@ -69,7 +71,7 @@ export const UEBUNGEN = {
   'incline-bench-press': { quelle: 'neu-04.webp', phasen: { 1: [49, 516, 528, 1023], 3: [555, 536, 1024, 1023] } },
   'dumbbell-bench-press': { quelle: 'neu-04.webp', phasen: { 1: [78, 1040, 530, 1484], 3: [581, 1157, 1024, 1486] } },
   // neu-05.webp: incline-dumbbell-press, (chest-press-machine, seit 02.10. aus
-  // neu-13), incline-chest-press-machine
+  // neu-15), incline-chest-press-machine
   'incline-dumbbell-press': { quelle: 'neu-05.webp', phasen: { 1: [69, 5, 532, 498], 3: [579, 129, 1024, 498] } },
   'incline-chest-press-machine': { quelle: 'neu-05.webp', phasen: { 1: [17, 986, 526, 1481], 3: [545, 980, 1015, 1481] } },
   // neu-06.webp: cable-fly, butterfly-machine, dips
@@ -90,7 +92,7 @@ export const UEBUNGEN = {
   'overhead-tricep-extension': { quelle: 'neu-09.webp', phasen: { 1: [44, 8, 438, 501], 3: [591, 8, 1017, 501] } },
   'hack-squat': { quelle: 'neu-09.webp', phasen: { 1: [34, 513, 476, 1014], 3: [547, 560, 991, 1014] } },
   'leg-press': { quelle: 'neu-09.webp', phasen: { 1: [8, 1031, 513, 1475], 3: [530, 1041, 1017, 1476] } },
-  // neu-10.webp: (seated-leg-curl, seit 02.10. aus neu-13), leg-extension,
+  // neu-10.webp: (seated-leg-curl, seit 02.10. aus neu-14), leg-extension,
   // standing-calf-raise
   'leg-extension': { quelle: 'neu-10.webp', phasen: { 1: [103, 482, 470, 929], 3: [594, 482, 1012, 929] } },
   'standing-calf-raise': { quelle: 'neu-10.webp', phasen: { 1: [58, 945, 431, 1509], 3: [587, 945, 949, 1509] } },
@@ -103,14 +105,20 @@ export const UEBUNGEN = {
   'hip-thrust': { quelle: 'neu-12.webp', phasen: { 1: [22, 73, 482, 451], 3: [525, 37, 1000, 452] } },
   'chest-supported-row': { quelle: 'neu-12.webp', phasen: { 1: [59, 475, 482, 959], 3: [579, 475, 988, 959] } },
   'back-extension': { quelle: 'neu-12.webp', phasen: { 1: [46, 1078, 506, 1485], 3: [562, 970, 999, 1486] } },
-  // neu-13.webp (02.10.2026, Nachbesserung auf Gabriels Wunsch): In den alten
-  // Bildern war die Brustpresse im ENDE eine andere Maschine, der
-  // Ausfallschritt im ENDE gedreht und beim Leg Curl lag das Polster im ENDE
-  // vor dem Schienbein. ChatGPT malte das Polster zweimal wieder vorn; erst
-  // mit Richtungen im Bild ("RIGHT side of his lower legs, towards the seat")
-  // stimmte es.
-  'chest-press-machine': { quelle: 'neu-13.webp', phasen: { 1: [50, 7, 500, 490], 3: [564, 7, 1009, 490] } },
+  // Nachbesserung vom 02.10.2026 auf Gabriels Wunsch: In den alten Bildern
+  // war die Brustpresse im ENDE eine andere Maschine, der Ausfallschritt im
+  // ENDE gedreht und beim Leg Curl lag das Polster im ENDE vor dem
+  // Schienbein. Gabriel pruefte am Handy und fand in neu-13 noch zwei Fehler
+  // (Leg Curl: Polster im START vor dem Knoechel; Brustpresse: im ENDE eine
+  // Stange statt der Hebel), darum kommen beide aus neu-14 bzw. neu-15.
+  // neu-13.webp: (chest-press-machine, verworfen), reverse-lunge,
+  // (seated-leg-curl, verworfen)
   // Kein festes Geraet: mittig und unten buendig (die Fuesse bleiben am Boden)
   'reverse-lunge': { quelle: 'neu-13.webp', phasen: { 1: [167, 503, 339, 958], 3: [593, 578, 954, 958] }, ausrichtung: 'mitte' },
-  'seated-leg-curl': { quelle: 'neu-13.webp', phasen: { 1: [44, 971, 491, 1447], 3: [587, 971, 1005, 1447] } }
+  // neu-14.webp: (chest-press-machine, verworfen), seated-leg-curl
+  'seated-leg-curl': { quelle: 'neu-14.webp', phasen: { 1: [13, 785, 503, 1412], 3: [558, 785, 1015, 1413] } },
+  // neu-15.webp: nur chest-press-machine, Querformat, Seitenansicht. Griff und
+  // Scheibe haengen an EINEM Hebel; der wird im ENDE etwas laenger, statt im
+  // Bogen zu schwingen (Gabriel hat es so freigegeben).
+  'chest-press-machine': { quelle: 'neu-15.webp', phasen: { 1: [78, 40, 750, 963], 3: [751, 40, 1518, 962] } }
 }

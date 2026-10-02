@@ -14,7 +14,7 @@ im selben Verfahren nachgebessert: Brustpresse an der Maschine,
 Ausfallschritt und sitzender Beinbeuger.
 
 Zugeschnitten mit `scripts/uebungsbilder-schneiden.mjs` aus den Reihenbildern
-`neu-01.webp` bis `neu-13.webp` in `scripts/uebungsbilder-quellen/`: je
+`neu-01.webp` bis `neu-15.webp` in `scripts/uebungsbilder-quellen/`: je
 Uebung zwei Bewegungsphasen (die Plank eine) und ein Vorschaubild. Ablauf und
 Prompt-Vorlage: `docs/uebungsbilder-chatgpt.md`.
 

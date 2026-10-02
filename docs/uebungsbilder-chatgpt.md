@@ -23,6 +23,17 @@ fuer neue Uebungen oder einzelne Nachbesserungen, damit der Stil gleich bleibt.
   Polster vor das Schienbein; "the pad is on the RIGHT side of his lower
   legs, towards the seat; on the LEFT side there is only empty space" traf
   es beim ersten Versuch.
+- **Hebelmaschinen von der Seite und als ein starres Teil beschreiben:** Von
+  vorn malte ChatGPT die Brustpresse im ENDE mit einer Stange zwischen den
+  Haenden und stillstehenden Hebeln. Geklappt hat (neu-15): Seitenansicht,
+  "ONE rigid lever arm ... handle and weight plate are one rigid part and
+  always move together", dazu wohin Griff UND Scheibe im ENDE gewandert sind.
+  Eine einzelne Uebung geht als Querformat mit einer Reihe.
+- **Vor dem Herunterladen jede Haelfte in voller Aufloesung ansehen** (das
+  Bild per Canvas gross ueber die Seite legen, dann zoomen): In der kleinen
+  Ansicht sah das Leg-Curl-Polster richtig aus, Gabriel fand am Handy, dass
+  es vor dem Knoechel lag. Je Haelfte pruefen: Auf welcher Seite des Beins
+  liegt jedes Polster? Bewegen sich Griff, Hebel und Scheibe zusammen?
 - **Nur den Hauptmuskel rot** (primaer im Manifest). Welche Muskeln arbeiten,
   zeigt ohnehin die Muskelgrafik unter dem Bild.
 - Laeuft im selben Chat weiter, solange die Bilder passen; ChatGPT sieht dann

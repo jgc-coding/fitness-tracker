@@ -3,6 +3,21 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.9.2] — 2026-10-02
+
+### Fixes
+- **Brustpresse und sitzender Beinbeuger noch einmal neu** (Gabriel hat
+  2.9.1 am Handy geprueft): Beim Beinbeuger lag das Polster im Startbild vor
+  dem Knoechel, jetzt liegen die Knoechel oben auf dem Polster. Bei der
+  Brustpresse hielt der Mann im Endbild eine einzelne Stange, waehrend die
+  Hebel stillstanden; jetzt Seitenansicht, Griff und Gewichtsscheibe haengen
+  an einem Hebel und wandern mit den Haenden nach vorn. Der Ausfallschritt
+  aus 2.9.1 bleibt.
+
+### Intern
+- Neue Quellbilder `neu-14.webp` (Beinbeuger) und `neu-15.webp`
+  (Brustpresse, Querformat mit nur einer Uebung).
+
 ## [2.9.1] — 2026-10-02
 
 ### Fixes
