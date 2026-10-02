@@ -3,6 +3,16 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## Cloud-Daten — 2026-10-02 (keine neue App-Version)
+- **Geraete wie im Studio** (Auftrag Gabriel): lunges auf Langhantel, hip
+  thrusts und chest supported row auf Maschine (Gewichte). Die Standardliste
+  trug das seit 28.09., die Eintraege in der App noch nicht. Das Rad springt
+  bei den dreien jetzt in 1,25-kg-Schritten; Saetze und Notizen bleiben an
+  der Uebung. Sicherung davor in `privat\`, Rueckweg
+  `node .\scripts\uebungen-korrigieren.mjs --zurueck --gruppe geraete --jetzt`.
+- `scripts/uebungen-korrigieren.mjs` kann jetzt auch das Geraet umstellen;
+  jede Korrektur gehoert einer Gruppe, der Rueckweg verlangt `--gruppe`.
+
 ## [2.9.0] — 2026-10-02
 
 Geschaetztes 1RM im Verlauf (Wunsch Gabriel: das Gewicht allein sagt wenig,

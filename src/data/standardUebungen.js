@@ -14,8 +14,9 @@ export const STANDARD_UEBUNGEN = [
   { name: 'Leg Press', muscleGroup: 'legs', equipment: 'machine_weight' },
   { name: 'Leg curl', muscleGroup: 'legs', equipment: 'machine_weight' },
   // Geraete von hip thrusts, lunges und chest supported row am 28.09.2026 von
-  // Gabriel korrigiert (so stehen sie im Studio). In der Cloud tragen die drei
-  // Uebungen noch das alte Geraet — die Liste wirkt nur beim Neuanlegen.
+  // Gabriel korrigiert (so stehen sie im Studio). Die Liste wirkt nur beim
+  // Neuanlegen; in der Cloud am 02.10.2026 nachgezogen per
+  // scripts/uebungen-korrigieren.mjs (Gruppe "geraete").
   { name: 'hip thrusts', muscleGroup: 'legs', equipment: 'machine_weight' },
   // Bis v2.6 hiessen die beiden nur "bad girl" und "good girl" (Gabriel
   // 30.09.2026: richtiger Name, Spitzname in Klammern)

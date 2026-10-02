@@ -14,8 +14,13 @@
   ueberdeckenden Zahlen, keine Konsolenfehler). Fotos angesehen. Actions-Lauf
   gruen, live per HTTP gegengeprueft (Settings-Chunk 2.9.0, 1RM im
   ExerciseDetail-Chunk, `sw.js` precacht ihn). Tag `v2.9.0` gepusht.
-- **Nicht geprueft, nur am Handy:** Optik und Ziehen mit dem Finger (Liste
-  `docs/tests/v2.9.0-handy.md`).
+- **Danach (02.10.): Geraete in der Cloud umgestellt** (Auftrag Gabriel):
+  lunges Langhantel, hip thrusts und chest supported row Maschine (Gewichte).
+  Trockenlauf, Sicherung `privat\cloud-sicherung-uebungen-2026-10-02T10-54-49-229Z.json`,
+  Nachkontrolle und `uebungen-cloud.mjs` bestaetigen den neuen Stand.
+  `uebungen-korrigieren.mjs` kann dafuer jetzt Geraete und Gruppen.
+- **Gabriel hat am 02.10. alle Handy-Tests v2.0-v2.9.0 und Bens Backup
+  abgehakt**, ohne Befunde zu melden.
 - **Rueckkehr:** vor dieser Sitzung `4ff9935` (v2.8.1), jetzt `18a0ec7`
   (v2.9.0). Gleiches Datenbank-Schema, nichts an den Daten geaendert.
 - **Aus frueheren Sitzungen:** Rueckkehrpunkte `01031c1` (v2.6.0),
@@ -25,20 +30,14 @@
   Schema von 3.5.0.
 
 ## Stolperfallen (aktuell)
-- **Bis BEIDE Handys mindestens 2.8.1 zeigen:** eine alte Version springt
-  weiter in das offene Training des anderen Handys, und sie kennt die neuen
-  Uebungsnamen nicht — dort nicht "Standard-Uebungen laden" (legt "bad
-  girl"/"good girl" neu an; `uebungen-dubletten.mjs` hilft nur bei gleichem
-  Namen).
-- **Trainings von vor 2.8.1 gelten als fremd:** ein am Update-Tag schon
-  laufendes Training setzt die App nicht fort — den Tag einfach neu antippen.
+- **Ein Handy, das offline ein altes Geraet haelt,** koennte es beim
+  naechsten Satz zurueckschreiben. Pruefen mit `uebungen-cloud.mjs`; falls
+  noetig `uebungen-korrigieren.mjs --gruppe geraete` erneut (Trockenlauf
+  zuerst).
 - **Beinplan nach dem Tausch:** Platz 3 = Leg Extension, Platz 7 = Leg Curl
   (so wurde trainiert). Umsortieren nur auf Gabriels Wunsch.
 - **Rollback auf v1.8.1 nur mit Hotfix:** ein Handy auf Schema v4 wirft mit der
   unveraenderten v1.8.1 einen Versionsfehler. Rezept: `docs/plan-fittrack-v2.md`.
-- **Geraete in der Cloud noch alt:** lunges (Kurzhantel), hip thrusts
-  (Langhantel), chest supported row (Kurzhantel) — `uebungen-cloud.mjs` zeigt
-  Abweichungen zur Standardliste, bis Gabriel im Katalog umstellt.
 - **Browser-Pane:** ausgeblendet steht `requestAnimationFrame` still (rAF per
   `setTimeout` ersetzen, per `element.click()` klicken); Tests als EIN
   `browser_batch`, der mit `navigate` beginnt. Besser Headless (CLAUDE.md).
@@ -48,8 +47,8 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
-1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.9.0 abarbeiten**
-   (Checklisten in `docs/tests/`). v2.9: 1RM-Regel `einRM`/`mitEinRM` in
+1. **Meldet Gabriel spaeter Probleme aus v2.0-v2.9.0** (Tests am 02.10.
+   ohne Befund abgehakt; Checklisten in `docs/tests/`). v2.9: 1RM-Regel `einRM`/`mitEinRM` in
    `utils/verlauf.js` (zuerst `scripts/verlauf-test.mjs`); Lage der Zahlen
    in `beschriftungen`, Linie `einRMLinie` in `UebungsVerlauf.vue`. Eine
    zweite Skala hat Gabriel verworfen. v2.8.1: Regel
@@ -100,21 +99,7 @@
   — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **v2.9.0 am Handy durchklicken** (1RM im Verlauf) — Liste: `docs/tests/v2.9.0-handy.md` (seit 2026-10-02)
-- [ ] **Beide Handys auf 2.9.0 bringen und 2.8.1 durchklicken** — App auf BEIDEN Handys ganz schliessen und neu oeffnen, unter Settings steht 2.9.0; bis dahin auf keinem Handy "Standard-Uebungen laden" tippen. Liste: `docs/tests/v2.8.1-handy.md` (seit 2026-10-01)
-- [ ] **v2.8.0 am Handy durchklicken** (Verlauf) — Liste: `docs/tests/v2.8.0-handy.md` (seit 2026-10-01)
-- [ ] **v2.7.0 am Handy durchklicken** (Startkreise, Uebungsnamen) — Liste: `docs/tests/v2.7.0-handy.md` (seit 2026-09-30)
-- [ ] **v2.6.0 am Handy durchklicken** — Liste: `docs/tests/v2.6.0-handy.md`; dabei sagen, welche Bilder nachgebessert werden sollen (seit 2026-09-28)
-- [ ] **Geraete im Katalog umstellen:** lunges auf Langhantel, hip thrusts und chest supported row auf Maschine (Gewichte) — die Standardliste ist schon korrigiert, die Eintraege in der App nicht; seit dem Rad-Fix gefahrlos (seit 2026-09-28)
-- [ ] **v2.5.0 am Handy durchklicken** — Liste: `docs/tests/v2.5.0-handy.md` (seit 2026-09-27)
-- [ ] **v2.4.0 am Handy durchklicken** — Settings -> "Saetze je Uebung" -> bei Lisa 3; Liste: `docs/tests/v2.4.0-handy.md` (seit 2026-09-26)
-- [ ] **v2.3.0 am Handy durchklicken** — Liste: `docs/tests/v2.2.0-handy.md`; "Bilder automatisch zuordnen" ist nicht mehr noetig, alle Bild-Keys in der Cloud sind gueltig (seit 2026-09-24)
-- [ ] **v2.1.0 am Handy durchklicken** — Liste: `docs/tests/v2.1.0-handy.md`; der Bilder-Teil ist durch v2.6.0 ueberholt (seit 2026-09-23)
-- [ ] **Bens altes Single-Backup sichern — jetzt** (seit 2026-09-22)
-  Die Single-App ist seit dem v2-Deploy abgeschaltet. Auf Bens Handy die alte
-  App oeffnen (sie startet vermutlich noch aus dem Zwischenspeicher),
-  Settings -> "Backup exportieren (JSON)", Datei aufheben.
-- [ ] **v2.0.0 auf beiden Handys durchklicken** — Liste: `docs/tests/v2.0.0-handy.md` (seit 2026-09-22)
+- [ ] **Sagen, ob Uebungsbilder nachgebessert werden sollen** (Brustpresse an der Maschine, Ausfallschritt; siehe Naechste Schritte 2) — oder ob sie passen (seit 2026-10-02)
 - [ ] **Alte Worktrees entfernen**, nur wenn in der Desktop-App keine Sitzung mehr darauf zeigt (seit 2026-09-22)
   Noch vier (Stand 02.10.). Ignoriert liegt darin nur `.claude/` und
   nachbaubares `dist/` bzw. `node_modules/`. Je Zeile ein Worktree (PowerShell):
