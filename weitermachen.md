@@ -1,42 +1,35 @@
-# Weitermachen — Stand 2026-10-01 (v2.8.1 ist live)
+# Weitermachen — Stand 2026-10-02 (v2.9.0 ist live)
 
 ## Stand
-- **Diese Sitzung (30.09.-01.10.), vier Releases, alle live per HTTP
-  gegengeprueft** (Settings-Chunk mit Versionsnummer, `sw.js` precacht):
-  - **v2.7.0:** Nutzerwahl per Farbkreise auf dem Startbildschirm statt
-    Startdialog. In der Cloud tauschten seated leg curl/extension Name und Bild
-    (waren von Anfang an vertauscht, Lisa und Gab); "bad girl"/"good girl"
-    heissen Hip Abduction/Adduction. Cloud-Sicherung davor:
-    `privat\cloud-sicherung-uebungen-2026-09-30T16-32-50-060Z.json`, Rueckweg
-    `node .\scripts\uebungen-korrigieren.mjs --zurueck --jetzt`.
-  - **v2.7.1:** Deploy-Workflow auf checkout@v7, setup-node@v7 (Node 24),
-    upload-pages-artifact@v5, deploy-pages@v5 (V14 erledigt).
-  - **v2.8.0:** "Verlauf ansehen" in der Detailansicht (SVG-Diagramm je
-    Nutzer, 3 Mon./6 Mon./1 Jahr/Alle, Liste darunter).
-  - **v2.8.1:** Ein Training gehoert seinem Handy (`deviceId` am workoutLog).
-    Anlass: Gabs Handy sprang am 01.10. dreimal in Lisas laufendes Training
-    von IHREM Handy und schrieb dessen Besetzung auf Gab um; per Cloud-Daten
-    bewiesen. Lisas Log `mupah29r47yzcou` ist wieder auf Lisa gestellt
-    (Sicherung in `privat\cloud-sicherung-workoutlog-*`).
-- **Geprueft:** Gate gruen (14 Befehle, neu `verlauf-test`,
-  `training-geraet-test`). Headless-Tests je Release auf frischer Adresse:
-  Startkreise, Verlauf (27 Pruefungen), fremdes Training (13) — alle gruen,
-  keine Konsolenfehler; die frueheren Tests liefen gegen 2.8.1 erneut gruen.
-- **CLAUDE.md gestrafft** (01.10., Auftrag Gabriel): 30.100 -> 20.300 Zeichen,
-  keine Regel entfernt; Details stehen jetzt in Skript-Koepfen, `pruefen.txt`
-  und den Tests.
-- **Nicht geprueft, nur am Handy:** Optik/Tippen der Kreise, Wischen im
-  Verlauf, das Verhalten mit zwei Handys (Listen in `docs/tests/`).
-- **Rueckkehr:** vor dieser Sitzung `01031c1` (v2.6.0), vor 2.8.0 `be06855`,
-  vor der Straffung `5ab01dc` (v2.8.1). Alle mit gleichem Datenbank-Schema.
-- **Aus frueheren Sitzungen:** impeccable auf 4.3.1 (Claude-Skills-Commit
-  `d45f982`, nicht gepusht); `PRODUCT.md` steht noch im Schema von 3.5.0.
+- **Diese Sitzung (02.10.): v2.9.0 — geschaetztes 1RM im Verlauf.** Gabriel
+  sah vorher zwei Vorschau-Bilder (eine Skala gegen zweite Skala rechts) und
+  waehlte die eine Skala. Gestrichelte 1RM-Linie in Nutzerfarbe auf derselben
+  kg-Achse, Ring am abgelesenen Tag, Legende, "· 1RM ≈ 62 kg" in der
+  Ablesezeile, "≈ 62" klein vor jedem Listeneintrag. Epley, je Tag der beste
+  Satz, ohne Wdh kein 1RM, Koerpergewicht-Uebungen ohne 1RM.
+- **Geprueft:** Gate gruen (14 Befehle, `verlauf-test` mit 16 neuen Faellen).
+  Headless-Test gegen den Produktions-Build auf frischer Adresse, 360 px:
+  29 Pruefungen gruen (Werte, Linie, Ring beim Antippen, bester Satz, Tag ohne
+  Wdh, 1 Wdh, Dips ohne 1RM, lange Zahlen ohne Querscrollen, keine sich
+  ueberdeckenden Zahlen, keine Konsolenfehler). Fotos angesehen. Actions-Lauf
+  gruen, live per HTTP gegengeprueft (Settings-Chunk 2.9.0, 1RM im
+  ExerciseDetail-Chunk, `sw.js` precacht ihn). Tag `v2.9.0` gepusht.
+- **Nicht geprueft, nur am Handy:** Optik und Ziehen mit dem Finger (Liste
+  `docs/tests/v2.9.0-handy.md`).
+- **Rueckkehr:** vor dieser Sitzung `4ff9935` (v2.8.1), jetzt `18a0ec7`
+  (v2.9.0). Gleiches Datenbank-Schema, nichts an den Daten geaendert.
+- **Aus frueheren Sitzungen:** Rueckkehrpunkte `01031c1` (v2.6.0),
+  `be06855` (v2.7.1), `5ab01dc` (v2.8.1). Cloud-Sicherungen der Uebungs- und
+  Log-Korrekturen vom 30.09./01.10. liegen in `privat\`. impeccable auf 4.3.1
+  (Claude-Skills-Commit `d45f982`, nicht gepusht); `PRODUCT.md` steht noch im
+  Schema von 3.5.0.
 
 ## Stolperfallen (aktuell)
-- **Bis BEIDE Handys 2.8.1 zeigen:** eine alte Version springt weiter in das
-  offene Training des anderen Handys, und sie kennt die neuen Uebungsnamen
-  nicht — dort nicht "Standard-Uebungen laden" (legt "bad girl"/"good girl"
-  neu an; `uebungen-dubletten.mjs` hilft nur bei gleichem Namen).
+- **Bis BEIDE Handys mindestens 2.8.1 zeigen:** eine alte Version springt
+  weiter in das offene Training des anderen Handys, und sie kennt die neuen
+  Uebungsnamen nicht — dort nicht "Standard-Uebungen laden" (legt "bad
+  girl"/"good girl" neu an; `uebungen-dubletten.mjs` hilft nur bei gleichem
+  Namen).
 - **Trainings von vor 2.8.1 gelten als fremd:** ein am Update-Tag schon
   laufendes Training setzt die App nicht fort — den Tag einfach neu antippen.
 - **Beinplan nach dem Tausch:** Platz 3 = Leg Extension, Platz 7 = Leg Curl
@@ -55,14 +48,17 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
-1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.8.1 abarbeiten**
-   (Checklisten in `docs/tests/`). v2.8.1: Regel `utils/trainingGeraet.js`
-   (zuerst `scripts/training-geraet-test.mjs`), Kennung `deviceId` im auth store.
-   v2.8: `components/tracking/UebungsVerlauf.vue` (Masse B/H/RL/RR/RO/RU,
-   Antippen `zeigeAuf`), Regeln zuerst in `scripts/verlauf-test.mjs`. v2.7:
-   `StartNutzerwahl.vue`, `resetActiveUsers` (App.vue, `finishWorkout`,
-   `onSwMessage`). v2.4: Tastatur in `Modal.vue` (`TASTATUR_AB_PX`); Saetze
-   zuerst in `scripts/saetze-test.mjs`; Karte ueber `kartenZeilen` in
+1. **Rueckmeldungen aus Gabriels Handy-Tests von v2.0-v2.9.0 abarbeiten**
+   (Checklisten in `docs/tests/`). v2.9: 1RM-Regel `einRM`/`mitEinRM` in
+   `utils/verlauf.js` (zuerst `scripts/verlauf-test.mjs`); Lage der Zahlen
+   in `beschriftungen`, Linie `einRMLinie` in `UebungsVerlauf.vue`. Eine
+   zweite Skala hat Gabriel verworfen. v2.8.1: Regel
+   `utils/trainingGeraet.js` (zuerst `scripts/training-geraet-test.mjs`),
+   Kennung `deviceId` im auth store. v2.8: `UebungsVerlauf.vue` (Masse
+   B/H/RL/RR/RO/RU, Antippen `zeigeAuf`). v2.7: `StartNutzerwahl.vue`,
+   `resetActiveUsers` (App.vue, `finishWorkout`, `onSwMessage`). v2.4:
+   Tastatur in `Modal.vue` (`TASTATUR_AB_PX`); Saetze zuerst in
+   `scripts/saetze-test.mjs`; Karte ueber `kartenZeilen` in
    `TrackingView.vue` (`.user-ring-btn` auf 360 px gekuerzt). Wischen:
    `onCardTouchEnd`; Quick-Log: `buildNotificationQuickLog`,
    `public/sw-custom.js`. v2.5: `PlanningView.vue` (`HALTEN_MS`, `RAND_TEMPO`).
@@ -104,7 +100,8 @@
   — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **Beide Handys auf 2.8.1 bringen und durchklicken** — App auf BEIDEN Handys ganz schliessen und neu oeffnen, unter Settings steht 2.8.1; bis dahin auf keinem Handy "Standard-Uebungen laden" tippen. Liste: `docs/tests/v2.8.1-handy.md` (seit 2026-10-01)
+- [ ] **v2.9.0 am Handy durchklicken** (1RM im Verlauf) — Liste: `docs/tests/v2.9.0-handy.md` (seit 2026-10-02)
+- [ ] **Beide Handys auf 2.9.0 bringen und 2.8.1 durchklicken** — App auf BEIDEN Handys ganz schliessen und neu oeffnen, unter Settings steht 2.9.0; bis dahin auf keinem Handy "Standard-Uebungen laden" tippen. Liste: `docs/tests/v2.8.1-handy.md` (seit 2026-10-01)
 - [ ] **v2.8.0 am Handy durchklicken** (Verlauf) — Liste: `docs/tests/v2.8.0-handy.md` (seit 2026-10-01)
 - [ ] **v2.7.0 am Handy durchklicken** (Startkreise, Uebungsnamen) — Liste: `docs/tests/v2.7.0-handy.md` (seit 2026-09-30)
 - [ ] **v2.6.0 am Handy durchklicken** — Liste: `docs/tests/v2.6.0-handy.md`; dabei sagen, welche Bilder nachgebessert werden sollen (seit 2026-09-28)
@@ -119,7 +116,7 @@
   Settings -> "Backup exportieren (JSON)", Datei aufheben.
 - [ ] **v2.0.0 auf beiden Handys durchklicken** — Liste: `docs/tests/v2.0.0-handy.md` (seit 2026-09-22)
 - [ ] **Alte Worktrees entfernen**, nur wenn in der Desktop-App keine Sitzung mehr darauf zeigt (seit 2026-09-22)
-  Noch vier (Stand 01.10.). Ignoriert liegt darin nur `.claude/` und
+  Noch vier (Stand 02.10.). Ignoriert liegt darin nur `.claude/` und
   nachbaubares `dist/` bzw. `node_modules/`. Je Zeile ein Worktree (PowerShell):
   - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\exercise-images-crop-e10a06"`
   - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\ubungen-system-refinements-64f8ad"`
