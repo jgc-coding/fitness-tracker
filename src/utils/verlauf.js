@@ -46,8 +46,21 @@ function alsZahl(wert) {
   return null
 }
 
+// Geschaetztes Maximalgewicht fuer eine Wiederholung (1RM) nach Epley:
+// Gewicht x (1 + Wdh/30), bei 1 Wdh das Gewicht selbst (Gabriel 02.10.2026,
+// Variante "eine Skala"). Ab etwa 12 Wdh wird jede Formel ungenau — es bleibt
+// eine Schaetzung. Ohne Wdh gibt es kein 1RM (null), nie still das Gewicht.
+export function einRM(weight, reps) {
+  const w = alsZahl(weight)
+  const r = alsZahl(reps)
+  if (w === null || r === null || r < 1) return null
+  return r === 1 ? w : w * (1 + r / 30)
+}
+
 // Saetze (setLogs eines Nutzers fuer eine Uebung) -> Punkte je Tag, aelteste
-// zuerst: { date, weight, reps, saetze: [{ setNumber, weight, reps }] }.
+// zuerst: { date, weight, reps, e1rm, saetze: [{ setNumber, weight, reps }] }.
+// `e1rm` ist das beste 1RM aller Saetze des Tages (kann aus einem anderen Satz
+// kommen als der schwerste), null ohne Wdh.
 // `von`/`bis` schliessen den Tag selbst ein; null = offen.
 export function verlaufPunkte(saetze, von = null, bis = null) {
   const jeTag = new Map()
@@ -66,8 +79,16 @@ export function verlaufPunkte(saetze, von = null, bis = null) {
       liste.sort((a, b) => a.setNumber - b.setNumber)
       const top = liste.reduce((best, x) =>
         x.weight > best.weight || (x.weight === best.weight && (x.reps ?? -1) > (best.reps ?? -1)) ? x : best)
-      return { date, weight: top.weight, reps: top.reps, saetze: liste }
+      const e1rms = liste.map(x => einRM(x.weight, x.reps)).filter(e => e !== null)
+      const e1rm = e1rms.length ? Math.max(...e1rms) : null
+      return { date, weight: top.weight, reps: top.reps, e1rm, saetze: liste }
     })
+}
+
+// Zweite (gestrichelte) Linie fuers 1RM: nur, wenn das Diagramm Gewicht zeigt
+// und mindestens ein Tag Wdh traegt
+export function mitEinRM(punkte) {
+  return messgroesse(punkte) === 'weight' && punkte.some(p => p.e1rm !== null && p.e1rm !== undefined)
 }
 
 // Was das Diagramm zeigt: Gewicht — ausser bei reinen Koerpergewicht-Uebungen
