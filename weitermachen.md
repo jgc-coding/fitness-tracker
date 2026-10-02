@@ -1,4 +1,4 @@
-# Weitermachen — Stand 2026-10-02 (v2.9.0 ist live)
+# Weitermachen — Stand 2026-10-02 (v2.9.2 ist live)
 
 ## Stand
 - **Diese Sitzung (02.10.): v2.9.0 — geschaetztes 1RM im Verlauf.** Gabriel
@@ -21,8 +21,13 @@
   `uebungen-korrigieren.mjs` kann dafuer jetzt Geraete und Gruppen.
 - **Gabriel hat am 02.10. alle Handy-Tests v2.0-v2.9.0 und Bens Backup
   abgehakt**, ohne Befunde zu melden.
-- **Rueckkehr:** vor dieser Sitzung `4ff9935` (v2.8.1), jetzt `18a0ec7`
-  (v2.9.0). Gleiches Datenbank-Schema, nichts an den Daten geaendert.
+- **v2.9.1/v2.9.2: drei Uebungsbilder neu** (ChatGPT in Gabriels Chrome,
+  Chat "Create Fitness Illustration"): Ausfallschritt aus `neu-13`,
+  Beinbeuger aus `neu-14`, Brustpresse aus `neu-15` (Seitenansicht). 2.9.1
+  hatte bei Brustpresse und Beinbeuger noch Fehler, die Gabriel am Handy
+  fand; Lehren in `docs/uebungsbilder-chatgpt.md`.
+- **Rueckkehr:** vor dieser Sitzung `4ff9935` (v2.8.1), vor den Bildern
+  `2eae34a` (v2.9.0). Gleiches Datenbank-Schema.
 - **Aus frueheren Sitzungen:** Rueckkehrpunkte `01031c1` (v2.6.0),
   `be06855` (v2.7.1), `5ab01dc` (v2.8.1). Cloud-Sicherungen der Uebungs- und
   Log-Korrekturen vom 30.09./01.10. liegen in `privat\`. impeccable auf 4.3.1
@@ -63,12 +68,10 @@
    `public/sw-custom.js`. v2.5: `PlanningView.vue` (`HALTEN_MS`, `RAND_TEMPO`).
    v2.6: Bilder nach `docs/uebungsbilder-chatgpt.md`, Rad-Regel
    `utils/radWerte.js`. Neue Uebungen in der App: zuerst `uebungen-cloud.mjs`.
-2. **Bilder nachbessern, wenn Gabriel am Handy geschaut hat** (er wollte erst
-   abwarten): Kandidaten sind die Brustpresse an der Maschine (Endbild zeigt
-   eine andere Maschine) und der Ausfallschritt (Endbild gedreht); schwaecher
-   Kurzhantel- und Schraegbank-Kurzhantel-Druecken (Endbild aus anderem Winkel,
-   nach dem Ausrichten tragbar). Ein Auftrag mit drei Reihen, Ablauf
-   `docs/uebungsbilder-chatgpt.md`; Herunterladen nur mit Gabriels Ja.
+2. **Weitere Bilder nur auf Zuruf:** schwache Kandidaten sind Kurzhantel-
+   und Schraegbank-Kurzhantel-Druecken (Endbild aus anderem Winkel, nach dem
+   Ausrichten tragbar). Ablauf `docs/uebungsbilder-chatgpt.md`, jede Haelfte
+   in voller Aufloesung pruefen; Herunterladen nur mit Gabriels Ja.
 3. **Vorgaben nachrechnen, sobald echte Laeufe da sind** (fruehestens nach dem
    ersten Garmin-Lauf): Ablauf in `docs/laufplan-vorgaben.md` Abschnitt 5.
 4. Nach dem ersten Lauf den Garmin-Abgleich pruefen; bei Abweichungen zuerst
@@ -99,7 +102,7 @@
   — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **Sagen, ob Uebungsbilder nachgebessert werden sollen** (Brustpresse an der Maschine, Ausfallschritt; siehe Naechste Schritte 2) — oder ob sie passen (seit 2026-10-02)
+- [ ] **v2.9.2 am Handy ansehen:** Brustpresse, Ausfallschritt und seated leg curl antippen und die Ueberblendung von Start zu Ende anschauen (seit 2026-10-02)
 - [ ] **Alte Worktrees entfernen**, nur wenn in der Desktop-App keine Sitzung mehr darauf zeigt (seit 2026-09-22)
   Noch vier (Stand 02.10.). Ignoriert liegt darin nur `.claude/` und
   nachbaubares `dist/` bzw. `node_modules/`. Je Zeile ein Worktree (PowerShell):
