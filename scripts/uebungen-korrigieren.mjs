@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 /*
- * Uebungen in der Cloud umbenennen — oder zwei Uebungen Name und Bild tauschen.
+ * Uebungen in der Cloud umbenennen, zwei Uebungen Name und Bild tauschen
+ * oder das Geraet einer Uebung umstellen.
  *
  * Aufruf (Windows PowerShell, aus dem Hauptbaum):
  *   node .\scripts\uebungen-korrigieren.mjs                 (Trockenlauf, schreibt nichts)
  *   node .\scripts\uebungen-korrigieren.mjs --jetzt         (Sicherung, dann schreiben)
- *   node .\scripts\uebungen-korrigieren.mjs --zurueck       (Rueckweg als Trockenlauf;
- *                                                            mit --jetzt schreiben)
+ *   node .\scripts\uebungen-korrigieren.mjs --gruppe geraete   (nur diese Gruppe)
+ *   node .\scripts\uebungen-korrigieren.mjs --zurueck --gruppe namen
+ *                                         (Rueckweg EINER Gruppe als Trockenlauf;
+ *                                          mit --jetzt schreiben)
+ * Der Rueckweg verlangt --gruppe: sonst drehte "Geraete zurueck" auch die
+ * Namen vom 30.09. zurueck.
  * Aus einem Worktree (dort fehlt privat\):
  *   ... --konto "C:\Projekte\Fitness Tracker\privat\firebase-konto.json"
  *
@@ -17,6 +22,8 @@
  * Name und Bild — alles, was an der Id haengt (Saetze aller Nutzer, Notizen,
  * Plan-Platz, Geraete-Notiz), bleibt so beisammen. Dazu bekommen "bad girl"
  * und "good girl" ihren richtigen Namen, der Spitzname steht in Klammern.
+ * Am 02.10.2026 kamen die Geraete dazu, die Gabriel am 28.09. in der
+ * Standardliste korrigiert hatte (Gruppe "geraete").
  * Die Aenderungen stehen unten als Tabelle (KORREKTUREN).
  *
  * SICHERHEIT:
@@ -31,7 +38,9 @@
  *   - Vor dem Schreiben liegt die komplette Uebungsliste als Sicherung in
  *     privat\ (neben der Zugangsdatei).
  *   - Geschrieben wird in EINEM atomaren Schritt und nur in den Feldern name,
- *     imageKey und updatedAt; danach liest das Skript die Cloud neu und prueft.
+ *     imageKey, equipment (nur wo die Tabelle es nennt) und updatedAt; danach
+ *     liest das Skript die Cloud neu und prueft. Ein Geraet muss in
+ *     EQUIPMENT_TYPES (src/utils/constants.js) stehen.
  *
  * Ausgabe bewusst ohne Umlaute und Sonderzeichen (Windows-Konsole).
  */
@@ -42,38 +51,65 @@ import {
   Abbruch, abbruch, arg, hatFlagge, anmelden, holeCollection, schreibeAtomar, nachFirestore, docPfad
 } from './lib/cloud-rest.mjs'
 import { findeImageKey, eintragFuerKey, normalisiereName } from '../src/utils/uebungsBilder.js'
+import { EQUIPMENT_TYPES } from '../src/utils/constants.js'
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const KONTO = path.resolve(arg('konto', path.join(WURZEL, 'privat', 'firebase-konto.json')))
 const MANIFEST = path.join(WURZEL, 'src', 'data', 'uebungskatalog.json')
 
 // Die Ids stehen in der Cloud (gelesen mit scripts/uebungen-cloud.mjs am
-// 30.09.2026). Nur name und imageKey werden angefasst.
+// 30.09. und 02.10.2026). Angefasst werden nur die Felder in vorher/nachher;
+// name und imageKey stehen immer dabei, damit die Bremse sie pruefen kann.
 const KORREKTUREN = [
   // Curl und Extension tauschen Name und Bild (Gabriel 30.09.2026, gilt fuer
   // alle Nutzer und alle Eintraege seit dem ersten Tag)
   {
+    gruppe: 'namen',
     id: 'mnugrxj59z8fsjp',
     vorher: { name: 'seated leg curl', imageKey: 'seated-leg-curl' },
     nachher: { name: 'seated leg extension', imageKey: 'leg-extension' }
   },
   {
+    gruppe: 'namen',
     id: 'mnugrxjcn2uidy1',
     vorher: { name: 'seated leg extension', imageKey: 'leg-extension' },
     nachher: { name: 'seated leg curl', imageKey: 'seated-leg-curl' }
   },
   // Richtiger Name, Spitzname in Klammern (Bild bleibt)
   {
+    gruppe: 'namen',
     id: 'mnugrxizbfppul9',
     vorher: { name: '"bad girl"', imageKey: 'hip-abduction-machine' },
     nachher: { name: 'Hip Abduction (Bad Girl)', imageKey: 'hip-abduction-machine' }
   },
   {
+    gruppe: 'namen',
     id: 'mnugrxj22pbuu0v',
     vorher: { name: '"good girl"', imageKey: 'hip-adduction-machine' },
     nachher: { name: 'Hip Adduction (Good Girl)', imageKey: 'hip-adduction-machine' }
+  },
+  // Geraete wie im Studio (Gabriel 28.09.2026 in der Standardliste, in der
+  // Cloud umgestellt am 02.10.2026); Name und Bild bleiben
+  {
+    gruppe: 'geraete',
+    id: 'mnugrxje56rg9hz',
+    vorher: { name: 'lunges', imageKey: 'reverse-lunge', equipment: 'dumbbell' },
+    nachher: { name: 'lunges', imageKey: 'reverse-lunge', equipment: 'barbell' }
+  },
+  {
+    gruppe: 'geraete',
+    id: 'mnugrxiweslfqyp',
+    vorher: { name: 'hip thrusts', imageKey: 'hip-thrust', equipment: 'barbell' },
+    nachher: { name: 'hip thrusts', imageKey: 'hip-thrust', equipment: 'machine_weight' }
+  },
+  {
+    gruppe: 'geraete',
+    id: 'mnugrxjloy8qejn',
+    vorher: { name: 'chest supported row', imageKey: 'chest-supported-row', equipment: 'dumbbell' },
+    nachher: { name: 'chest supported row', imageKey: 'chest-supported-row', equipment: 'machine_weight' }
   }
 ]
+const GRUPPEN = [...new Set(KORREKTUREN.map(k => k.gruppe))]
 
 function heute() {
   const d = new Date()
@@ -140,6 +176,9 @@ function bremse(stand, korrekturen, katalog) {
     gesehen.set(n, u.id)
   }
   for (const k of korrekturen) {
+    if ('equipment' in k.nachher && !EQUIPMENT_TYPES.some(t => t.id === k.nachher.equipment)) {
+      gruende.push(`Geraet "${k.nachher.equipment}" steht nicht in EQUIPMENT_TYPES`)
+    }
     if (!eintragFuerKey(katalog, k.nachher.imageKey)) gruende.push(`Bild ${k.nachher.imageKey} steht nicht im Manifest`)
     const ueberName = findeImageKey(katalog, k.nachher.name)
     if (ueberName !== k.nachher.imageKey) {
@@ -155,6 +194,7 @@ function zeige(stand, k, status) {
   const saetze = Object.entries(jeNutzer).sort().map(([n, z]) => `${n} ${z}`).join(', ') || 'keine Saetze'
   console.log(`  ${status}  ${k.id}  "${k.vorher.name}" -> "${k.nachher.name}"` +
     (k.vorher.imageKey !== k.nachher.imageKey ? `  Bild ${k.vorher.imageKey} -> ${k.nachher.imageKey}` : '') +
+    (k.vorher.equipment !== k.nachher.equipment ? `  Geraet ${k.vorher.equipment} -> ${k.nachher.equipment}` : '') +
     `  (${saetze} bleiben dabei)`)
 }
 
@@ -171,13 +211,18 @@ function baueWrites(projectId, aendern, jetzt) {
 
 async function main() {
   const zurueck = hatFlagge('zurueck')
+  const gruppe = arg('gruppe')
+  if (gruppe && !GRUPPEN.includes(gruppe)) abbruch(`Gruppe "${gruppe}" gibt es nicht.`, `Vorhanden: ${GRUPPEN.join(', ')}`)
+  if (zurueck && !gruppe) abbruch('Der Rueckweg braucht --gruppe.', `Vorhanden: ${GRUPPEN.join(', ')}`)
+  const auswahl = KORREKTUREN.filter(k => !gruppe || k.gruppe === gruppe)
   const korrekturen = zurueck
-    ? KORREKTUREN.map(k => ({ id: k.id, vorher: k.nachher, nachher: k.vorher }))
-    : KORREKTUREN
+    ? auswahl.map(k => ({ gruppe: k.gruppe, id: k.id, vorher: k.nachher, nachher: k.vorher }))
+    : auswahl
   const katalog = JSON.parse(fs.readFileSync(MANIFEST, 'utf8'))
 
   const sitzung = await anmelden(WURZEL, KONTO)
-  console.log(`\n[uebungen-korrigieren] Angemeldet · Projekt ${sitzung.projectId}${zurueck ? ' · RUECKWEG' : ''}`)
+  console.log(`\n[uebungen-korrigieren] Angemeldet · Projekt ${sitzung.projectId}` +
+    `${gruppe ? ' · Gruppe ' + gruppe : ' · alle Gruppen'}${zurueck ? ' · RUECKWEG' : ''}`)
   const stand = await holeStand(sitzung)
   console.log(`  Gelesen: ${stand.uebungen.length} Uebungen, ${stand.logs.length} Trainings, ${stand.saetze.length} Saetze`)
 

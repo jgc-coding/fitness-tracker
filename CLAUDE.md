@@ -60,7 +60,8 @@ scripts/                 Aufruf und Flags stehen im Kopf jedes Skripts.
                          --jetzt, sonst Trockenlauf): lauf-cloud,
                          uebungen-cloud (nur lesen: Bestand vs. Standardliste
                          und Bilder), uebungen-dubletten, uebungen-korrigieren
-                         (umbenennen/tauschen, --zurueck). Bilder:
+                         (umbenennen/tauschen/Geraet; --zurueck nur mit
+                         --gruppe). Bilder:
                          uebungsbilder-schneiden (--bogen, --vermessen),
                          uebungsbilder-zuschnitt (Tabelle),
                          uebungsbilder-reihen-messen, uebungsbilder-holen,
