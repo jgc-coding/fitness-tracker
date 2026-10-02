@@ -4,7 +4,7 @@
 // (src/data/uebungskatalog.json, frame-<n>.webp = Phase n).
 //
 // Seit v2.6.0 (28.09.2026) stammen alle Uebungen aus ChatGPT-Reihenbildern
-// (neu-01 bis neu-12): je Bild drei Uebungen untereinander, durch hellgraue
+// (neu-01 bis neu-12, Nachbesserungen ab neu-13): je Bild drei Uebungen untereinander, durch hellgraue
 // Linien getrennt, START links (Phase 1), ENDE rechts (Phase 3), weisser
 // Grund, keine Schrift; die Plank ist eine Halteuebung mit nur Phase 1.
 // Jeder Auftrag bekam dasselbe Stil-Vorbild (gute Figuren der alten Bilder).
@@ -47,7 +47,8 @@ export const QUELLEN = {
   'neu-09.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
   'neu-10.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
   'neu-11.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
-  'neu-12.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 }
+  'neu-12.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
+  'neu-13.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 }
 }
 
 export const UEBUNGEN = {
@@ -67,9 +68,9 @@ export const UEBUNGEN = {
   'bench-press': { quelle: 'neu-04.webp', phasen: { 1: [31, 13, 528, 494], 3: [559, 13, 1024, 493] } },
   'incline-bench-press': { quelle: 'neu-04.webp', phasen: { 1: [49, 516, 528, 1023], 3: [555, 536, 1024, 1023] } },
   'dumbbell-bench-press': { quelle: 'neu-04.webp', phasen: { 1: [78, 1040, 530, 1484], 3: [581, 1157, 1024, 1486] } },
-  // neu-05.webp: incline-dumbbell-press, chest-press-machine, incline-chest-press-machine
+  // neu-05.webp: incline-dumbbell-press, (chest-press-machine, seit 02.10. aus
+  // neu-13), incline-chest-press-machine
   'incline-dumbbell-press': { quelle: 'neu-05.webp', phasen: { 1: [69, 5, 532, 498], 3: [579, 129, 1024, 498] } },
-  'chest-press-machine': { quelle: 'neu-05.webp', phasen: { 1: [49, 527, 482, 964], 3: [549, 527, 1011, 964] } },
   'incline-chest-press-machine': { quelle: 'neu-05.webp', phasen: { 1: [17, 986, 526, 1481], 3: [545, 980, 1015, 1481] } },
   // neu-06.webp: cable-fly, butterfly-machine, dips
   // Die Tuerme stehen im ENDE-Bild enger: an der Figur ausrichten, nicht am Geraet
@@ -89,18 +90,27 @@ export const UEBUNGEN = {
   'overhead-tricep-extension': { quelle: 'neu-09.webp', phasen: { 1: [44, 8, 438, 501], 3: [591, 8, 1017, 501] } },
   'hack-squat': { quelle: 'neu-09.webp', phasen: { 1: [34, 513, 476, 1014], 3: [547, 560, 991, 1014] } },
   'leg-press': { quelle: 'neu-09.webp', phasen: { 1: [8, 1031, 513, 1475], 3: [530, 1041, 1017, 1476] } },
-  // neu-10.webp: seated-leg-curl, leg-extension, standing-calf-raise
-  'seated-leg-curl': { quelle: 'neu-10.webp', phasen: { 1: [42, 15, 498, 457], 3: [646, 14, 1012, 457] } },
+  // neu-10.webp: (seated-leg-curl, seit 02.10. aus neu-13), leg-extension,
+  // standing-calf-raise
   'leg-extension': { quelle: 'neu-10.webp', phasen: { 1: [103, 482, 470, 929], 3: [594, 482, 1012, 929] } },
   'standing-calf-raise': { quelle: 'neu-10.webp', phasen: { 1: [58, 945, 431, 1509], 3: [587, 945, 949, 1509] } },
-  // neu-11.webp: hip-abduction-machine, hip-adduction-machine, reverse-lunge
+  // neu-11.webp: hip-abduction-machine, hip-adduction-machine, (reverse-lunge,
+  // seit 02.10. aus neu-13)
   'hip-abduction-machine': { quelle: 'neu-11.webp', phasen: { 1: [63, 10, 429, 484], 3: [571, 9, 974, 474] }, vorschau: 3 },
   'hip-adduction-machine': { quelle: 'neu-11.webp', phasen: { 1: [55, 509, 483, 979], 3: [568, 509, 935, 985] } },
-  // Kein festes Geraet: mittig und unten buendig (die Fuesse bleiben am Boden)
-  'reverse-lunge': { quelle: 'neu-11.webp', phasen: { 1: [154, 1000, 348, 1481], 3: [595, 1070, 940, 1467] }, ausrichtung: 'mitte' },
   // neu-12.webp: hip-thrust, chest-supported-row, back-extension (Geraet nach
   // Gabriels Foto aus dem Studio, 28.09.2026)
   'hip-thrust': { quelle: 'neu-12.webp', phasen: { 1: [22, 73, 482, 451], 3: [525, 37, 1000, 452] } },
   'chest-supported-row': { quelle: 'neu-12.webp', phasen: { 1: [59, 475, 482, 959], 3: [579, 475, 988, 959] } },
-  'back-extension': { quelle: 'neu-12.webp', phasen: { 1: [46, 1078, 506, 1485], 3: [562, 970, 999, 1486] } }
+  'back-extension': { quelle: 'neu-12.webp', phasen: { 1: [46, 1078, 506, 1485], 3: [562, 970, 999, 1486] } },
+  // neu-13.webp (02.10.2026, Nachbesserung auf Gabriels Wunsch): In den alten
+  // Bildern war die Brustpresse im ENDE eine andere Maschine, der
+  // Ausfallschritt im ENDE gedreht und beim Leg Curl lag das Polster im ENDE
+  // vor dem Schienbein. ChatGPT malte das Polster zweimal wieder vorn; erst
+  // mit Richtungen im Bild ("RIGHT side of his lower legs, towards the seat")
+  // stimmte es.
+  'chest-press-machine': { quelle: 'neu-13.webp', phasen: { 1: [50, 7, 500, 490], 3: [564, 7, 1009, 490] } },
+  // Kein festes Geraet: mittig und unten buendig (die Fuesse bleiben am Boden)
+  'reverse-lunge': { quelle: 'neu-13.webp', phasen: { 1: [167, 503, 339, 958], 3: [593, 578, 954, 958] }, ausrichtung: 'mitte' },
+  'seated-leg-curl': { quelle: 'neu-13.webp', phasen: { 1: [44, 971, 491, 1447], 3: [587, 971, 1005, 1447] } }
 }
