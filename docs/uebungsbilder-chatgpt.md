@@ -15,7 +15,14 @@ fuer neue Uebungen oder einzelne Nachbesserungen, damit der Stil gleich bleibt.
   Schneide-Skript rechnet damit (`hintergrund: 'weiss'`, `schilder: 0`).
 - **"seen from exactly the same camera angle"** gehoert in jeden Auftrag —
   ohne den Satz zeichnet ChatGPT das ENDE-Bild gern aus anderem Winkel, und
-  die Ueberblendung in der Detailansicht springt.
+  die Ueberblendung in der Detailansicht springt. Noch sicherer (02.10.2026,
+  neu-13): "START and END must look like two frames of the same video; the
+  machine or barbell is IDENTICAL in both halves, and the man does not turn".
+- **Wo etwas am Koerper anliegt, in Bildrichtungen beschreiben:** "behind
+  the lower legs" ignorierte ChatGPT beim Leg Curl zweimal und malte das
+  Polster vor das Schienbein; "the pad is on the RIGHT side of his lower
+  legs, towards the seat; on the LEFT side there is only empty space" traf
+  es beim ersten Versuch.
 - **Nur den Hauptmuskel rot** (primaer im Manifest). Welche Muskeln arbeiten,
   zeigt ohnehin die Muskelgrafik unter dem Bild.
 - Laeuft im selben Chat weiter, solange die Bilder passen; ChatGPT sieht dann

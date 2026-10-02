@@ -3,6 +3,21 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.9.1] — 2026-10-02
+
+### Fixes
+- **Drei Uebungsbilder neu** (Wunsch Gabriel), damit die Ueberblendung von
+  Start zu Ende nicht mehr springt: Die Brustpresse an der Maschine zeigte im
+  Endbild eine andere Maschine, der Ausfallschritt drehte sich zur Seite, und
+  beim sitzenden Beinbeuger (seated leg curl) lag das untere Polster im
+  Endbild vor dem Schienbein statt hinter der Wade. Beim Ausfallschritt
+  leuchtet jetzt der vordere Oberschenkel, wie im Manifest vorgesehen.
+
+### Intern
+- Neues Reihenbild `scripts/uebungsbilder-quellen/neu-13.webp`, Rahmen in
+  `scripts/uebungsbilder-zuschnitt.mjs`; die Prompt-Lehren stehen in
+  `docs/uebungsbilder-chatgpt.md`.
+
 ## Cloud-Daten — 2026-10-02 (keine neue App-Version)
 - **Geraete wie im Studio** (Auftrag Gabriel): lunges auf Langhantel, hip
   thrusts und chest supported row auf Maschine (Gewichte). Die Standardliste
