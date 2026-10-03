@@ -4,7 +4,8 @@
 
 ## Projektbeschreibung
 PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer drei Personen
-(user1 user1, user2 user2, user3 user3). Alle trainieren denselben Plan mit
+(user1, user2, user3). Wer hinter welcher Kennung steht, liegt nur in der lokalen
+`CLAUDE.local.md` (gitignoriert, nicht im Repo). Alle trainieren denselben Plan mit
 individuellen Gewichten/Wiederholungen. Offline-first auf Android, Daten lokal in
 IndexedDB, deployed auf GitHub Pages. Dazu der Reiter „Laufen" (Laufplaner).
 
@@ -156,7 +157,7 @@ npm run preview   # Build lokal testen (Port 4173)
   (01.10.2026). Logs ohne `deviceId` gelten als fremd.
 - **Notiz und Zyklustag haengen am workoutLog** (`note`, `cycleDays` `{ userId:
   Zahl }`, beide optional — immer mit Fallback lesen). Zyklustag-Knopf nur, wenn
-  ein aktiver Nutzer `zyklus: true` traegt (constants.js, nur user1). `cycleDays` IMMER als flache
+  ein aktiver Nutzer `zyklus: true` traegt (constants.js, nur ein Nutzer). `cycleDays` IMMER als flache
   Kopie mergen, nie ersetzen. Aktives Workout: Store-Funktionen; nachtraeglich in
   der History: eigener Weg `patchLog`.
 - **Notizen je Nutzer je Uebung (`exerciseNotes`)** schreibt NUR
@@ -278,7 +279,7 @@ npm run preview   # Build lokal testen (Port 4173)
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
-- **`/backup-restore`** — Backup aller IndexedDB-Daten als JSON, oder Wiederherstellung
+- **Backup ist kein Skill, sondern in der App:** Einstellungen -> Backup (ganze Datenbank als JSON; der Import fuehrt nur zusammen, `utils/exportData.js`).
 
 ## Connectoren/APIs
 - Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth), Config in
