@@ -23,6 +23,17 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 - [ ] **V8** (C) Direkteingabe im Gewichts-Rad — zurueckgestellt 2026-08-16 (Gabriel)
       Tipp auf den Wert oeffnet Ziffernblock; Rad bleibt fuer Feinjustage.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
+- [ ] **V15** (B) Vornamen und Zyklus-Zuordnung stehen noch im oeffentlichen Repo
+      Gefahr: Wer das Repo liest, sieht, wer die drei Nutzer sind und wer die Zyklustage
+      erfasst — ein Gesundheitsbezug zu einer echten Person. Die CLAUDE.md ist seit dem
+      Prompt-Audit vom 03.10.2026 sauber (Zuordnung nur in der gitignorierten CLAUDE.local.md),
+      der Rest nicht.
+      Beleg: `src/utils/constants.js` (Namen, `zyklus: true`), Kommentare in `stores/auth.js`
+      und `utils/trainingGeraet.js`, `README.md:4`, mehrere Dateien in `docs/` und `docs/tests/`;
+      dazu die Git-Historie. · Aufwand: M
+      Empfehlung: Anzeigenamen aus `db.meta` (`userName_user1..3`, gibt es fuer den Pace Umrechner
+      schon) statt aus dem Code lesen, Doku auf user1-3 umstellen. Ob die Historie bereinigt
+      wird (Force-Push), entscheidet Gabriel.
 
 ## Ideen
 - **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S
