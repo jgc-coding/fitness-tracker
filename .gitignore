@@ -33,3 +33,7 @@ privat/
 *.njsproj
 *.sln
 *.sw?
+
+# Lokale Claude-Notizen mit personenbezogenen Zuordnungen. Das Repo ist
+# OEFFENTLICH, darum nie committen.
+CLAUDE.local.md

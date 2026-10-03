@@ -4,7 +4,8 @@
 
 ## Projektbeschreibung
 PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer drei Personen
-(user1 Lisa, user2 Gab, user3 Ben). Alle trainieren denselben Plan mit
+(user1, user2, user3). Wer hinter welcher Kennung steht, liegt nur in der lokalen
+`CLAUDE.local.md` (gitignoriert, nicht im Repo). Alle trainieren denselben Plan mit
 individuellen Gewichten/Wiederholungen. Offline-first auf Android, Daten lokal in
 IndexedDB, deployed auf GitHub Pages. Dazu der Reiter „Laufen" (Laufplaner).
 
@@ -20,7 +21,7 @@ IndexedDB, deployed auf GitHub Pages. Dazu der Reiter „Laufen" (Laufplaner).
 
 ## Design-Tokens (`src/styles/variables.css`)
 Hintergrund `#f3f6f7` · Akzent `#911f2f` · Text `#1e1f23` ·
-Lisa `#911f2f` (rot) · Gab `#2c5f8a` (blau) · Ben `#2f7d4f` (gruen)
+user1 `#911f2f` (rot) · user2 `#2c5f8a` (blau) · user3 `#2f7d4f` (gruen)
 
 ## Dateistruktur (nur, was der Dateiname nicht verraet)
 ```
@@ -97,7 +98,7 @@ npm run preview   # Build lokal testen (Port 4173)
   Objekte/Arrays vorher flach kopieren (`list.map(e => ({ ...e }))`).
 - **Saetze je Uebung sind eine Einstellung JE PERSON** (Gabriel 26.09.2026):
   Einstellungen -> 1-5, in `db.meta` als `saetze_<userId>` (gesynct). 1 = ein
-  Referenzwert (Standard), ab 2 je Satz ein setLog mit `setNumber` 1..n (Lisa: 3).
+  Referenzwert (Standard), ab 2 je Satz ein setLog mit `setNumber` 1..n (user1: 3).
   Regeln (offener Satz, Vorbelegung, Rad nach dem Speichern, Quick-Log-Folge) in
   `utils/saetze.js`. Das Sets-Feld der Planung bleibt reine Notiz.
 - **Vorwert = Gewicht x Wdh aus EINEM Datensatz:** Karte, Empfehlung, Rad,
@@ -156,7 +157,7 @@ npm run preview   # Build lokal testen (Port 4173)
   (01.10.2026). Logs ohne `deviceId` gelten als fremd.
 - **Notiz und Zyklustag haengen am workoutLog** (`note`, `cycleDays` `{ userId:
   Zahl }`, beide optional — immer mit Fallback lesen). Zyklustag-Knopf nur, wenn
-  ein aktiver Nutzer `zyklus: true` traegt (constants.js, nur Lisa). `cycleDays` IMMER als flache
+  ein aktiver Nutzer `zyklus: true` traegt (constants.js, nur ein Nutzer). `cycleDays` IMMER als flache
   Kopie mergen, nie ersetzen. Aktives Workout: Store-Funktionen; nachtraeglich in
   der History: eigener Weg `patchLog`.
 - **Notizen je Nutzer je Uebung (`exerciseNotes`)** schreibt NUR
@@ -278,7 +279,7 @@ npm run preview   # Build lokal testen (Port 4173)
 
 ## Skills
 - **`/deploy`** — Build, Commit, Push und Deploy auf GitHub Pages mit Status-Check
-- **`/backup-restore`** — Backup aller IndexedDB-Daten als JSON, oder Wiederherstellung
+- **Backup ist kein Skill, sondern in der App:** Einstellungen -> Backup (ganze Datenbank als JSON; der Import fuehrt nur zusammen, `utils/exportData.js`).
 
 ## Connectoren/APIs
 - Firebase-Projekt `gymtracker-ketohybrid` (Firestore + Auth), Config in
