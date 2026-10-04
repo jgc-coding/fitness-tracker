@@ -237,7 +237,7 @@ const workoutLogsAll = ref([])
 const trainingDayTitles = ref({})
 
 // Zyklus-Nutzer aus ALLEN Nutzern (History ist unabhaengig von der
-// Tageswahl im Tracking), laut constants.js nur Lisa
+// Tageswahl im Tracking), laut constants.js nur einer
 const zyklusUser = computed(() => authStore.users.find(u => u.zyklus) || null)
 
 const cycleValues = computed(() => {

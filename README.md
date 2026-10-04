@@ -1,7 +1,7 @@
 # Keto Hybrid Fitness Tracker
 
 PWA zum Tracken, Planen und Auswerten von Kraftsport-Training fuer drei Personen
-(Lisa, Gab & Ben). Beim Start waehlt man, wer heute trainiert (1 bis 3 Nutzer);
+(user1, user2, user3). Beim Start waehlt man, wer heute trainiert (1 bis 3 Nutzer);
 alle teilen denselben Plan mit individuellen Gewichten und Wiederholungen.
 Offline-first (IndexedDB), optionaler Cloud-Sync zwischen den Geraeten ueber
 Firebase (gemeinsames Konto), deployed auf GitHub Pages.

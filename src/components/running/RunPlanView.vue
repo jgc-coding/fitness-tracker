@@ -443,7 +443,7 @@ const intervalsDetail = ref({})
 const intervalsKarten = computed(() =>
   USERS.map(u => ({
     userId: u.id,
-    name: u.name,
+    name: authStore.getUserName(u.id),
     color: u.color,
     verbunden: running.intervalsBereit[u.id] === true,
     abgleichText: abgleichText(running.intervalsAbgleich[u.id])

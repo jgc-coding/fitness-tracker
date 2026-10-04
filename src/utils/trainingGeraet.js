@@ -2,8 +2,8 @@
 // Reine Funktionen — Vertrag: scripts/training-geraet-test.mjs.
 //
 // Warum: Beide Handys teilen dieselbe Datenbank (Cloud-Sync). Am 01.10.2026
-// fand Gabs Handy beim Start Lisas laufendes Training von IHREM Handy, setzte
-// es mit Lisa als Nutzerin fort und schrieb dessen Besetzung auf Gab um.
+// fand das Handy von user2 beim Start das laufende Training von user1 auf
+// DEREN Handy, setzte es fort und schrieb dessen Besetzung um.
 // Darum stempelt jeder Start die Geraete-Kennung (`deviceId`) an den
 // workoutLog, und fortgesetzt oder wiederverwendet wird nur ein Training
 // mit der Kennung DIESES Geraets. Trainings ohne Kennung (vor v2.8.1) haben

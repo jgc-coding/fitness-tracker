@@ -64,7 +64,7 @@ flowchart LR
   A[App: Laeufe abgleichen, erledigt + Ist-Werte]
   F{{Du: pruefen, verschieben, abhaken}}
   J[Jahresansicht: Phasen + Wochen]
-  W[Wochenansicht: Lisa + Gab]
+  W[Wochenansicht: user1 + user2]
   X[Status-Export JSON]
   Z --> C
   H --> C
@@ -99,7 +99,7 @@ und ist von der neuen Version nicht betroffen (geprueft 2026-09-05).
 
 ```json
 {
-  "id": "plan-gab-2027",
+  "id": "plan-user2-2027",
   "userId": "user2",
   "name": "Backyard Ultra 2027",
   "goal": { "type": "backyard", "label": "Backyard Ultra", "date": "2027-09-04", "target": "12 Runden" },
@@ -126,8 +126,8 @@ und ist von der neuen Version nicht betroffen (geprueft 2026-09-05).
 
 ```json
 {
-  "id": "plan-gab-2027-2026-09-16-a",
-  "planId": "plan-gab-2027",
+  "id": "plan-user2-2027-2026-09-16-a",
+  "planId": "plan-user2-2027",
   "userId": "user2",
   "date": "2026-09-16",
   "type": "long",
@@ -185,7 +185,7 @@ Import UND Status-Export.
   "exportedAt": "2026-10-05T18:00:00.000Z",
   "plans": [
     {
-      "id": "plan-gab-2027",
+      "id": "plan-user2-2027",
       "userId": "user2",
       "name": "…", "goal": { "…": "…" }, "phases": [], "weeks": [],
       "sessions": [
@@ -272,7 +272,7 @@ gewaehlter Unterreiter bleibt beim Tab-Wechsel erhalten (Modul-Variable reicht).
 **Woche** (Standard)
 - Kopf: `< KW 38 · 14.–20.09. >`, Knopf "Heute", darunter Phase des Standard-
   Nutzers ("Grundlage · Woche 3 von 14").
-- Je Nutzer eine Zeile Wochenziel: "Gab 21 / 42 km" (erledigt / geplant) als
+- Je Nutzer eine Zeile Wochenziel: "user2 21 / 42 km" (erledigt / geplant) als
   schmaler Balken in Nutzerfarbe.
 - Sieben Tageszeilen Mo–So (heute hervorgehoben). Je Tag pro Nutzer ein Chip in
   Nutzerfarbe: Typ-Symbol, Titel, Planwert ("22 km" / "2:30 h" / "6 Runden");
@@ -286,7 +286,7 @@ gewaehlter Unterreiter bleibt beim Tab-Wechsel erhalten (Modul-Variable reicht).
 - Single-Variante: nur ein Nutzer → eine Chip-Spalte (ueber `USERS` iterieren).
 
 **Jahr**
-- Nutzer-Umschalter Lisa | Gab (Vorauswahl = Standard-Nutzer; in Single ohne).
+- Nutzer-Umschalter user1 | user2 (Vorauswahl = Standard-Nutzer; in Single ohne).
 - Ziel-Karte: Name, Termin, Tage bis dahin, Ziel ("12 Runden"), Plan-Version.
 - Phasen als Abschnitte, darin Wochenzeilen: KW + Datum, Ziel (km oder h),
   Balken erledigt/geplant, aktuelle Woche hervorgehoben, vergangene Wochen mit
@@ -364,7 +364,7 @@ Fehler", "Import derselben Datei zweimal → zweiter Lauf aendert nichts".
 
 ## 6. Paket 2: Garmin-Anbindung ueber intervals.icu (v1.5.0)
 
-### 6.1 Einrichtung (macht Gabriel bzw. Lisa selbst — Claude legt keine Konten an, gibt keine Zugriffe frei)
+### 6.1 Einrichtung (macht jeder Nutzer selbst — Claude legt keine Konten an, gibt keine Zugriffe frei)
 
 Anleitung als `docs/garmin-anbindung.md` (ohne persoenliche Daten):
 1. Konto bei intervals.icu anlegen (kostenlos).
@@ -462,7 +462,7 @@ die laeuft weiter ueber eine Sitzung mit Gabriel. Nur nach Freigabe bauen.
 Braucht von Gabriel (pro Person): Zielrennen (Backyard Ultra: Ziel in Runden,
 Termin, Untergrund/Hoehenmeter der Runde), aktueller Wochenumfang und laengster
 Lauf, verfuegbare Tage und Zeitfenster (Kinder!), Krafttage, Verletzungen,
-Lisas Ziel (gleiches Rennen oder eigenes). Historie: Garmin Connect (Web) →
+Ziel von user1 (gleiches Rennen oder eigenes). Historie: Garmin Connect (Web) →
 Aktivitaeten → Filter Laufen → Liste scrollen bis alles geladen → "CSV
 exportieren" → `privat/garmin-historie-<user>.csv`.
 
@@ -526,5 +526,5 @@ kein Bericht-Automat (Paket 3 nur nach Freigabe).
 - Kompaktes "Jahresband" (52 Zellen in Phasenfarbe) ueber der Wochenliste
   (weglassen, wenn es eng wird).
 - Tab-Label bei sehr schmalen Geraeten (Labels unter 340 px ausblenden).
-- Ob Lisa auf dasselbe Rennen trainiert — Inhaltsfrage fuer Abschnitt 8, nicht
+- Ob user1 auf dasselbe Rennen trainiert — Inhaltsfrage fuer Abschnitt 8, nicht
   fuer den Bau.

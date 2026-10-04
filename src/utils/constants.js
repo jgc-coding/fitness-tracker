@@ -20,11 +20,15 @@ export const EQUIPMENT_TYPES = [
   { id: 'other', label: 'Sonstiges' }
 ]
 
+// Die echten Namen stehen NICHT im Code — das Repo ist oeffentlich. Sie liegen
+// in db.meta als `userName_<id>` (gesynct, Einstellungen -> Benutzer) und
+// ersetzen beim Laden den Platzhalter hier (stores/auth.js). Namen nur ueber
+// den auth store lesen, nie aus dieser Liste.
+// zyklus: true blendet fuer diese Kennung die Zyklustag-Erfassung ein.
 export const USERS = [
-  // zyklus: true blendet die Zyklustag-Erfassung ein (nur fuer Lisa gewollt)
-  { id: 'user1', name: 'Lisa', color: 'var(--color-user1)', bgColor: 'var(--color-user1-bg)', zyklus: true },
-  { id: 'user2', name: 'Gab', color: 'var(--color-user2)', bgColor: 'var(--color-user2-bg)' },
-  { id: 'user3', name: 'Ben', color: 'var(--color-user3)', bgColor: 'var(--color-user3-bg)' }
+  { id: 'user1', name: 'Person 1', color: 'var(--color-user1)', bgColor: 'var(--color-user1-bg)', zyklus: true },
+  { id: 'user2', name: 'Person 2', color: 'var(--color-user2)', bgColor: 'var(--color-user2-bg)' },
+  { id: 'user3', name: 'Person 3', color: 'var(--color-user3)', bgColor: 'var(--color-user3-bg)' }
 ]
 
 export const PLAN_TYPES = [

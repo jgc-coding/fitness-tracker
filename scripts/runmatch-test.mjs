@@ -172,7 +172,7 @@ function abgleich(laeufe, sessions, optionen = {}) {
 
 // --- Fremder Nutzer und fremder Tag bleiben unberuehrt -----------------------
 {
-  const anderer = session({ id: 'lisa', userId: 'user1' })
+  const anderer = session({ id: 'fremd', userId: 'user1' })
   const gestern = session({ id: 'gestern', date: '2030-01-19' })
   const r = abgleich([lauf()], [anderer, gestern])
   equal('Fremder Nutzer und anderer Tag sind keine Kandidaten', [r.patches.length, r.neue.length], [0, 1])

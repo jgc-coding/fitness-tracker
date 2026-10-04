@@ -97,20 +97,20 @@ pruefe('Paar bleibt zusammen: 52.5 mit 8 Wdh, nie gemischt', v5.weight === 52.5 
 console.log('[saetze-test] Wohin das Rad nach dem Speichern springt:')
 // offen: Nutzer -> naechster offener Satz (null = fertig)
 const mit = (offen) => (id) => (id in offen ? offen[id] : null)
-pruefe('Lisa speichert Satz 1, Gab offen -> Gab',
+pruefe('user1 speichert Satz 1, user2 offen -> user2',
   JSON.stringify(naechsterSchritt(['user1', 'user2'], 'user1', mit({ user1: 2, user2: 1 }))) ===
   JSON.stringify({ userId: 'user2', satz: 1 }))
-pruefe('Gab fertig, Lisa offen -> Lisa, naechster Satz',
+pruefe('user2 fertig, user1 offen -> user1, naechster Satz',
   JSON.stringify(naechsterSchritt(['user1', 'user2'], 'user1', mit({ user1: 3, user2: null }))) ===
   JSON.stringify({ userId: 'user1', satz: 3 }))
-pruefe('Gab speichert, Lisa hat Satz 2 offen -> Lisa',
+pruefe('user2 speichert, user1 hat Satz 2 offen -> user1',
   JSON.stringify(naechsterSchritt(['user1', 'user2'], 'user2', mit({ user1: 2, user2: null }))) ===
   JSON.stringify({ userId: 'user1', satz: 2 }))
 pruefe('alle fertig -> null (Rad schliesst)',
   naechsterSchritt(['user1', 'user2'], 'user1', mit({ user1: null, user2: null })) === null)
 pruefe('allein mit einem Satz je Uebung -> null wie bisher',
   naechsterSchritt(['user2'], 'user2', mit({ user2: null })) === null)
-pruefe('drei Nutzer reihum ab dem aktuellen (Gab -> Ben vor Lisa)',
+pruefe('drei Nutzer reihum ab dem aktuellen (user2 -> user3 vor user1)',
   naechsterSchritt(['user1', 'user2', 'user3'], 'user2', mit({ user1: 1, user2: null, user3: 1 })).userId === 'user3')
 pruefe('aktueller Nutzer nicht (mehr) aktiv: erster offener',
   naechsterSchritt(['user1', 'user2'], 'user3', mit({ user1: null, user2: 1 })).userId === 'user2')

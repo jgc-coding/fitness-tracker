@@ -6,9 +6,9 @@ import { pushRecord } from '../services/syncService.js'
 import { satzZahlGueltig } from '../utils/saetze.js'
 
 // Der Standard-Nutzer ist eine GERAETE-Einstellung, kein geteilter Datensatz:
-// auf Lisas Handy soll Lisa vorausgewaehlt sein, auf Gabs Handy Gab. Deshalb
-// localStorage statt db.meta — die meta-Tabelle wird mit der Cloud abgeglichen,
-// beide Handys wuerden sich den Wert also gegenseitig ueberschreiben.
+// auf dem Handy von user1 soll user1 vorausgewaehlt sein, auf dem von user2
+// user2. Deshalb localStorage statt db.meta — die meta-Tabelle wird mit der
+// Cloud abgeglichen, beide Handys wuerden sich den Wert gegenseitig ueberschreiben.
 // Der Schluessel traegt den DB-Namen, damit sich mehrere Apps derselben
 // Origin den localStorage nicht in die Quere kommen.
 const DEFAULT_USER_KEY = `${db.name}:defaultUserId`
@@ -27,7 +27,9 @@ const DEVICE_ID_KEY = `${db.name}:deviceId`
 const ACTIVE_USERS_FALLBACK = ['user1', 'user2']
 
 export const useAuthStore = defineStore('auth', () => {
-  const users = ref([...USERS])
+  // Eigene Kopien: loadUserNames setzt die echten Namen hier, die Platzhalter
+  // in constants.js bleiben unberuehrt
+  const users = ref(USERS.map(u => ({ ...u })))
   const historyViewUser = ref('user1')
   const defaultUserId = ref(users.value[0].id)
   const activeUserIds = ref([...ACTIVE_USERS_FALLBACK])
@@ -47,20 +49,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Die Namen kommen nur aus db.meta (seit v2.10 keine Namen mehr im Code,
+  // das Repo ist oeffentlich). Ohne gespeicherten Namen bleibt der sichtbare
+  // Platzhalter "Person n" stehen — dann einmal in den Einstellungen eintragen.
   async function loadUserNames() {
     for (const user of users.value) {
       const stored = await db.meta.get(`userName_${user.id}`)
-      if (stored) {
+      if (typeof stored?.value === 'string' && stored.value.trim()) {
         user.name = stored.value
       }
     }
   }
 
+  // Bringt der Cloud-Sync Namen vom anderen Handy (oder beim ersten Start),
+  // sofort anzeigen — nicht erst beim naechsten Wechsel der Ansicht
+  if (typeof window !== 'undefined') {
+    window.addEventListener('fitness-sync-changed', (e) => {
+      if (e.detail?.collection === 'meta') loadUserNames()
+    })
+  }
+
   // Saetze je Uebung und Person (Gabriel 26.09.2026): 1 = ein Referenzwert
   // wie bis v2.3, ab 2 wird jeder Satz einzeln erfasst (Regeln in
   // utils/saetze.js). Anders als der Standard-Nutzer eine GETEILTE
-  // Einstellung: db.meta wird gesynct — Lisas 3 Saetze gelten auch auf Gabs
-  // Handy, wenn beide zusammen trainieren.
+  // Einstellung: db.meta wird gesynct — die 3 Saetze von user1 gelten auch
+  // auf dem Handy von user2, wenn beide zusammen trainieren.
   const satzZahlen = ref({})
 
   function satzZahl(userId) {

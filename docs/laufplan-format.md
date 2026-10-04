@@ -32,7 +32,7 @@ Damit Schritt 4 funktioniert, ist eine Regel wichtiger als alle anderen:
 > Kennungen. Ueber die Kennung erkennt die App, was schon erledigt ist.
 
 Konvention fuer neue Kennungen: `<planId>-<datum>-<a|b>`, zum Beispiel
-`plan-gab-2027-2026-09-16-a`. Das `b` ist fuer einen zweiten Lauf am selben Tag.
+`plan-user2-2027-2026-09-16-a`. Das `b` ist fuer einen zweiten Lauf am selben Tag.
 
 ---
 
@@ -60,7 +60,7 @@ Konvention fuer neue Kennungen: `<planId>-<datum>-<a|b>`, zum Beispiel
 
 ```json
 {
-  "id": "plan-gab-2027",
+  "id": "plan-user2-2027",
   "userId": "user2",
   "name": "Backyard Ultra 2027",
   "isActive": true,
@@ -126,7 +126,7 @@ ist meistens ein echter Rechenfehler im Plan.
 
 ```json
 {
-  "id": "plan-gab-2027-2026-09-16-a",
+  "id": "plan-user2-2027-2026-09-16-a",
   "date": "2026-09-16",
   "type": "long",
   "title": "Langer Lauf",

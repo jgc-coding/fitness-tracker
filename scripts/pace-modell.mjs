@@ -3,8 +3,8 @@
  * Bericht zum Puls-zu-Tempo-Modell aus der eigenen Laufhistorie.
  *
  * Aufruf (Windows PowerShell):
- *   node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-gab.csv
- *   node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-lisa.csv --monate 14
+ *   node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-<user>.csv
+ *   node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-<user>.csv --monate 14
  *
  * WOZU: Ein Trainingsplan sagt "locker" oder "zuegig". Das hilft am Berg nicht
  * weiter. Dieses Skript zeigt, welches Tempo bei welchem Puls tatsaechlich

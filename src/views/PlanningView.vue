@@ -608,7 +608,7 @@ async function finishAltPicker() {
 
 // Eine Alternative direkt in der Liste entfernen (x neben dem Namen). Ein
 // darauf gemerkter Standard (`bevorzugt`) bleibt stehen, wirkt aber nicht
-// mehr — vorbelegungAusBevorzugt nimmt nur Ziele im Ring, wie beim Abwaehlen
+// mehr — kartenStandard nimmt nur Ziele im Ring, wie beim Abwaehlen
 // in der Auswahl.
 async function removeAlternative(day, index, altId) {
   const currentDay = plansStore.trainingDays.find(d => d.id === day.id)

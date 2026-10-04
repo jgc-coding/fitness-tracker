@@ -1,6 +1,10 @@
-// Vertragstest fuer den Schnellwechsel-Ring mit Standard-Uebung je Nutzer
-// (src/utils/uebungsRing.js). Der Test ist der Vertrag: wer Ring-, Standard-
-// oder Vorbelegungs-Regeln aendert, erweitert ZUERST diesen Test.
+// Vertragstest fuer den Schnellwechsel-Ring (src/utils/uebungsRing.js). Der
+// Test ist der Vertrag: wer Ring-, Standard- oder Start-Regeln aendert,
+// erweitert ZUERST diesen Test.
+//
+// Seit v2.10.0 wechseln alle Nutzer einer Karte GEMEINSAM (Gabriel
+// 04.10.2026): vorher wechselte ein Wisch nur einen Nutzer, der andere blieb
+// unbemerkt auf der alten Uebung stehen.
 //
 // Aufruf:  node ./scripts/uebungsring-test.mjs
 
@@ -9,9 +13,11 @@ import {
   aktiveUebungId,
   ringPosition,
   naechsteImRing,
-  mitNutzerUebung,
-  vorbelegungAusBevorzugt,
-  toggleBevorzugt,
+  gemeinsamWeiter,
+  fuerAlle,
+  kartenStandard,
+  startMitStandard,
+  toggleStandard,
   wechselAnzeige
 } from '../src/utils/uebungsRing.js'
 
@@ -55,44 +61,80 @@ const getauscht = { ...eintrag, exerciseId: 'rudern', userExerciseIds: {} }
 pruefe('nach freiem Tausch ausserhalb: Position -1', ringPosition(getauscht, 'user1') === -1)
 pruefe('nach freiem Tausch fuehrt der naechste Schritt zur Basis', naechsteImRing(getauscht, 'user1', 1) === 'latzug')
 
-console.log('[uebungsring-test] Nutzer-Uebung setzen (frische Kopien):')
-const gesetzt = mitNutzerUebung(eintrag, 'user1', 'chinup')
-pruefe('setzen legt die Abweichung an', aktiveUebungId(gesetzt, 'user1') === 'chinup')
-pruefe('andere Nutzer bleiben unberuehrt', aktiveUebungId(gesetzt, 'user2') === 'klimmzug')
-pruefe('Original bleibt unveraendert', aktiveUebungId(eintrag, 'user1') === 'latzug')
-pruefe('userExerciseIds ist eine frische Kopie', gesetzt.userExerciseIds !== eintrag.userExerciseIds)
-const zurueck = mitNutzerUebung(gesetzt, 'user1', 'latzug')
-pruefe('zurueck zur Karten-Uebung entfernt die Abweichung',
-  !('user1' in zurueck.userExerciseIds) && aktiveUebungId(zurueck, 'user1') === 'latzug')
+// Wisch und Wechsel-Knopf: ALLE Nutzer zusammen, Ziel gemessen an der Uebung
+// im Kartentitel (Kopf-Nutzer). Danach gibt es keine Abweichung mehr.
+const ALLE = ['user1', 'user2', 'user3']
+const fuerJeden = (e) => ALLE.map(u => aktiveUebungId(e, u)).join(',')
 
-console.log('[uebungsring-test] Vorbelegung aus dem Plan (bevorzugt):')
-const planEintrag = {
-  exerciseId: 'latzug',
-  basisExerciseId: 'latzug',
-  alternativen: ['klimmzug'],
-  bevorzugt: { user1: 'latzug', user2: 'klimmzug', user3: 'geloeschte-uebung' }
-}
-const vorbelegt = vorbelegungAusBevorzugt(planEintrag)
-pruefe('Standard = Basis erzeugt keine Abweichung', !('user1' in vorbelegt))
-pruefe('Standard = Alternative wird vorbelegt', vorbelegt.user2 === 'klimmzug')
-pruefe('verwaister Standard (nicht im Ring) wirkt nicht', !('user3' in vorbelegt))
-pruefe('Eintrag ohne bevorzugt ergibt leeres Objekt',
-  Object.keys(vorbelegungAusBevorzugt(altEintrag)).length === 0)
+console.log('[uebungsring-test] Gemeinsamer Wechsel (alle Nutzer zusammen):')
+const zusammen = { exerciseId: 'latzug', basisExerciseId: 'latzug', alternativen: ['klimmzug', 'chinup'] }
+const w1 = gemeinsamWeiter(zusammen, 'user1', 1)
+pruefe('Wisch vorwaerts: alle drei auf klimmzug', fuerJeden(w1) === 'klimmzug,klimmzug,klimmzug')
+pruefe('Wisch rueckwaerts: alle drei auf chinup (Ring schliesst sich)',
+  fuerJeden(gemeinsamWeiter(zusammen, 'user1', -1)) === 'chinup,chinup,chinup')
+const w3 = gemeinsamWeiter(gemeinsamWeiter(w1, 'user2', 1), 'user3', 1)
+pruefe('dreimal vorwaerts: alle wieder auf der Basis', fuerJeden(w3) === 'latzug,latzug,latzug')
+pruefe('der Ring bleibt beim Wechsel erhalten', ringFuer(w1).join(',') === 'latzug,klimmzug,chinup')
+pruefe('Original bleibt unveraendert', zusammen.exerciseId === 'latzug' && !('userExerciseIds' in zusammen))
+pruefe('ohne Alternativen kein Wechsel (null)', gemeinsamWeiter(altEintrag, 'user1', 1) === null)
+pruefe('null-Eintrag: kein Wechsel', gemeinsamWeiter(null, 'user1', 1) === null)
+// Altbestand (laufendes Training von vor v2.10): user2 steht abweichend auf
+// klimmzug. Der naechste Wisch vereinheitlicht — Ziel kommt vom Kopf-Nutzer.
+const w4 = gemeinsamWeiter(eintrag, 'user1', 1)
+pruefe('Altbestand mit Abweichung: Wisch bringt alle auf das Ziel des Titels',
+  fuerJeden(w4) === 'klimmzug,klimmzug,klimmzug' && Object.keys(w4.userExerciseIds).length === 0)
+pruefe('Altbestand, Titel = abweichender Nutzer: alle auf dessen naechste Uebung',
+  fuerJeden(gemeinsamWeiter(eintrag, 'user2', 1)) === 'chinup,chinup,chinup')
+pruefe('nach freiem Tausch fuehrt der gemeinsame Wechsel alle zur Basis',
+  fuerJeden(gemeinsamWeiter(getauscht, 'user1', 1)) === 'latzug,latzug,latzug')
+const ff = fuerAlle(eintrag, 'chinup')
+pruefe('fuerAlle setzt die Karte und leert die Abweichungen',
+  ff.exerciseId === 'chinup' && Object.keys(ff.userExerciseIds).length === 0 && fuerJeden(ff) === 'chinup,chinup,chinup')
+pruefe('fuerAlle laesst das Original unveraendert', eintrag.userExerciseIds.user2 === 'klimmzug')
 
-console.log('[uebungsring-test] Standard merken (Toggle):')
-const b1 = toggleBevorzugt({}, 'user1', 'klimmzug')
-pruefe('setzen', b1.user1 === 'klimmzug')
-const b2 = toggleBevorzugt(b1, 'user1', 'klimmzug')
-pruefe('dieselbe Uebung erneut entfernt den Standard', !('user1' in b2))
-const b3 = toggleBevorzugt(b1, 'user1', 'latzug')
-pruefe('andere Uebung ersetzt den Standard', b3.user1 === 'latzug')
-const original = { user2: 'x' }
-toggleBevorzugt(original, 'user2', 'y')
-pruefe('Original bleibt unveraendert (frische Kopie)', original.user2 === 'x')
+// Standard der Karte: der Stern gilt fuer alle. Gespeichert bleibt das Format
+// { userId: exerciseId } (aeltere App-Versionen lesen es je Nutzer), darum
+// schreibt der Stern denselben Wert fuer jeden Nutzer. Altbestand mit
+// unterschiedlichen Werten: zuerst der bevorzugte Nutzer, dann die Reihenfolge.
+console.log('[uebungsring-test] Standard der Karte (Stern, fuer alle):')
+const ring2 = { exerciseId: 'latzug', basisExerciseId: 'latzug', alternativen: ['klimmzug', 'chinup'] }
+pruefe('Stern eines anderen Nutzers gilt fuer die ganze Karte',
+  kartenStandard({ ...ring2, bevorzugt: { user3: 'klimmzug' } }, ALLE) === 'klimmzug')
+pruefe('unterschiedliche Sterne: der erste in der Reihenfolge gewinnt',
+  kartenStandard({ ...ring2, bevorzugt: { user1: 'chinup', user2: 'klimmzug' } }, ['user2', 'user1', 'user3']) === 'klimmzug')
+pruefe('Stern ausserhalb des Rings wirkt nicht, der naechste gilt',
+  kartenStandard({ ...ring2, bevorzugt: { user1: 'geloeschte-uebung', user3: 'chinup' } }, ALLE) === 'chinup')
+pruefe('unbekannte Nutzer-Kennung zaehlt nicht',
+  kartenStandard({ ...ring2, bevorzugt: { user9: 'klimmzug' } }, ALLE) === null)
+pruefe('ohne Stern kein Standard', kartenStandard(ring2, ALLE) === null && kartenStandard(altEintrag, ALLE) === null)
 
-// Wechsel-Knopf je Nutzer (v2.4.0, Gabriel 26.09.2026): der Knopf nennt das
-// ZIEL eines Tipps, nicht die aktuelle Uebung — die steht schon im
-// Kartentitel. Die eigene Uebung erscheint nur, wenn sie vom Titel abweicht.
+console.log('[uebungsring-test] Start eines Workouts (Plan-Eintrag):')
+const s1 = startMitStandard({ exerciseId: 'latzug', alternativen: ['klimmzug'], bevorzugt: { user2: 'klimmzug' } }, ALLE)
+pruefe('Start mit Standard: alle beginnen auf klimmzug', fuerJeden(s1) === 'klimmzug,klimmzug,klimmzug')
+pruefe('Start mit Standard: die Basis bleibt die geplante Uebung', s1.basisExerciseId === 'latzug')
+const s2 = startMitStandard({ exerciseId: 'latzug', basisExerciseId: 'latzug', alternativen: ['klimmzug'] }, ALLE)
+pruefe('Start ohne Standard: alle auf der Basis, keine Abweichung',
+  fuerJeden(s2) === 'latzug,latzug,latzug' && Object.keys(s2.userExerciseIds).length === 0)
+const s3 = startMitStandard({ exerciseId: 'latzug', alternativen: ['klimmzug'], bevorzugt: { user1: 'latzug', user2: 'klimmzug' } }, ALLE)
+pruefe('Stern auf der Basis beim Ersten in der Reihenfolge: Basis gewinnt', fuerJeden(s3) === 'latzug,latzug,latzug')
+
+console.log('[uebungsring-test] Stern setzen und entfernen:')
+const t1 = toggleStandard(ring2, ALLE, 'klimmzug', ALLE)
+pruefe('setzen schreibt denselben Wert fuer jeden Nutzer',
+  t1.user1 === 'klimmzug' && t1.user2 === 'klimmzug' && t1.user3 === 'klimmzug')
+pruefe('erneuter Tipp auf dieselbe Uebung entfernt den Standard fuer alle',
+  Object.keys(toggleStandard({ ...ring2, bevorzugt: t1 }, ALLE, 'klimmzug', ALLE)).length === 0)
+const t3 = toggleStandard({ ...ring2, bevorzugt: { user3: 'chinup' } }, ALLE, 'klimmzug', ALLE)
+pruefe('andere Uebung ersetzt einen alten Einzel-Stern fuer alle', ALLE.every(u => t3[u] === 'klimmzug'))
+const altStern = { ...ring2, bevorzugt: { user3: 'klimmzug' } }
+pruefe('alter Einzel-Stern auf der aktuellen Uebung: Tipp entfernt ihn',
+  Object.keys(toggleStandard(altStern, ALLE, 'klimmzug', ALLE)).length === 0)
+pruefe('Original bleibt unveraendert (frische Kopie)', altStern.bevorzugt.user3 === 'klimmzug')
+
+// Wechsel-Knopf (v2.4.0, Gabriel 26.09.2026): der Knopf nennt das ZIEL eines
+// Tipps, nicht die aktuelle Uebung — die steht schon im Kartentitel. Seit
+// v2.10.0 gibt es ihn einmal je Karte (Ziel des Kopf-Nutzers); die eigene
+// Uebung eines Nutzers erscheint nur noch bei Altbestand, der vom Titel abweicht.
 console.log('[uebungsring-test] Anzeige der Wechsel-Zeile:')
 const a1 = wechselAnzeige(eintrag, 'user1', 'user1')
 pruefe('Titel-Nutzer auf der Basis: Knopf nennt die naechste Uebung', a1.ziel === 'klimmzug')

@@ -3,6 +3,35 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.10.0] — 2026-10-04
+
+### Features
+- **Uebung wechseln gilt fuer alle zusammen** (Wunsch Gabriel): Ein Wisch
+  ueber die Karte oder ein Tipp auf den Wechsel-Knopf wechselt die Uebung fuer
+  jede Person im Training, bei zwei wie bei drei. Vorher wechselte ein Wisch
+  nur eine Person, die andere blieb unbemerkt auf der alten Uebung, und man
+  sah nicht, zu welcher Uebung ihr Gewicht gehoerte. Jede Karte hat jetzt
+  EINE Wechsel-Zeile statt einer je Person; allein trainiert steht sie wie
+  bisher rechts neben dem Wert.
+- **Der Stern merkt den Standard fuer alle:** Er gilt fuer diesen Platz im
+  Plan, jedes Training beginnt dort fuer alle mit dieser Uebung. Der Stern
+  ist jetzt gold statt in einer Personenfarbe. Alte Sterne einzelner
+  Personen gelten weiter, und zwar fuer die ganze Karte.
+
+### Datenschutz
+- **Keine Namen mehr im oeffentlichen Code und in der Doku** (Befund V15):
+  Die drei Personen heissen dort nur noch user1 bis user3. Die echten Namen
+  stehen in der App-Datenbank (Einstellungen -> Benutzer) und kommen per Sync
+  auf jedes Handy. Ohne gespeicherten Namen zeigt die App "Person 1" usw.
+- Namen, die der Sync spaeter bringt, erscheinen sofort, nicht erst beim
+  naechsten Wechsel der Ansicht; ebenso nach einem Backup-Import.
+
+### Hinweise
+- Ein Training, das beim Update schon laeuft und bei dem jemand einzeln
+  gewechselt hatte, zeigt dessen Uebung weiter farbig in dessen Bereich. Der
+  naechste Wechsel bringt alle zusammen.
+- Die Git-Historie enthaelt die alten Namen weiterhin.
+
 ## [2.9.2] — 2026-10-02
 
 ### Fixes
@@ -70,15 +99,15 @@ die Wdh gehoeren dazu).
 ## [2.8.1] — 2026-10-01
 
 ### Fixes
-- **Kein Sprung mehr ins Training des anderen Handys:** Trainierte Lisa auf
-  ihrem Handy, setzte Gabs Handy beim Start ihr offenes Training fort — mit
-  Lisa als Nutzerin, mitten im Workout (gemeldet von Gabriel am 01.10.;
+- **Kein Sprung mehr ins Training des anderen Handys:** Trainierte user1 auf
+  dem eigenen Handy, setzte das Handy von user2 beim Start dieses offene
+  Training fort — mit user1 als Nutzer, mitten im Workout (gemeldet von Gabriel am 01.10.;
   der Fehler bestand seit beide Handys dieselben Daten teilen). Jedes Handy
   hat jetzt eine eigene Kennung, jedes Training merkt sich, auf welchem
   Handy es gestartet wurde, und nur dieses Handy setzt es fort oder startet
   denselben Tag darin neu. Trainings von vor diesem Update gelten als fremd.
-- Lisas Legs-Training vom 01.10. trug durch den Fehler Gab als Besetzung;
-  in der Cloud wieder auf Lisa gestellt (ihre 15 Saetze waren unberuehrt,
+- Das Legs-Training von user1 vom 01.10. trug durch den Fehler user2 als Besetzung;
+  in der Cloud wieder auf user1 gestellt (die 15 Saetze waren unberuehrt,
   Sicherung des Datensatzes in `privat\`).
 
 ### Intern
@@ -141,7 +170,7 @@ Korrekturen an Uebungsnamen (Wunsch Gabriel).
 ### Fixes
 - **Seated Leg Curl und Seated Leg Extension waren von Anfang an vertauscht**
   eingetragen: Die beiden Uebungen haben in der Cloud Name und Bild
-  getauscht. Alle Saetze (Lisa und Gab, samt Ausgangswerten), Notizen und
+  getauscht. Alle Saetze (user1 und user2, samt Ausgangswerten), Notizen und
   Geraete-Einstellungen stehen damit bei der Uebung, die wirklich gemacht
   wurde. Im Beinplan steht an Platz 3 jetzt Leg Extension, an Platz 7 Leg
   Curl — so wurde trainiert; umsortieren geht per Finger in der Planung.
@@ -241,7 +270,7 @@ eines Trainingstags jetzt mit dem Finger aendern (Wunsch Gabriel).
 ## [2.4.0] — 2026-09-26
 
 Feinschliff nach den ersten Wochen mit den Alternativ-Uebungen (Wuensche
-Gabriel und Lisa): jeder Satz laesst sich einzeln erfassen, die Karten sind
+von Gabriel und user1): jeder Satz laesst sich einzeln erfassen, die Karten sind
 kompakter, der Wechsel zur Alternative schiebt sichtbar zur Seite.
 
 ### Features
@@ -285,8 +314,8 @@ kompakter, der Wechsel zur Alternative schiebt sichtbar zur Seite.
 
 ### Hinweise
 - Nach dem Update beide Handys neu starten. Eine alte App-Version zeigt
-  Lisas Saetze 2 und 3 nicht an, verliert sie aber nicht.
-- Fuer Lisa einmal Einstellungen -> "Saetze je Uebung" -> 3 tippen.
+  die Saetze 2 und 3 von user1 nicht an, verliert sie aber nicht.
+- Fuer user1 einmal Einstellungen -> "Saetze je Uebung" -> 3 tippen.
 
 ## [2.3.0] — 2026-09-24
 
@@ -306,7 +335,7 @@ Uebungen sind jetzt Standard-Uebungen wie alle anderen.
   rechts im Workout-Kopf statt einer einzelnen Namens-Pill unter dem Titel.
   Ein Tipp oeffnet wie bisher "Wer trainiert?". Das Datum steht klein unter
   dem Titel und ist besser lesbar (Kontrast 4,7:1 statt 2,5:1).
-- **Werkzeugzeile unter der Liste:** "+ Uebung", "Notiz" und mit Lisa
+- **Werkzeugzeile unter der Liste:** "+ Uebung", "Notiz" und mit user1
   "Zyklus" als gleich hohe Knoepfe in einer Reihe, darunter "Workout
   beenden". Eine gespeicherte Notiz und ein gesetzter Zyklustag toenen ihren
   Knopf leicht ein. "Zyklus" statt "Zyklustag", damit alle drei Knoepfe auf
@@ -410,14 +439,14 @@ Farbige Uebungsbilder statt Linienzeichnungen fuer 28 Uebungen.
 
 ## [2.0.0] — 2026-09-22
 
-Aus der Zwei-Personen-App wird eine Drei-Personen-App (Lisa, Gab & Ben) mit
+Aus der Zwei-Personen-App wird eine Drei-Personen-App (user1, user2, user3) mit
 Nutzerwahl beim Start. Dazu Uebungsfotos mit Muskel-Grafik, Notizen je Nutzer,
 Alternativ-Uebungen mit Schnellwechsel, Workout-Notiz, Zyklustag und ein
 Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
 `docs/plan-fittrack-v2.md` (Pakete P1-P13).
 
 ### Features
-- **Dritter Nutzer Ben** (gruen) mit eigenen Gewichten/Wiederholungen — derselbe
+- **Dritter Nutzer user3** (gruen) mit eigenen Gewichten/Wiederholungen — derselbe
   gemeinsame Plan wie bisher.
 - **Startdialog "Wer trainiert?":** Beim App-Start (ausser ein heutiges Workout
   laeuft noch) waehlt man 1 bis 3 aktive Nutzer; die Auswahl ist geraete-lokal
@@ -444,7 +473,7 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   (Basis + Alternativen, Punktreihe zeigt die Position); das bestehende
   Tausch-Modal bleibt fuer den freien Tausch.
 - **Workout-Notiz und Zyklustag:** Im aktiven Workout eine Notiz zum Training
-  und (nur fuer Lisa) das Zyklustag-Rad 1-45; beides haengt am
+  und (nur fuer user1) das Zyklustag-Rad 1-45; beides haengt am
   Workout-Protokoll und wird gesynct.
 - **History mit Tages-Detail:** Datums-Kopfzellen sind antippbar und zeigen
   alle Trainings des Tages (Titel, Teilnehmer, Notiz, Zyklustag); Notiz und
@@ -462,7 +491,7 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   Rueckenstrecker-Zeichnung ("lower back").
 - **Standard-Uebung je Nutzer im Alternativen-Ring** (Nachtrag 22.09.2026):
   Jeder Nutzer hat an einer Uebungsposition seine EIGENE aktive Uebung —
-  Lisas Bereich der Karte kann Latzug zeigen, waehrend Gab Klimmzuege macht.
+  Der Bereich von user1 kann Latzug zeigen, waehrend user2 Klimmzuege macht.
   Der Wechsler sitzt jetzt als eigene Zeile im Nutzer-Bereich (Tipp aufs
   Symbol oder Wischen auf dem eigenen Bereich wechselt nur diesen Nutzer);
   der Stern daneben merkt die aktive Uebung als persoenlichen Standard im
@@ -475,7 +504,7 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
   matching- und musclemap-Test).
 
 ### Entscheidungen (Gabriel, 2026-09-22)
-- **Ben startet frisch** — keine Uebernahme seiner Daten aus der Single-App.
+- **user3 startet frisch** — keine Uebernahme seiner Daten aus der Single-App.
 - **Bildquelle ist die Sammlung Workout Guide** (Bryl Lim, teils nach
   Everkinetic, Lizenz CC BY-SA 4.0 — Namensnennung Pflicht). Die Zeichnungen
   werden einmal per Skript geholt, eingefaerbt und liegen dann im Repo — zur
@@ -489,7 +518,7 @@ Tages-Detail in der History. Umgesetzt als Autopilot-Lauf nach
 ### Entfernt
 - **Die Single-Variante ist komplett entfernt** (Ordner `single/`, eigener
   Build, Drift-Waechter). ACHTUNG: `/fitness-tracker/single/` ist nach dem
-  naechsten Deploy weg — Bens Backup vorher exportieren.
+  naechsten Deploy weg — das Backup von user3 vorher exportieren.
 
 ### Technik
 - Dexie-Schema v4 (additiv, verlustfrei): neue Tabelle `exerciseNotes` fuer

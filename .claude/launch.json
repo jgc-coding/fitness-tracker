@@ -19,6 +19,18 @@
         "--host"
       ],
       "port": 4173
+    },
+    {
+      "name": "Vite Preview (eigener Port 4199)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--port",
+        "4199",
+        "--strictPort"
+      ],
+      "port": 4199
     }
   ]
 }

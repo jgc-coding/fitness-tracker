@@ -17,7 +17,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     // Look for an existing log for THIS specific training day today — not just
     // any log on today's date. Otherwise switching training days on the same
     // day would reuse the wrong workoutLog and mislabel history. Und nur ein
-    // Log DIESES Geraets: Lisas Legs-Training von ihrem Handy ist nicht meins
+    // Log DIESES Geraets: das Legs-Training vom anderen Handy ist nicht meins
     // (v2.8.1, utils/trainingGeraet.js).
     const logs = await db.workoutLogs.where({ date: today }).toArray()
     let existing = logFuerTagDiesesGeraets(logs, today, trainingDay.id, authStore.deviceId)

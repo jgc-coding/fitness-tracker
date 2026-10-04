@@ -92,7 +92,7 @@
       <!-- Seed History -->
       <div class="card settings-card">
         <h2 class="settings-title">Ausgangswerte</h2>
-        <p class="settings-desc">Lade die aktuellen Max-Werte von Lisa und Gab als Startwerte in die History.</p>
+        <p class="settings-desc">Lade die aktuellen Max-Werte von {{ authStore.getUserName('user1') }} und {{ authStore.getUserName('user2') }} als Startwerte in die History.</p>
         <button class="btn btn-secondary btn-block" @click="seedHistory" :disabled="seedingHistory">
           {{ seedingHistory ? 'Wird geladen...' : 'Ausgangswerte laden' }}
         </button>
@@ -425,7 +425,7 @@ async function assignImages() {
   setTimeout(() => { imageMessage.value = '' }, 5000)
 }
 
-// History seed data from screenshots: [exerciseName, lisaMax, gabMax]
+// History seed data from screenshots: [exerciseName, maxUser1, maxUser2]
 const SEED_HISTORY = [
   // Legs
   ['Hack Squat', 22.5, 50],
@@ -516,19 +516,18 @@ async function seedHistory() {
     pushRecord('workoutLogs', workoutLogId, workoutLog)
 
     let added = 0
-    for (const [name, lisaMax, gabMax] of SEED_HISTORY) {
+    for (const [name, maxUser1, maxUser2] of SEED_HISTORY) {
       const exerciseId = exerciseMap[name.toLowerCase()]
       if (!exerciseId) continue
 
-      // Lisa (user1)
-      if (lisaMax > 0) {
+      if (maxUser1 > 0) {
         const setLog = {
           id: generateId(),
           workoutLogId,
           exerciseId,
           userId: 'user1',
           setNumber: 1,
-          weight: lisaMax,
+          weight: maxUser1,
           reps: 8,
           date: seedDate,
           createdAt: now,
@@ -539,15 +538,14 @@ async function seedHistory() {
         added++
       }
 
-      // Gab (user2)
-      if (gabMax > 0) {
+      if (maxUser2 > 0) {
         const setLog = {
           id: generateId(),
           workoutLogId,
           exerciseId,
           userId: 'user2',
           setNumber: 1,
-          weight: gabMax,
+          weight: maxUser2,
           reps: 8,
           date: seedDate,
           createdAt: now,

@@ -23,17 +23,14 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 - [ ] **V8** (C) Direkteingabe im Gewichts-Rad — zurueckgestellt 2026-08-16 (Gabriel)
       Tipp auf den Wert oeffnet Ziffernblock; Rad bleibt fuer Feinjustage.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
-- [ ] **V15** (B) Vornamen und Zyklus-Zuordnung stehen noch im oeffentlichen Repo
-      Gefahr: Wer das Repo liest, sieht, wer die drei Nutzer sind und wer die Zyklustage
-      erfasst — ein Gesundheitsbezug zu einer echten Person. Die CLAUDE.md ist seit dem
-      Prompt-Audit vom 03.10.2026 sauber (Zuordnung nur in der gitignorierten CLAUDE.local.md),
-      der Rest nicht.
-      Beleg: `src/utils/constants.js` (Namen, `zyklus: true`), Kommentare in `stores/auth.js`
-      und `utils/trainingGeraet.js`, `README.md:4`, mehrere Dateien in `docs/` und `docs/tests/`;
-      dazu die Git-Historie. · Aufwand: M
-      Empfehlung: Anzeigenamen aus `db.meta` (`userName_user1..3`, gibt es fuer den Pace Umrechner
-      schon) statt aus dem Code lesen, Doku auf user1-3 umstellen. Ob die Historie bereinigt
-      wird (Force-Push), entscheidet Gabriel.
+- [ ] **V15** (B) Rest: die alten Vornamen stehen noch in der Git-Historie — Entscheidung Gabriel
+      Gefahr: Wer im oeffentlichen Repo alte Versionen aufruft, sieht weiter, wer die drei
+      Nutzer sind und wer die Zyklustage erfasst. Code, Doku und Tests sind seit v2.10.0
+      sauber (Namen nur noch in `db.meta`).
+      Beleg: jeder Commit vor v2.10.0, z.B. `src/utils/constants.js`. · Aufwand: M
+      Optionen: Historie neu schreiben (Force-Push, alle Kennungen und Tags aendern sich,
+      GitHub haelt alte Staende noch eine Weile per Direktlink) oder Repo privat stellen
+      (GitHub Pages braucht dann ein bezahltes Konto) oder so lassen.
 
 ## Ideen
 - **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S
@@ -43,7 +40,7 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       kommt derselbe Lauf ohnehin automatisch von der Uhr, deshalb erst danach
       entscheiden, ob es den Knopf noch braucht.
 - **I8** (Erweiterung) Alle Saetze eines Tages in der History zeigen — Aufwand: S-M
-      Nutzen: Seit v2.4.0 erfasst Lisa jeden Satz einzeln; History und CSV
+      Nutzen: Seit v2.4.0 erfasst user1 jeden Satz einzeln; History und CSV
       zeigen je Tag aber nur den schwersten. Abgrenzung: Tipp auf eine Zelle
       zeigt die Saetze dieses Tages; die Tabelle selbst bleibt ein Wert je Zelle.
 - **I9** (Erweiterung) Einen einzelnen Satz loeschen — Aufwand: S

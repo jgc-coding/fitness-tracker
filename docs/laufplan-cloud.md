@@ -42,7 +42,7 @@ bei einem Projektwechsel mitgepflegt werden muesste.
 
 ```
 node .\scripts\lauf-cloud.mjs holen
-node .\scripts\lauf-cloud.mjs holen --user user2 --ziel .\privat\stand-gab.json
+node .\scripts\lauf-cloud.mjs holen --user user2 --ziel .\privat\stand-user2.json
 ```
 
 Das Ergebnis ist eine ganz normale Laufplan-Datei im Format aus

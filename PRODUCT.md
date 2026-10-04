@@ -6,7 +6,7 @@ product
 
 ## Users
 
-Drei Personen (Lisa, Gab, Ben), die nach demselben Kraftplan trainieren, jede
+Drei Personen (user1, user2, user3), die nach demselben Kraftplan trainieren, jede
 mit eigenen Gewichten und Wiederholungen. Benutzt wird die App im Studio auf
 Android-Handys, zwischen zwei Saetzen und in wenigen Sekunden: Vorwert
 ablesen, neuen Wert eintragen, weiter. Dazu der Reiter "Laufen" fuer die

@@ -20,7 +20,7 @@ Dieses Dokument erklaert, wie die Zahlen darin entstehen.
    (`scripts/laufplan-vorgaben.mjs`).
 
 ```
-node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-gab.csv
+node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-<user>.csv
 node .\scripts\laufplan-vorgaben.mjs --plan .\privat\laufplan-user2-v2.json --profil .\privat\pace-profil.json
 ```
 
@@ -44,7 +44,7 @@ Vier Entscheidungen dabei sind wichtiger als die Formel:
 **Ausreisser fliegen raus, aber sichtbar.** Ein GPS-Sprung oder ein verrutschter
 Pulsgurt verzieht die ganze Gerade. Laeufe, die mehr als 2,5 Streuungen daneben
 liegen, werden in einer zweiten Runde entfernt — und namentlich gemeldet, damit
-man selbst nachsehen kann. Bei Gab waren das zwei Laeufe mit 4:10 je km bei
+man selbst nachsehen kann. Bei user2 waren das zwei Laeufe mit 4:10 je km bei
 einer Schrittlaenge von 1,32 m; das ist kein Laufen, das ist ein Messfehler.
 
 **Ausserhalb der gemessenen Pulsspanne wird gedaempft.** Die Gerade sagt: jeder
@@ -76,7 +76,7 @@ ist oeffentlich.
 ```json
 {
   "user2": {
-    "csv": "C:/.../privat/garmin-historie-gab.csv",
+    "csv": "C:/.../privat/garmin-historie-<user>.csv",
     "monate": 18,
     "halbwertszeitTage": 180,
     "gelaendeStandard": 6,

@@ -1,12 +1,18 @@
-// Schnellwechsel-Ring mit Standard-Uebung je Nutzer (reine Funktionen).
+// Schnellwechsel-Ring mit gemeinsamer Standard-Uebung (reine Funktionen).
 //
-// Ein Workout-Eintrag traegt: `exerciseId` (gemeinsame Karten-/Fallback-
-// Uebung — gesetzt von der Basis oder einem freien Tausch), `basisExerciseId`
-// (die geplante Uebung), `alternativen` (Array aus dem Plan) und optional
-// `userExerciseIds` ({ userId: exerciseId } — die abweichende aktive Uebung
-// je Nutzer). Der PLAN-Eintrag traegt zusaetzlich `bevorzugt`
-// ({ userId: exerciseId } — die gemerkte Standard-Uebung je Nutzer, gesynct).
+// Ein Workout-Eintrag traegt: `exerciseId` (die Uebung der Karte — sie gilt
+// fuer ALLE Nutzer), `basisExerciseId` (die geplante Uebung) und
+// `alternativen` (Array aus dem Plan). Der PLAN-Eintrag traegt zusaetzlich
+// `bevorzugt` ({ userId: exerciseId }, gesynct) — seit v2.10.0 der Standard
+// der ganzen Karte, fuer jeden Nutzer mit demselben Wert gespeichert.
+// `userExerciseIds` ({ userId: exerciseId }) ist Altbestand: bis v2.9 konnte
+// jeder Nutzer einzeln wechseln. Gelesen wird es weiter (laufende Trainings),
+// jeder Wechsel leert es.
 // Alle Felder sind additiv: Eintraege ohne sie bleiben ueberall gueltig.
+//
+// Warum gemeinsam (Gabriel 04.10.2026): Zu zweit wechselte ein Wisch nur einen
+// Nutzer. Der andere blieb auf der alten Uebung, und niemand sah, zu welcher
+// Uebung sein Gewicht gehoerte.
 //
 // Vertrag: scripts/uebungsring-test.mjs — wer Regeln hier aendert,
 // erweitert ZUERST den Test.
@@ -17,7 +23,7 @@ export function ringFuer(eintrag) {
   return [eintrag.basisExerciseId || eintrag.exerciseId, ...(eintrag.alternativen || [])]
 }
 
-// Aktive Uebung EINES Nutzers: seine Abweichung, sonst die Karten-Uebung.
+// Aktive Uebung EINES Nutzers: seine Abweichung (Altbestand), sonst die Karte.
 export function aktiveUebungId(eintrag, userId) {
   if (!eintrag) return null
   return (eintrag.userExerciseIds && eintrag.userExerciseIds[userId]) || eintrag.exerciseId
@@ -29,9 +35,9 @@ export function ringPosition(eintrag, userId) {
   return ringFuer(eintrag).indexOf(aktiveUebungId(eintrag, userId))
 }
 
-// Naechste Uebung im Ring fuer diesen Nutzer — oder null, wenn es nichts zu
-// wechseln gibt. Ausserhalb des Rings (freier Tausch) fuehrt der naechste
-// Schritt zur Basis.
+// Naechste Uebung im Ring, gemessen an diesem Nutzer — oder null, wenn es
+// nichts zu wechseln gibt. Ausserhalb des Rings (freier Tausch) fuehrt der
+// naechste Schritt zur Basis.
 export function naechsteImRing(eintrag, userId, richtung = 1) {
   const ring = ringFuer(eintrag)
   if (ring.length <= 1) return null
@@ -41,41 +47,56 @@ export function naechsteImRing(eintrag, userId, richtung = 1) {
   return naechste === aktuell ? null : naechste
 }
 
-// Neuer Eintrag mit gesetzter Nutzer-Uebung. Entspricht sie der
-// Karten-Uebung, wird die Abweichung entfernt (der Fallback reicht).
-// Immer frische Kopien — nie das Original veraendern (Vue-Proxy/Dexie).
-export function mitNutzerUebung(eintrag, userId, exerciseId) {
-  const map = { ...(eintrag.userExerciseIds || {}) }
-  if (exerciseId === eintrag.exerciseId) {
-    delete map[userId]
-  } else {
-    map[userId] = exerciseId
-  }
-  return { ...eintrag, userExerciseIds: map }
+// Die ganze Karte auf eine Uebung setzen: gilt fuer jeden Nutzer, auch fuer
+// einen, der spaeter dazukommt. Immer frische Kopien — nie das Original
+// veraendern (Vue-Proxy/Dexie).
+export function fuerAlle(eintrag, exerciseId) {
+  return { ...eintrag, exerciseId, userExerciseIds: {} }
 }
 
-// Beim Workout-Start: gemerkte Standards (`bevorzugt` aus dem Plan) in
-// Abweichungen ueberfuehren. Nur Ziele, die im Ring liegen und nicht schon
-// die Karten-Uebung sind — verwaiste Eintraege (Alternative spaeter
-// entfernt) wirken so nie.
-export function vorbelegungAusBevorzugt(eintrag) {
+// Wisch oder Wechsel-Knopf: alle Nutzer zusammen eine Uebung weiter. Das Ziel
+// misst sich an der Uebung im Kartentitel (`kopfUserId`), damit Altbestand mit
+// Abweichungen beim ersten Wechsel einheitlich wird. null = nichts zu wechseln.
+export function gemeinsamWeiter(eintrag, kopfUserId, richtung = 1) {
+  const ziel = naechsteImRing(eintrag, kopfUserId, richtung)
+  return ziel ? fuerAlle(eintrag, ziel) : null
+}
+
+// Standard der Karte aus `bevorzugt`: der erste Eintrag in `reihenfolge`
+// (Nutzer-Kennungen, der bevorzugte Nutzer zuerst), der im Ring liegt.
+// Verwaiste Ziele (Alternative spaeter entfernt) und unbekannte Kennungen
+// wirken nie.
+export function kartenStandard(eintrag, reihenfolge) {
   const ring = ringFuer(eintrag)
-  const map = {}
   const bevorzugt = (eintrag && eintrag.bevorzugt) || {}
-  for (const userId of Object.keys(bevorzugt)) {
+  for (const userId of reihenfolge) {
     const ziel = bevorzugt[userId]
-    if (ziel && ziel !== eintrag.exerciseId && ring.includes(ziel)) {
-      map[userId] = ziel
-    }
+    if (ziel && ring.includes(ziel)) return ziel
   }
-  return map
+  return null
 }
 
-// Was die Wechsel-Zeile eines Nutzers zeigt (Gabriel 26.09.2026): `ziel` ist
-// die Uebung, zu der ein Tipp wechselt — der Knopf nennt das Ziel, nicht die
-// aktuelle Uebung, denn die steht schon im Kartentitel (Uebung des
-// Titel-Nutzers `kopfUserId`). `eigene` ist die aktive Uebung des Nutzers,
-// aber nur, wenn sie vom Titel abweicht — sonst null.
+// Beim Workout-Start (erster Aufbau aus der Plan-Liste): die Karte beginnt mit
+// ihrem Standard, fuer alle Nutzer. Die Basis bleibt die geplante Uebung.
+export function startMitStandard(eintrag, reihenfolge) {
+  const basis = { ...eintrag, basisExerciseId: eintrag.basisExerciseId || eintrag.exerciseId }
+  return fuerAlle(basis, kartenStandard(basis, reihenfolge) || basis.exerciseId)
+}
+
+// Stern: ist `exerciseId` schon der Standard der Karte, entfernt ein Tipp ihn
+// (fuer alle), sonst wird sie der Standard — fuer jeden Nutzer in `userIds`
+// derselbe Wert, damit auch aeltere App-Versionen ihn je Nutzer lesen.
+// Liefert ein frisches Objekt fuer `bevorzugt`.
+export function toggleStandard(eintrag, userIds, exerciseId, reihenfolge) {
+  if (kartenStandard(eintrag, reihenfolge) === exerciseId) return {}
+  return Object.fromEntries(userIds.map(userId => [userId, exerciseId]))
+}
+
+// Was die Wechsel-Zeile zeigt (Gabriel 26.09.2026): `ziel` ist die Uebung, zu
+// der ein Tipp wechselt — der Knopf nennt das Ziel, nicht die aktuelle
+// Uebung, denn die steht schon im Kartentitel (Uebung des Titel-Nutzers
+// `kopfUserId`). `eigene` ist die aktive Uebung des Nutzers, aber nur, wenn
+// sie vom Titel abweicht (Altbestand) — sonst null.
 export function wechselAnzeige(eintrag, userId, kopfUserId) {
   const aktiv = aktiveUebungId(eintrag, userId)
   const kopf = aktiveUebungId(eintrag, kopfUserId)
@@ -83,16 +104,4 @@ export function wechselAnzeige(eintrag, userId, kopfUserId) {
     ziel: naechsteImRing(eintrag, userId, 1),
     eigene: aktiv !== kopf ? aktiv : null
   }
-}
-
-// Standard-Uebung eines Nutzers setzen bzw. per erneutem Setzen derselben
-// Uebung entfernen (Toggle). Liefert ein frisches Objekt.
-export function toggleBevorzugt(bevorzugt, userId, exerciseId) {
-  const map = { ...(bevorzugt || {}) }
-  if (map[userId] === exerciseId) {
-    delete map[userId]
-  } else {
-    map[userId] = exerciseId
-  }
-  return map
 }

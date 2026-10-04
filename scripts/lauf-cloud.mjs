@@ -4,7 +4,7 @@
  *
  * Aufruf (Windows PowerShell):
  *   node .\scripts\lauf-cloud.mjs holen
- *   node .\scripts\lauf-cloud.mjs holen --user user2 --ziel .\privat\stand-gab.json
+ *   node .\scripts\lauf-cloud.mjs holen --user user2 --ziel .\privat\stand-user2.json
  *   node .\scripts\lauf-cloud.mjs schreiben .\privat\laufplan-user2-v2.json
  *   node .\scripts\lauf-cloud.mjs schreiben .\privat\laufplan-user2-v2.json --jetzt
  *

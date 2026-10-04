@@ -83,19 +83,21 @@
 
         <!-- Uebungsliste, kompakt (Variante A aus zwei Skizzen, Gabriel
              26.09.2026): Kopf mit kleinem Vorschaubild, darunter je Person
-             ein Bereich. Die Werte je Person rechnet `kartenZeilen` vor. -->
+             ein Bereich. Die Werte je Person rechnet `kartenZeilen` vor.
+             Schluessel = geplante Uebung: der Ringwechsel setzt seit v2.10
+             `exerciseId`, die Karte muss trotzdem bleiben (Schiebe-Animation). -->
         <div
           v-for="karte in kartenZeilen"
-          :key="karte.entry.exerciseId + '-' + karte.index"
+          :key="(karte.entry.basisExerciseId || karte.entry.exerciseId) + '-' + karte.index"
           class="card exercise-card"
-          :class="{ 'exercise-active': activeExerciseIndex === karte.index }"
+          :class="['karte-' + karte.nutzer.length, { 'exercise-active': activeExerciseIndex === karte.index }]"
           @click="openExerciseInput(karte.index)"
           @touchstart.passive="onCardTouchStart"
           @touchend.passive="onCardTouchEnd($event, karte.index)"
         >
-          <!-- Kopf: Vorschaubild und Name der KOPF-Uebung (die aktive Uebung
-               des bevorzugten Nutzers — auf Lisas Handy traegt die Karte Lisas
-               Uebung), ohne Bild die MuscleMap klein als Platzhalter. Tipp
+          <!-- Kopf: Vorschaubild und Name der Uebung der Karte (sie gilt fuer
+               alle; nur Altbestand kann abweichen, dann zaehlt die Sicht des
+               bevorzugten Nutzers), ohne Bild die MuscleMap klein als Platzhalter. Tipp
                aufs Vorschaubild oeffnet die Detailansicht, NICHT das
                Eingabe-Rad — darum @click.stop. Wechselt die Kopf-Uebung,
                schieben Bild und Name zur Seite (Transition, Schluessel =
@@ -131,9 +133,9 @@
             </button>
           </div>
 
-          <!-- Werte je Person. Layout nach Anzahl: 1 volle Breite, 2
-               nebeneinander, 3 untereinander (bei voller Breite steht die
-               Wechsel-Zeile rechts in derselben Reihe). -->
+          <!-- Werte je Person, darunter EINE Wechsel-Zeile fuer alle. Layout
+               nach Anzahl: 1 volle Breite (die Wechsel-Zeile rechts in
+               derselben Reihe, .karte-1), 2 nebeneinander, 3 untereinander. -->
           <div class="exercise-values" :class="'users-' + karte.nutzer.length">
             <div
               v-for="z in karte.nutzer"
@@ -141,7 +143,6 @@
               class="user-value"
               role="group"
               :aria-label="z.user.name"
-              :data-user-id="z.user.id"
               :style="{ borderLeftColor: z.user.color }"
             >
               <div class="user-value-zeile">
@@ -187,41 +188,42 @@
                   <img src="/logo.svg" alt="" class="increase-icon-logo" />
                 </button>
               </div>
-              <!-- Schnellwechsel JE PERSON (nur mit hinterlegten Alternativen):
-                   Der Knopf nennt das ZIEL eines Tipps — die aktuelle Uebung
-                   steht schon im Kartentitel (Gabriel 26.09.2026). Macht die
-                   Person gerade eine andere Uebung als im Titel, steht deren
-                   Name in ihrer Farbe darueber. Der Stern merkt die aktive
-                   Uebung als ihren Standard im Plan (erneuter Tipp entfernt
-                   ihn); Wischen auf dem Bereich wechselt ebenfalls nur diese
-                   Person. -->
-              <Transition :name="schiebeName" mode="out-in">
-                <div v-if="z.anzeige.eigene || z.anzeige.ziel" :key="z.exId" class="user-wechsel">
-                  <div v-if="z.anzeige.eigene" class="user-eigene" :style="{ color: z.user.color }">
-                    {{ getExerciseName(z.anzeige.eigene) }}
-                  </div>
-                  <div v-if="z.anzeige.ziel" class="user-ring-row">
-                    <button
-                      class="user-ring-btn"
-                      :aria-label="`${z.user.name}: wechseln zu ${getExerciseName(z.anzeige.ziel)}`"
-                      @click.stop="tapRingUser(karte.index, z.user.id)"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
-                      <span class="user-ring-name">{{ getExerciseName(z.anzeige.ziel) }}</span>
-                    </button>
-                    <button
-                      v-if="karte.standardMoeglich"
-                      class="user-star-btn"
-                      :class="{ active: istStandard(karte.entry, z.user.id) }"
-                      :style="{ '--user-color': z.user.color }"
-                      :title="`${z.user.name}: aktive Uebung als Standard merken`"
-                      @click.stop="merkeStandard(karte.index, z.user.id)"
-                    >&#9733;</button>
-                  </div>
-                </div>
-              </Transition>
+              <!-- Nur Altbestand (Training von vor v2.10, als jeder einzeln
+                   wechselte): weicht die Uebung dieser Person vom Titel ab,
+                   steht ihr Name in ihrer Farbe da. Der naechste Wechsel
+                   bringt alle wieder zusammen. -->
+              <div v-if="z.eigene" class="user-eigene" :style="{ color: z.user.color }">
+                {{ getExerciseName(z.eigene) }}
+              </div>
             </div>
           </div>
+
+          <!-- Schnellwechsel fuer ALLE zusammen (nur mit hinterlegten
+               Alternativen, Gabriel 04.10.2026): Der Knopf nennt das ZIEL
+               eines Tipps — die aktuelle Uebung steht schon im Kartentitel
+               (Gabriel 26.09.2026). Wischen ueber die Karte wechselt genauso.
+               Der Stern merkt die Uebung als Standard dieses Plan-Platzes
+               fuer alle (erneuter Tipp entfernt ihn). -->
+          <Transition :name="schiebeName" mode="out-in">
+            <div v-if="karte.ziel" :key="karte.kopf" class="karte-wechsel">
+              <button
+                class="ring-btn"
+                :aria-label="`Alle wechseln zu ${getExerciseName(karte.ziel)}`"
+                @click.stop="tapRing(karte.index)"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
+                <span class="ring-name">{{ getExerciseName(karte.ziel) }}</span>
+              </button>
+              <button
+                v-if="karte.standardMoeglich"
+                class="star-btn"
+                :class="{ active: karte.istStandard }"
+                :aria-pressed="karte.istStandard"
+                title="Diese Uebung als Standard fuer alle merken"
+                @click.stop="merkeStandard(karte.index)"
+              >&#9733;</button>
+            </div>
+          </Transition>
         </div>
 
         <!-- Werkzeugzeile unter der Uebungsliste (Variante C, Gabriel
@@ -503,10 +505,10 @@ import { vorschauUrl, eintragFuerKey } from '../utils/uebungsBilder.js'
 import {
   ringFuer,
   aktiveUebungId,
-  naechsteImRing,
-  mitNutzerUebung,
-  vorbelegungAusBevorzugt,
-  toggleBevorzugt,
+  gemeinsamWeiter,
+  kartenStandard,
+  startMitStandard,
+  toggleStandard,
   wechselAnzeige
 } from '../utils/uebungsRing.js'
 import {
@@ -818,7 +820,10 @@ const kartenZeilen = computed(() => workoutExercises.value.map((entry, index) =>
   entry,
   index,
   kopf: kopfId(entry),
+  // Ziel der gemeinsamen Wechsel-Zeile, gemessen an der Uebung im Titel
+  ziel: wechselAnzeige(entry, preferredUserId.value, preferredUserId.value).ziel,
   standardMoeglich: kannStandardMerken(index),
+  istStandard: kartenStandard(entry, standardReihenfolge.value) === kopfId(entry),
   nutzer: authStore.activeUsers.map(user => {
     const exId = aktiveId(entry, user.id)
     return {
@@ -827,7 +832,7 @@ const kartenZeilen = computed(() => workoutExercises.value.map((entry, index) =>
       wert: kartenWert(exId, user.id),
       steigern: increaseFlags[exId]?.[user.id] || false,
       punkte: satzPunkte(exId, user.id),
-      anzeige: wechselAnzeige(entry, user.id, preferredUserId.value)
+      eigene: wechselAnzeige(entry, user.id, preferredUserId.value).eigene
     }
   })
 })))
@@ -921,7 +926,7 @@ const workoutNote = computed(() => workoutStore.activeWorkout?.note || '')
 // Der Zyklus-Nutzer: der aktive Nutzer mit zyklus: true (siehe constants.js)
 const zyklusUser = computed(() => authStore.activeUsers.find(u => u.zyklus) || null)
 
-// Vorlesetext der Farbkreise im Kopf ("Lisa, Gab")
+// Vorlesetext der Farbkreise im Kopf (die Namen, mit Komma getrennt)
 const aktiveNamen = computed(() => authStore.activeUsers.map(u => u.name).join(', '))
 
 const currentCycleDay = computed(() => {
@@ -963,18 +968,25 @@ async function removeCycleDay() {
   showCycleModal.value = false
 }
 
-// --- Schnellwechsel-Ring (P10 + Standard je Nutzer): Regeln in
+// --- Schnellwechsel-Ring (P10, seit v2.10.0 fuer alle gemeinsam): Regeln in
 // --- utils/uebungsRing.js, Vertrag in scripts/uebungsring-test.mjs ---
 
+// Wessen Stern zuerst zaehlt, falls alte Plan-Eintraege je Nutzer
+// verschiedene Standards tragen: der bevorzugte Nutzer, dann die uebrigen
+// aktiven, dann alle anderen.
+const standardReihenfolge = computed(() => {
+  const ids = [preferredUserId.value, ...authStore.activeUsers.map(u => u.id), ...authStore.users.map(u => u.id)]
+  return [...new Set(ids)]
+})
+
 // Beim Aufbau der Workout-Liste bekommt jeder Eintrag seine Basis (die
-// geplante Uebung); Resume/Override behalten gespeicherte Werte. Die im Plan
-// gemerkten Standard-Uebungen (`bevorzugt`) werden beim ersten Aufbau in
-// `userExerciseIds` ueberfuehrt — ein gespeichertes Objekt (Resume) gewinnt.
+// geplante Uebung). Beim ERSTEN Aufbau aus der Plan-Liste beginnt die Karte
+// mit ihrem Standard (`bevorzugt`), fuer alle. Gespeicherte Eintraege
+// (Resume/Override) tragen immer `userExerciseIds` und behalten ihren Stand.
 function mitBasis(list) {
   return list.map(e => {
     const eintrag = { ...e, basisExerciseId: e.basisExerciseId || e.exerciseId }
-    if (!eintrag.userExerciseIds) eintrag.userExerciseIds = vorbelegungAusBevorzugt(eintrag)
-    return eintrag
+    return eintrag.userExerciseIds ? eintrag : startMitStandard(eintrag, standardReihenfolge.value)
   })
 }
 
@@ -988,15 +1000,11 @@ function aktiveId(entry, userId) {
   return aktiveUebungId(entry, userId)
 }
 
-// Kopf der Karte (Titel, Thumbnail, Detailansicht): die Uebung des
-// bevorzugten Nutzers — auf Lisas Handy traegt die Karte Lisas Uebung.
+// Kopf der Karte (Titel, Thumbnail, Detailansicht): die Uebung der Karte.
+// Nur Altbestand mit Abweichungen kennt verschiedene Uebungen — dann die des
+// bevorzugten Nutzers.
 function kopfId(entry) {
   return aktiveUebungId(entry, preferredUserId.value)
-}
-
-// Stern-Zustand: ist die aktive Uebung des Nutzers sein gemerkter Standard?
-function istStandard(entry, userId) {
-  return (entry.bevorzugt || {})[userId] === aktiveId(entry, userId)
 }
 
 // Standards lassen sich nur fuer echte Plan-Positionen merken — nicht fuer
@@ -1017,15 +1025,18 @@ function planPositionFuer(index) {
   return day.exercises.findIndex(e => e.exerciseId === entry.basisExerciseId)
 }
 
-// Stern: aktive Uebung des Nutzers als seinen Standard im PLAN merken
-// (erneuter Tipp entfernt ihn). Gesynct — gilt damit auf allen Geraeten.
-async function merkeStandard(index, userId) {
+// Stern: die Uebung der Karte als Standard dieses Plan-Platzes merken, fuer
+// alle Nutzer (erneuter Tipp entfernt ihn). Gesynct — gilt auf allen Geraeten.
+async function merkeStandard(index) {
   if (istWischNachklick()) return
   const entry = workoutExercises.value[index]
   const day = currentDay.value
   const planIndex = planPositionFuer(index)
   if (!entry || planIndex < 0 || !day?.id) return
-  const neu = toggleBevorzugt(day.exercises[planIndex].bevorzugt, userId, aktiveId(entry, userId))
+  // Massgeblich ist der Plan-Eintrag (er traegt den gespeicherten Stern), der
+  // Ring kommt vom Workout-Eintrag (Basis + Alternativen sind dieselben)
+  const planEintrag = { ...entry, bevorzugt: day.exercises[planIndex].bevorzugt }
+  const neu = toggleStandard(planEintrag, authStore.users.map(u => u.id), kopfId(entry), standardReihenfolge.value)
   // Kopier-Leitplanke wie beim dauerhaften Tausch; basisExerciseId und
   // userExerciseIds gehoeren dem Workout-Log, nicht dem Plan
   const updated = day.exercises.map((e, i) => ({
@@ -1049,12 +1060,13 @@ async function merkeStandard(index, userId) {
 const schiebeRichtung = ref('vor')
 const schiebeName = computed(() => `schieben-${schiebeRichtung.value}`)
 
-async function cycleRingUser(index, userId, dir = 1) {
-  const entry = workoutExercises.value[index]
-  const nextId = naechsteImRing(entry, userId, dir)
-  if (!nextId) return
+// Alle Nutzer der Karte zusammen eine Uebung weiter (Gabriel 04.10.2026 —
+// vorher wechselte ein Wisch nur einen, der andere blieb unbemerkt stehen)
+async function wechsleKarte(index, dir = 1) {
+  const neu = gemeinsamWeiter(workoutExercises.value[index], preferredUserId.value, dir)
+  if (!neu) return
   schiebeRichtung.value = dir > 0 ? 'vor' : 'zurueck'
-  workoutExercises.value[index] = mitNutzerUebung(entry, userId, nextId)
+  workoutExercises.value[index] = neu
   // Gleicher Weg wie beim Tausch: Abweichung am Log sichern, Empfehlungen
   // und Notification nachziehen
   await workoutStore.persistWorkoutExercises(workoutExercises.value)
@@ -1062,9 +1074,9 @@ async function cycleRingUser(index, userId, dir = 1) {
   updateNotification()
 }
 
-function tapRingUser(index, userId) {
+function tapRing(index) {
   if (istWischNachklick()) return
-  cycleRingUser(index, userId, 1)
+  wechsleKarte(index, 1)
 }
 
 // Wisch-Erkennung auf der Karte: horizontal (|dx| > 40 px und |dx| > 2|dy|)
@@ -1091,12 +1103,9 @@ function onCardTouchEnd(e, index) {
   letzterWischUm = Date.now()
   // Ohne Alternativen loest Wischen nichts aus (nur der Nachklick-Schutz greift)
   if (getRing(workoutExercises.value[index]).length <= 1) return
-  // Wisch auf einem Nutzer-Bereich wechselt DESSEN Uebung; ausserhalb (Kopf)
-  // die des bevorzugten Nutzers. target ist das Element des Fingerkontakts.
-  const bereich = e.target?.closest?.('.user-value')
-  const userId = bereich?.dataset?.userId || preferredUserId.value
-  // Wisch nach links = vorwaerts im Ring, nach rechts = zurueck
-  cycleRingUser(index, userId, dx < 0 ? 1 : -1)
+  // Egal wo auf der Karte: alle wechseln zusammen. Wisch nach links =
+  // vorwaerts im Ring, nach rechts = zurueck
+  wechsleKarte(index, dx < 0 ? 1 : -1)
 }
 
 function openExerciseInput(index) {
@@ -1146,8 +1155,8 @@ function radVorbelegen() {
 async function savePickerValues() {
   const ex = workoutExercises.value[activeExerciseIndex.value]
   const userId = pickerUserId.value
-  // Der Satz gehoert zur aktiven Uebung DES NUTZERS — Lisas Latzug-Satz
-  // landet bei Latzug, Gabs Klimmzug-Satz bei Klimmzug
+  // Der Satz gehoert zur aktiven Uebung DES NUTZERS — bei Altbestand mit
+  // Abweichung landet ein Latzug-Satz bei Latzug, ein Klimmzug-Satz bei Klimmzug
   await workoutStore.saveSet(aktiveId(ex, userId), userId, pickerSatz.value, pickerWeight.value, pickerReps.value)
 
   // Auto-Wechsel (Regel: naechsterSchritt in utils/saetze.js): reihum der
@@ -1860,15 +1869,11 @@ onUnmounted(() => {
   border-radius: 50%;
 }
 
-/* Zeile 2 (nur mit Alternativen oder abweichender Uebung): eigene Uebung in
-   der Nutzerfarbe, darunter der Wechsel-Knopf mit dem ZIEL und der Stern
-   zum Merken des Standards. Statische Farben, kein color-mix. */
-.user-wechsel {
-  min-width: 0;
-  margin-top: 2px;
-}
-
+/* Nur Altbestand: abweichende Uebung einer Person in ihrer Farbe, als eigene
+   Zeile unter dem Wert (flex-basis fuer die Reihen-Layouts mit 1 und 3) */
 .user-eigene {
+  flex-basis: 100%;
+  min-width: 0;
   font-size: 12px;
   font-weight: var(--font-weight-semibold);
   line-height: 1.3;
@@ -1877,15 +1882,17 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.user-ring-row {
+/* Eine Wechsel-Zeile fuer alle (nur mit Alternativen): Knopf mit dem ZIEL,
+   daneben der Stern fuer den Standard. Statische Farben, kein color-mix. */
+.karte-wechsel {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  margin-top: 2px;
+  margin-top: 4px;
   min-width: 0;
 }
 
-.user-ring-btn {
+.ring-btn {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1900,17 +1907,18 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-.user-ring-btn svg {
+.ring-btn svg {
   flex-shrink: 0;
 }
 
-.user-ring-name {
+.ring-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.user-star-btn {
+/* Stern in Gold statt einer Nutzerfarbe: der Standard gilt fuer alle */
+.star-btn {
   flex-shrink: 0;
   width: 24px;
   height: 24px;
@@ -1922,16 +1930,12 @@ onUnmounted(() => {
   line-height: 1;
 }
 
-.user-star-btn.active {
-  color: var(--user-color);
-  border-color: var(--user-color);
+.star-btn.active {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
 }
 
-/* Volle Breite (1 oder 3 Personen): Wert links, Wechsel rechts in derselben
-   Reihe. Der Wert schrumpft nie; ohne Wechsel fuellt er die Reihe
-   (Steigern-Knopf rechts), mit Wechsel nimmt der fast den ganzen Rest
-   (Wachstum 100 zu 1) und kuerzt lange Namen mit "…". Erst wenn nicht mal
-   72 px uebrig sind, rutscht der Wechsel in eine zweite Zeile. */
+/* Volle Breite (1 oder 3 Personen): Wert und Steigern-Knopf in einer Reihe */
 .users-1 .user-value,
 .users-3 .user-value {
   display: flex;
@@ -1945,28 +1949,27 @@ onUnmounted(() => {
   flex: 1 0 auto;
 }
 
-.users-1 .user-wechsel,
-.users-3 .user-wechsel {
+/* Eine Person: die Wechsel-Zeile steht rechts neben dem Wert, wie bis v2.9
+   (die Karte bleibt so niedrig). Der Wert schrumpft nie; der Wechsel nimmt
+   fast den ganzen Rest (Wachstum 100 zu 1) und kuerzt lange Namen mit "…".
+   Erst wenn nicht mal 72 px uebrig sind, rutscht er in eine eigene Zeile. */
+.karte-1 {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  column-gap: var(--space-sm);
+}
+
+.karte-1 .exercise-kopf {
+  flex-basis: 100%;
+}
+
+.karte-1 .exercise-values {
+  flex: 1 0 auto;
+}
+
+.karte-1 .karte-wechsel {
   flex: 100 1 72px;
-  min-width: 0;
-  margin-top: 0;
-}
-
-/* Eigene Uebung neben dem Knopf: sie wird zuerst gekuerzt, der Knopf (die
-   Aktion) soll lesbar bleiben */
-.users-1 .user-eigene,
-.users-3 .user-eigene {
-  flex: 0 3 auto;
-  min-width: 0;
-  max-width: 38%;
-}
-
-.users-1 .user-ring-row,
-.users-3 .user-ring-row {
-  flex: 1;
   margin-top: 0;
 }
 

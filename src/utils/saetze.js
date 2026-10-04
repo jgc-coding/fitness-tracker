@@ -3,7 +3,7 @@
 // Jede Person hat eine Satzzahl (Einstellungen -> "Saetze je Uebung",
 // db.meta `saetze_<userId>`, gesynct): 1 = EIN Referenzwert je Uebung, wie die
 // App bis v2.3 arbeitete; ab 2 bekommt jeder Satz ein eigenes setLog mit
-// setNumber 1..n (Entscheidung Gabriel 26.09.2026, fuer Lisa: 3).
+// setNumber 1..n (Entscheidung Gabriel 26.09.2026, fuer user1: 3).
 // Ein Satz ist immer EIN Datensatz: Gewicht und Wdh stammen nie aus zwei
 // verschiedenen setLogs (Vorwert-Regel, siehe CLAUDE.md).
 //
