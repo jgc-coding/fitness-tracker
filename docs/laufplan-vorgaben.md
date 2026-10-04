@@ -20,7 +20,7 @@ Dieses Dokument erklaert, wie die Zahlen darin entstehen.
    (`scripts/laufplan-vorgaben.mjs`).
 
 ```
-node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-user2.csv
+node .\scripts\pace-modell.mjs --datei .\privat\garmin-historie-<user>.csv
 node .\scripts\laufplan-vorgaben.mjs --plan .\privat\laufplan-user2-v2.json --profil .\privat\pace-profil.json
 ```
 
@@ -76,7 +76,7 @@ ist oeffentlich.
 ```json
 {
   "user2": {
-    "csv": "C:/.../privat/garmin-historie-user2.csv",
+    "csv": "C:/.../privat/garmin-historie-<user>.csv",
     "monate": 18,
     "halbwertszeitTage": 180,
     "gelaendeStandard": 6,

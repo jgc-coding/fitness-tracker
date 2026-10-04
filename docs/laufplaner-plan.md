@@ -364,7 +364,7 @@ Fehler", "Import derselben Datei zweimal → zweiter Lauf aendert nichts".
 
 ## 6. Paket 2: Garmin-Anbindung ueber intervals.icu (v1.5.0)
 
-### 6.1 Einrichtung (macht Gabriel bzw. user1 selbst — Claude legt keine Konten an, gibt keine Zugriffe frei)
+### 6.1 Einrichtung (macht jeder Nutzer selbst — Claude legt keine Konten an, gibt keine Zugriffe frei)
 
 Anleitung als `docs/garmin-anbindung.md` (ohne persoenliche Daten):
 1. Konto bei intervals.icu anlegen (kostenlos).
@@ -462,7 +462,7 @@ die laeuft weiter ueber eine Sitzung mit Gabriel. Nur nach Freigabe bauen.
 Braucht von Gabriel (pro Person): Zielrennen (Backyard Ultra: Ziel in Runden,
 Termin, Untergrund/Hoehenmeter der Runde), aktueller Wochenumfang und laengster
 Lauf, verfuegbare Tage und Zeitfenster (Kinder!), Krafttage, Verletzungen,
-user1 Ziel (gleiches Rennen oder eigenes). Historie: Garmin Connect (Web) →
+Ziel von user1 (gleiches Rennen oder eigenes). Historie: Garmin Connect (Web) →
 Aktivitaeten → Filter Laufen → Liste scrollen bis alles geladen → "CSV
 exportieren" → `privat/garmin-historie-<user>.csv`.
 

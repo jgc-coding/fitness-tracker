@@ -12,11 +12,11 @@ Nutzerwahl beim App-Start. Die Single-Variante entfaellt ersatzlos
 (Gabriels Entscheidung 2026-09-22: **user3 startet frisch**, keine Datenuebernahme).
 Dazu kommen: Uebungsfotos mit Muskel-Grafik, eine Uebungs-Detailansicht mit
 Notizen je Nutzer, Alternativ-Uebungen mit Schnellwechsel (Tippen UND Wischen —
-Gabriels Wahl), eine Workout-Notiz und user1 Zyklustag-Rad.
+Gabriels Wahl), eine Workout-Notiz und das Zyklustag-Rad fuer user1.
 
 ## Entscheidungen (von Gabriel, 2026-09-22)
 
-1. **user3 Single-Daten:** frisch starten, keine Uebernahme. Die Single-Variante
+1. **Single-Daten von user3:** frisch starten, keine Uebernahme. Die Single-Variante
    (`single/`, `/fitness-tracker/single/`) wird komplett entfernt.
 2. **Uebungsfotos:** aus der freien Datenbank `yuhonas/free-exercise-db`
    (GitHub, Unlicense/gemeinfrei; 2 Fotos je Uebung). Die Zuordnung der 31
@@ -79,7 +79,7 @@ ist ihm verboten):
 
 | Ort | Neu | Bedeutung |
 |---|---|---|
-| `constants.js` USERS | user3 "user3", Farbe gruen; user1 bekommt `zyklus: true` | dritter Nutzer; Zyklus-UI nur fuer user1 |
+| `constants.js` USERS | user3, Farbe gruen; user1 bekommt `zyklus: true` | dritter Nutzer; Zyklus-UI nur fuer user1 |
 | auth store | `activeUserIds` (localStorage, geraete-lokal) | wer heute trainiert |
 | workoutLogs | `userIds` (Array), `note` (String), `cycleDays` (Objekt `{userId: Zahl}`) | Teilnehmer, Workout-Notiz, Zyklustag |
 | trainingDays.exercises[i] | `alternativen` (Array aus exerciseId, max 4) | hinterlegte Alternativ-Uebungen |
@@ -133,7 +133,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
 
 ## Nicht enthalten (Scope-Grenzen)
 
-- KEINE Uebernahme von user3 Single-Daten (Entscheidung: frisch starten).
+- KEINE Uebernahme der Single-Daten von user3 (Entscheidung: frisch starten).
 - KEIN Deploy, KEIN Push, KEIN Tag, KEIN Firebase-Console-Schritt im Lauf.
 - KEINE Videos/GIFs von extern — die "Bewegung" entsteht aus dem Wechsel der
   zwei Fotos. Eigene Bilder/Animationen kann Gabriel spaeter in
@@ -149,7 +149,7 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
   - Kriterium: Ordner `single/` und Datei `vite.single.config.js` existieren nicht mehr; `scripts/check-drift.mjs` existiert nicht mehr
   - Kriterium: `package.json` enthaelt keine Skripte `dev:single`, `build:single`, `preview:single`, `check:drift`, `build:all` mehr; `.github/workflows/deploy.yml` ruft stattdessen `npm run build` auf (Kommentar zur Zwei-App-Auslieferung dort entfernt)
   - Kriterium: `vite.config.js` enthaelt keine `navigateFallbackDenylist` fuer `/single/` mehr; `public/sw-custom.js` prueft in `isOwnClient` nicht mehr auf `single/`
-  - Kriterium: `src/utils/constants.js` USERS enthaelt user3 mit Name "user3" (Farbe `var(--color-user3)`), user1 traegt `zyklus: true`; `src/styles/variables.css` definiert `--color-user3` (gruen, z.B. #2f7d4f) und `--color-user3-bg`
+  - Kriterium: `src/utils/constants.js` USERS enthaelt user3 (Farbe `var(--color-user3)`), user1 traegt `zyklus: true`; `src/styles/variables.css` definiert `--color-user3` (gruen, z.B. #2f7d4f) und `--color-user3-bg`
   - Kriterium: SettingsView zeigt die Benutzer-Beschriftung generisch fuer alle Nutzer ("Benutzer 3" statt hart kodiertem Zweier-Ternary)
   - Kriterium: CLAUDE.md und README.md sind angepasst: `git grep -l "FitTrack Single" -- CLAUDE.md README.md` und `git grep -l "single/src" -- CLAUDE.md README.md` und `git grep -l "check:drift" -- CLAUDE.md README.md package.json scripts/ src/` liefern jeweils keine Treffer; die uebrigen Beschreibungen dort bleiben korrekt (kein Status-Text)
   - Kriterium: pruefen.txt gruen (`npm run build` eingeschlossen)
@@ -238,20 +238,20 @@ im Manifest zu `middle_back`, `lower_back` normalisiert.
    Kernfunktionen aus verbesserungen.md). UI-Verifikations-Regeln der globalen
    CLAUDE.md beachten (Viewport zuerst; Wisch-Geste ist am Geraet zu testen,
    nicht im Browser — ehrlich ausweisen).
-2. **user3 Versicherung (VOR dem Deploy, durch Gabriel/user3):** In der alten
-   Single-App auf user3 Geraet einmal Settings -> "Backup exportieren (JSON)"
+2. **Versicherung fuer user3 (VOR dem Deploy, durch Gabriel/user3):** In der alten
+   Single-App auf dem Geraet von user3 einmal Settings -> "Backup exportieren (JSON)"
    antippen und die Datei aufheben. user3 startet zwar frisch, aber damit ist
-   sein alter Stand gesichert, falls er es sich anders ueberlegt. Nach dem
+   der alte Stand gesichert, falls er es sich anders ueberlegt. Nach dem
    Deploy ist die Single-App nicht mehr erreichbar.
 3. **Deploy:** per `/deploy` (Build, Commit, Push, Pages, Status-Check), danach
    Tag `v2.0.0`. Telegram-Hinweis an die Handys: App komplett schliessen und
    neu oeffnen, Settings muss 2.0.0 zeigen. Warnzeile in die Nachricht:
-   "user3 alte Single-App verschwindet mit diesem Update — Backup vorher
+   "Die alte Single-App von user3 verschwindet mit diesem Update — Backup vorher
    exportieren" (Datenverlust-Check der globalen Regeln).
 4. **Handy-Checkliste (kann Claude nicht selbst pruefen):** Startdialog auf
    beiden Handys; drei Nutzer eintragen; Wischen auf der Karte; Sperrbildschirm-
    Quick-Log mit 1 und 3 aktiven Nutzern; Fotos offline (Flugmodus nach erstem
-   Laden); user1 Zyklustag-Rad.
+   Laden); Zyklustag-Rad von user1.
 
 ## Rollback (falls etwas schiefgeht)
 

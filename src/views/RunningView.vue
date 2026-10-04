@@ -87,13 +87,13 @@ async function abgleichBeimOeffnen() {
     try {
       const ergebnis = await running.syncFromIntervals(user.id)
       if (ergebnis.ok && (ergebnis.summary.zugeordnet > 0 || ergebnis.summary.ergaenzt > 0)) {
-        hinweis.value = `${user.name}: ${ergebnis.text}`
+        hinweis.value = `${authStore.getUserName(user.id)}: ${ergebnis.text}`
         hinweisIstFehler.value = false
       }
     } catch (e) {
       // Sichtbar machen statt still schlucken - der Grund steht im Log.
       console.warn(`[FitTrack] [WARN] intervals: Abgleich fehlgeschlagen - ID ${e?.id || '?'}`)
-      hinweis.value = `${user.name}: ${e?.satz || 'Abgleich fehlgeschlagen.'}`
+      hinweis.value = `${authStore.getUserName(user.id)}: ${e?.satz || 'Abgleich fehlgeschlagen.'}`
       hinweisIstFehler.value = true
     }
   }

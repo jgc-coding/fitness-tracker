@@ -194,29 +194,34 @@ npm run preview   # Build lokal testen (Port 4173)
   App. Gymvisual-/ExerciseDB-Bilder (auch GitHub-Kopien) sind kostenpflichtig und
   duerfen nicht ins oeffentliche Repo; die KI-Bilder aehneln dem Stil, sind aber
   neu erzeugt.
-- **Alternativen-Ring mit Standard-Uebung JE NUTZER:** Ein Plan-Eintrag traegt
-  optional `alternativen` (exerciseIds, hartes Maximum 4) und `bevorzugt`
-  ({ userId: exerciseId }, gesynct). Uebungslisten dort NUR ueber
-  `kopiereUebungsEintrag` neu bauen (harte Feldaufzaehlung verliert Felder). Ein
-  Standard auf einer entfernten Alternative bleibt stehen und wirkt nicht mehr.
-  Im Workout ist der Ring `[basisExerciseId, ...alternativen]`; jeder Nutzer hat
-  seine aktive Uebung in `userExerciseIds` (nur Abweichungen) — beides gehoert dem
-  Workout-Log (`mitBasis` belegt aus `bevorzugt` vor), nie dem Plan. Saetze,
-  Empfehlungen, Rad und Notification laufen ueberall ueber `aktiveId(eintrag,
-  userId)`; der Karten-Kopf zeigt die Uebung des bevorzugten Nutzers (`kopfId`).
-  Wechsel per Tipp auf die Wechsel-Zeile oder Wischen (|dx| > 40 px und > 2|dy|,
-  passive Listener; auf einem `.user-value` wechselt dessen Nutzer, sonst der
-  bevorzugte). Der Knopf nennt das ZIEL, nie die aktuelle Uebung; weicht die
-  Uebung eines Nutzers vom Titel ab, steht ihr Name in seiner Farbe dabei
-  (`wechselAnzeige`). Der Karten-Schluessel darf beim Ringwechsel NICHT wechseln
-  (sonst keine Schiebe-Animation). Karten-Layout Variante A (Gabriel 26.09.):
-  Vorschaubild neben dem Titel, je Person ein Bereich mit Farbkreis, zu zweit
-  nebeneinander, sonst je eine Zeile. Der Stern schreibt `bevorzugt` per
-  updateTrainingDay. Der freie Tausch setzt `exerciseId` und LEERT
-  `userExerciseIds`; jeder Wechsel laeuft den Tausch-Weg (persist, Empfehlungen,
-  Notification). Der 400-ms-Nachklick-Schutz (`istWischNachklick`) faengt das
-  click nach einem Wisch ab — nicht entfernen. `alternativen`,
-  `userExerciseIds`, `bevorzugt` als frische Kopien persistieren.
+- **Alternativen-Ring, Wechsel IMMER fuer alle zusammen** (Gabriel 04.10.2026 —
+  vorher wechselte ein Wisch nur einen Nutzer, der andere blieb unbemerkt auf der
+  alten Uebung): Ein Plan-Eintrag traegt optional `alternativen` (exerciseIds,
+  hartes Maximum 4) und `bevorzugt` ({ userId: exerciseId }, gesynct). Uebungslisten
+  dort NUR ueber `kopiereUebungsEintrag` neu bauen (harte Feldaufzaehlung verliert
+  Felder). Im Workout ist der Ring `[basisExerciseId, ...alternativen]`, und
+  `exerciseId` ist die Uebung der Karte FUER ALLE. Wisch (|dx| > 40 px und > 2|dy|,
+  passive Listener, egal wo auf der Karte) und Wechsel-Knopf laufen ueber
+  `gemeinsamWeiter` (setzt `exerciseId`, LEERT `userExerciseIds`), ebenso der freie
+  Tausch. `userExerciseIds` ist nur noch Altbestand aus Trainings bis v2.9 (jeder
+  wechselte einzeln): weiter gelesen, nie mehr gesetzt; weicht ein Nutzer ab, steht
+  seine Uebung in seiner Farbe in seinem Bereich (`wechselAnzeige().eigene`).
+  Saetze, Empfehlungen, Rad und Notification laufen trotzdem ueberall ueber
+  `aktiveId(eintrag, userId)`. Der Stern ist der Standard des Plan-Platzes fuer
+  alle: `toggleStandard` schreibt denselben Wert fuer jeden Nutzer (aeltere
+  Versionen lesen je Nutzer), `kartenStandard` liest zuerst den bevorzugten Nutzer
+  (alte Einzel-Sterne gelten so fuer die ganze Karte); der erste Aufbau aus der
+  Plan-Liste startet damit (`startMitStandard` in `mitBasis`). Ein Standard auf
+  einer entfernten Alternative wirkt nicht mehr. Eine Wechsel-Zeile je Karte, der
+  Knopf nennt das ZIEL, nie die aktuelle Uebung. Der Karten-Schluessel darf beim
+  Ringwechsel NICHT wechseln (sonst keine Schiebe-Animation) — darum aus
+  `basisExerciseId` + Index, nie aus `exerciseId`. Karten-Layout
+  Variante A (Gabriel 26.09.): Vorschaubild neben dem Titel, je Person ein Bereich
+  mit Farbkreis, zu zweit nebeneinander, sonst je eine Zeile; allein steht die
+  Wechsel-Zeile rechts neben dem Wert (`.karte-1`). Jeder Wechsel laeuft den
+  Tausch-Weg (persist, Empfehlungen, Notification). Der 400-ms-Nachklick-Schutz
+  (`istWischNachklick`) faengt das click nach einem Wisch ab — nicht entfernen.
+  `alternativen`, `userExerciseIds`, `bevorzugt` als frische Kopien persistieren.
 
 ## Architektur: Laufplaner
 - **Claude plant, die App zeigt und haelt fest.** Plaene entstehen als JSON-Datei von
@@ -291,7 +296,9 @@ npm run preview   # Build lokal testen (Port 4173)
   `INVALID_LOGIN_CREDENTIALS`. Kandidaten durchprobieren:
   `privat\passwort-pruefen.html`.
 - **Dieses Repo ist OEFFENTLICH.** Keine personenbezogenen Daten, auch nicht in
-  Doku. Die Konto-E-Mail steht als Platzhalter `FITNESS-KONTO@BEISPIEL.DE` in
+  Doku, Tests, Kommentaren oder Beispiel-Pfaden: die Nutzer heissen dort nur
+  user1-3. Anzeigenamen liest die App aus `db.meta` (`userName_<id>`, gesynct)
+  ueber den auth store, `constants.js` traegt nur Platzhalter "Person n". Die Konto-E-Mail steht als Platzhalter `FITNESS-KONTO@BEISPIEL.DE` in
   `firestore.rules`; die echte nur in der Firebase Console und Claudes Memory.
 - **Console-Arbeit** ueber Claude-in-Chrome: Rules-Editor ist CodeMirror 5
   (`document.querySelector('.CodeMirror').CodeMirror.setValue(...)`); der

@@ -180,7 +180,7 @@ export async function importFromJSON(jsonText) {
   }
 
   // Let open views reload their reactive state from Dexie.
-  for (const collection of ['exercises', 'plans', 'trainingDays', 'workoutLogs', 'setLogs', 'runPlans', 'runSessions', 'exerciseNotes']) {
+  for (const collection of ['exercises', 'plans', 'trainingDays', 'workoutLogs', 'setLogs', 'runPlans', 'runSessions', 'exerciseNotes', 'meta']) {
     window.dispatchEvent(
       new CustomEvent('fitness-sync-changed', { detail: { collection } })
     )
