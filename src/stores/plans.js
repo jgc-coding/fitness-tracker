@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { db, generateId } from '../db/dexie.js'
 import { getCurrentWeekVariant } from '../utils/dateHelpers.js'
 import { pushRecord, pushDelete, pushBulkDelete } from '../services/syncService.js'
+import { sortiereTage, naechsterTagesPlatz } from '../utils/planReihenfolge.js'
 
 export const usePlansStore = defineStore('plans', () => {
   const plans = ref([])
@@ -90,7 +91,7 @@ export const usePlansStore = defineStore('plans', () => {
       planId,
       title,
       weekVariant,
-      dayOrder: existingDays.length,
+      dayOrder: naechsterTagesPlatz(existingDays),
       exercises: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -118,10 +119,30 @@ export const usePlansStore = defineStore('plans', () => {
     pushDelete('trainingDays', dayId)
   }
 
+  // Neue Plaetze der Tage nach dem Umsortieren ([{ id, dayOrder }] aus
+  // neueTagesPlaetze): lokal in EINER Transaktion, danach je Tag in die Cloud.
+  // Planung und Startbildschirm lesen beide getDaysForPlan.
+  async function setzeTagesPlaetze(plaetze) {
+    if (!plaetze.length) return
+    const updatedAt = new Date().toISOString()
+    await db.transaction('rw', db.trainingDays, async () => {
+      for (const { id, dayOrder } of plaetze) {
+        await db.trainingDays.update(id, { dayOrder, updatedAt })
+      }
+    })
+    const neu = new Map(plaetze.map(p => [p.id, p.dayOrder]))
+    trainingDays.value = trainingDays.value.map(d =>
+      neu.has(d.id) ? { ...d, dayOrder: neu.get(d.id), updatedAt } : d
+    )
+    for (const { id } of plaetze) {
+      const full = await db.trainingDays.get(id)
+      if (full) pushRecord('trainingDays', id, full)
+    }
+  }
+
   function getDaysForPlan(planId, weekVariant = null) {
-    return trainingDays.value
-      .filter(d => d.planId === planId && (weekVariant === null || d.weekVariant === weekVariant))
-      .sort((a, b) => a.dayOrder - b.dayOrder)
+    return sortiereTage(trainingDays.value
+      .filter(d => d.planId === planId && (weekVariant === null || d.weekVariant === weekVariant)))
   }
 
   function getTodaysTrainingDays() {
@@ -142,6 +163,7 @@ export const usePlansStore = defineStore('plans', () => {
     addTrainingDay,
     updateTrainingDay,
     deleteTrainingDay,
+    setzeTagesPlaetze,
     getDaysForPlan,
     getTodaysTrainingDays
   }

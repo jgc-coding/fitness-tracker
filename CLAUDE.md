@@ -127,6 +127,13 @@ npm run preview   # Build lokal testen (Port 4173)
   Alternativen an. Touch- und Maus-Events, KEINE Pointer-Events (nur ein
   nicht-passiver `touchmove` stoppt das Scrollen). Gescrollt wird `.app-main`.
   `eintraege(day)` zeigt die Reihenfolge aus `gespeichert`, bis der Store sie hat.
+- **Trainingstage umsortieren** (Gabriel 05.10.2026): eigenes Fenster
+  "Reihenfolge" mit nur den Tagesnamen, Ziehen OHNE Halten (`touch-action:
+  none` an den Zeilen), jedes Loslassen speichert. Platz = `dayOrder`; nach
+  jedem Verschieben 0..n-1 (`neueTagesPlaetze`), neue Tage hinter den letzten
+  (`naechsterTagesPlatz`). Gelesen wird NUR ueber `getDaysForPlan`
+  (`sortiereTage`: Gleichstand -> aelterer zuerst) — Planung, Startbildschirm
+  und "Tag wechseln" zeigen so dieselbe Reihenfolge. Woche A/B getrennt.
 - **"Standard-Uebungen laden" vergleicht mit der Cloud, nie nur mit dem Geraet**
   (`getDocsFromServer`; ein frisches Handy legte am 27.09.2026 alles doppelt an).
   Ohne Anmeldung/Netz legt der Knopf nichts an. Dubletten zusammenfuehren:
