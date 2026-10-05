@@ -1,46 +1,41 @@
-# Weitermachen — Stand 2026-10-04 (v2.10.0)
+# Weitermachen — Stand 2026-10-05 (v2.11.0)
 
 ## Stand
-- **Diese Sitzung (04.10.): v2.10.0.** Zwei Auftraege von Gabriel:
-  1. **Uebungswechsel immer fuer alle zusammen.** Zu zweit wechselte ein Wisch
-     nur eine Person, die andere blieb unbemerkt auf der alten Uebung. Jetzt
-     wechseln Wisch (egal wo auf der Karte) und Wechsel-Knopf alle aktiven
-     Personen gemeinsam; eine Wechsel-Zeile je Karte, allein rechts neben dem
-     Wert. Der Stern ist der Standard des Plan-Platzes fuer alle (gold).
-     Regeln in `utils/uebungsRing.js` (`gemeinsamWeiter`, `kartenStandard`,
-     `startMitStandard`, `toggleStandard`), Vertrag `scripts/uebungsring-test.mjs`.
-  2. **V15: keine Namen mehr in Code, Doku und Tests.** Anzeigenamen kommen aus
-     `db.meta` (`userName_user1..3`); `constants.js` traegt nur "Person n".
-     Die drei Namen-Datensaetze habe ich am 04.10. in der Cloud angelegt (nur
-     anlegen, nichts ueberschrieben; Nachkontrolle per REST bestaetigt). Der
-     auth store laedt Namen neu, sobald der Sync `meta` bringt.
-- **Echte Sterne in der Cloud (Stand 04.10.):** je ein Einzel-Stern von user3
-  (Push) und user2 (Legs, Pull) auf einer Alternative, dazu einer von user3
-  auf einer Pull-Basis. Sie gelten jetzt fuer die ganze Karte (bevorzugter
-  Nutzer zuerst, dann die uebrigen aktiven, dann alle).
-- **Geprueft:** Gate gruen (14 Befehle; Ring-Vertrag mit 26 neuen Faellen).
+- **Diese Sitzung (05.10.): v2.11.0, live.** Auftrag von Gabriel: die
+  Reihenfolge der Trainingstage gut aenderbar machen. Aus drei Skizzen
+  (Pfeile / Sortierfenster / Halten klappt zu) waehlte er B wie empfohlen:
+  Knopf "Reihenfolge" ueber den Tagen eines Plans, Fenster mit nur den
+  Tagesnamen, Ziehen ohne Halten, jedes Loslassen speichert. Startbildschirm
+  und "Tag wechseln" zeigen dieselbe Reihenfolge (ausdruecklicher Wunsch).
+  Regeln `sortiereTage`, `neueTagesPlaetze`, `naechsterTagesPlatz` in
+  `utils/planReihenfolge.js` (Vertrag `scripts/planreihenfolge-test.mjs`),
+  Speichern `setzeTagesPlaetze` im plans store, Fenster in `PlanningView.vue`.
+  Nebenbei V16 behoben (doppelter Platz nach Loeschen + Neuanlegen).
+- **Geprueft:** Gate gruen (14 Befehle, 15 neue Vertragsfaelle).
   Headless-Chrome gegen den Produktions-Build, frische `*.localhost`-Adresse,
-  360 px, Testdaten per Backup-Import: 35 Pruefungen gruen (Namen vor/nach
-  Import, Wisch auf jedem Personen-Bereich zu zweit und zu dritt, Karte
-  bleibt beim Wisch dieselbe und die Schiebe-Animation laeuft, Knopf,
-  Stern fuer alle, Start mit Standard, Layout allein, Altbestand mit
-  Abweichung, gespeicherter Log ohne Abweichung, keine Konsolenfehler).
-  Fotos angesehen. Wisch per echten Touch-Ereignissen des DevTools-Protokolls,
-  nicht am Handy.
-- **Rueckkehr:** vor dieser Sitzung `e9c2a67` (v2.9.2 + Doku). Gleiches
-  Datenbank-Schema; die Namen-Datensaetze in der Cloud stoeren alte Versionen
-  nicht (sie lasen sie schon immer).
-- **Aus frueheren Sitzungen:** Rueckkehrpunkte `01031c1` (v2.6.0),
-  `be06855` (v2.7.1), `5ab01dc` (v2.8.1), `2eae34a` (v2.9.0). Cloud-Sicherungen
-  der Uebungs- und Log-Korrekturen liegen in `privat\`. impeccable auf 4.3.1
-  (Claude-Skills-Commit `d45f982`, nicht gepusht); `PRODUCT.md` steht noch im
-  Schema von 3.5.0.
+  360 px, Testdaten per Backup-Import: 20 Pruefungen gruen (Finger- und
+  Mausziehen, sofort in IndexedDB, Startbildschirm vor/nach Neuladen, Woche
+  A/B getrennt, neuer Tag am Ende, keine Konsolenfehler). Fotos angesehen.
+  Nicht am Handy, kein Abgleich zweier Handys getestet.
+- **Rueckkehr:** vor dieser Sitzung `6deda0f` (v2.10.0). Datenbank-Schema
+  unveraendert; alte Versionen lesen `dayOrder` genauso.
+- **Davor (04.10.): v2.10.0** — Uebungswechsel fuer alle zusammen
+  (`utils/uebungsRing.js`), V15 Namen nur noch in `db.meta` (Cloud-Datensaetze
+  `meta/userName_user1..3` am 04.10. angelegt). Echte Einzel-Sterne in der
+  Cloud gelten seitdem fuer die ganze Karte.
+- **Aus frueheren Sitzungen:** Rueckkehrpunkte `e9c2a67` (v2.9.2),
+  `2eae34a` (v2.9.0), `5ab01dc` (v2.8.1), `be06855` (v2.7.1), `01031c1`
+  (v2.6.0). Cloud-Sicherungen der Uebungs- und Log-Korrekturen liegen in
+  `privat\`. impeccable auf 4.3.1 (Claude-Skills-Commit `d45f982`, nicht
+  gepusht); `PRODUCT.md` steht noch im Schema von 3.5.0.
 
 ## Stolperfallen (aktuell)
 - **Headless-Chrome aus Claude heraus:** Profilordner NICHT unter AppData
   (die App-Kapsel virtualisiert ihn, IndexedDB scheitert mit "backing store"),
   ohne `--incognito`. Erprobt: `C:\Users\chime\fittrack-testprofil-<zeit>`,
-  danach loeschen. Testskript lag im Scratchpad dieser Sitzung.
+  danach loeschen. Testdaten per `DOM.setFileInputFiles` auf das Backup-Feld
+  in Settings; Navigation per `__vue_app__...$router.push`. Testskripte lagen
+  im Scratchpad der Sitzungen (nicht im Repo).
 - **Derselbe Trainingstag am selben Tag erneut gestartet** uebernimmt den Stand
   seines Logs (gewollt) — Starttests brauchen einen Tag ohne heutigen Log.
 - **Ein Handy, das offline ein altes Geraet haelt,** koennte es beim
@@ -52,32 +47,37 @@
 - **Rollback auf v1.8.1 nur mit Hotfix:** ein Handy auf Schema v4 wirft mit der
   unveraenderten v1.8.1 einen Versionsfehler. Rezept: `docs/plan-fittrack-v2.md`.
 - **Browser-Pane:** ausgeblendet steht `requestAnimationFrame` still; besser
-  Headless (CLAUDE.md).
+  Headless (CLAUDE.md). `preview_start` oeffnet sie auf `localhost` — dort
+  keine Testdaten (koennte angemeldet sein).
 - **Thumbnail-Tipps stoppen die Weiterleitung** (`@click.stop`);
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
-1. **Meldet Gabriel Probleme aus v2.10.0** (Checkliste
+1. **Meldet Gabriel Probleme aus v2.11.0** (Checkliste
+   `docs/tests/v2.11.0-handy.md`): Ziehen in `onTagZiehStart`/`onTagBewegung`
+   (`PlanningView.vue`), Regeln zuerst im Vertrag
+   `scripts/planreihenfolge-test.mjs`.
+2. **Meldet Gabriel Probleme aus v2.10.0** (Checkliste
    `docs/tests/v2.10.0-handy.md`): Wechsel in `wechsleKarte`/`onCardTouchEnd`
    (`TrackingView.vue`), Regeln zuerst im Ring-Vertrag. Zeigt ein Handy
    "Person 1": Sync angemeldet? `meta/userName_*` per REST pruefen.
-2. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
+3. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
    `verbesserungen.md`.
-3. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
+4. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
    `utils/trainingGeraet.js`; v2.8 `UebungsVerlauf.vue`; v2.7
    `StartNutzerwahl.vue`, `resetActiveUsers`; v2.4 Tastatur `Modal.vue`,
    Saetze `scripts/saetze-test.mjs`; Quick-Log `buildNotificationQuickLog`,
    `public/sw-custom.js`; v2.5 `PlanningView.vue`; v2.6 Bilder nach
    `docs/uebungsbilder-chatgpt.md`. Neue Uebungen: zuerst `uebungen-cloud.mjs`.
-4. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
+5. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
    Schraegbank-Kurzhantel-Druecken); Herunterladen nur mit Gabriels Ja.
-5. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
+6. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
    `docs/laufplan-vorgaben.md` Abschnitt 5; Garmin-Abgleich zuerst in
    `scripts/runmatch-test.mjs`.
-6. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
+7. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
    Regeln in `docs/laufplan-format.md` Abschnitt 5).
-7. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
-8. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
+8. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
+9. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
    ausdruecklicher Freigabe.
 
 ## Offen
@@ -92,12 +92,13 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **v2.10.0 am Handy testen** (seit 2026-10-04): beide Handys neu starten,
-  Checkliste `docs/tests/v2.10.0-handy.md`.
-- [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit
-  2026-10-04), V15-Rest in `verbesserungen.md`.
-- [ ] **Alte Worktrees entfernen**, nur wenn in der Desktop-App keine Sitzung mehr darauf zeigt (seit 2026-09-22)
-  Noch vier (Stand 02.10.). Ignoriert liegt darin nur `.claude/` und
+- [ ] **v2.10.0 und v2.11.0 am Handy testen** (seit 2026-10-04)
+  Beide Handys ganz schliessen und neu oeffnen, dann die Checklisten
+  `docs/tests/v2.10.0-handy.md` und `docs/tests/v2.11.0-handy.md` abhaken.
+- [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
+  V15-Rest in `verbesserungen.md`.
+- [ ] **Alte Worktrees entfernen**, wenn keine Sitzung mehr darauf zeigt (seit 2026-09-22)
+  Noch vier (Stand 05.10.). Ignoriert liegt darin nur `.claude/` und
   nachbaubares `dist/` bzw. `node_modules/`. Je Zeile ein Worktree (PowerShell):
   - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\exercise-images-crop-e10a06"`
   - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\ubungen-system-refinements-64f8ad"`
