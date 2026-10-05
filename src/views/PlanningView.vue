@@ -86,6 +86,16 @@
 
           <!-- Training days -->
           <div class="days-list">
+            <!-- Tage umsortieren im eigenen Fenster: die Karten selbst sind
+                 zum Ziehen zu lang (Gabriel 05.10.2026) -->
+            <div v-if="getDays(plan).length > 1" class="tage-kopf">
+              <span>{{ getDays(plan).length }} Trainingstage</span>
+              <button class="tage-sortieren" @click="oeffneTageSortieren(plan)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l4-4 4 4M7 5v14"/><path d="M21 15l-4 4-4-4M17 19V5"/></svg>
+                Reihenfolge
+              </button>
+            </div>
+
             <div
               v-for="day in getDays(plan)"
               :key="day.id"
@@ -180,6 +190,33 @@
         </div>
       </div>
     </div>
+
+    <!-- Reihenfolge der Trainingstage: nur die Namen, sofort ziehbar. Jedes
+         Loslassen speichert, Fertig schliesst nur. -->
+    <Modal v-model="showTageSortieren" :title="tageSortierenTitel">
+      <div class="tage-liste">
+        <div
+          v-for="(day, idx) in sortierTage"
+          :key="day.id"
+          class="tag-zeile"
+          :class="{ 'wird-gezogen': tagZiehen?.von === idx }"
+          :style="tagZeilenStil(idx)"
+          @touchstart.passive="onTagZiehStart($event, idx)"
+          @mousedown="onTagZiehStart($event, idx)"
+        >
+          <svg class="tag-zeile-griff" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>
+          <span class="tag-zeile-name">{{ day.title || 'Ohne Namen' }}</span>
+          <span class="tag-zeile-anzahl">{{ anzahlUebungen(day) }}</span>
+        </div>
+      </div>
+      <p v-if="tageFehler" class="sortier-hinweis fehler" role="alert">{{ tageFehler }}</p>
+      <p v-else class="sortier-hinweis">
+        Zeile ziehen, um die Reihenfolge zu aendern. So stehen die Tage auch beim Trainingsstart.
+      </p>
+      <button class="btn btn-primary btn-block tage-fertig" @click="showTageSortieren = false">
+        Fertig
+      </button>
+    </Modal>
 
     <!-- Create Plan Modal -->
     <Modal v-model="showCreatePlan" title="Neuer Trainingsplan">
@@ -320,7 +357,7 @@ import { usePlansStore } from '../stores/plans.js'
 import { useExercises } from '../composables/useExercises.js'
 import { PLAN_TYPES, MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
-import { verschiebe, zielIndex, versatz } from '../utils/planReihenfolge.js'
+import { verschiebe, zielIndex, versatz, neueTagesPlaetze } from '../utils/planReihenfolge.js'
 
 const plansStore = usePlansStore()
 const { exercises, loadExercises, getExerciseById } = useExercises()
@@ -789,7 +826,124 @@ function onKontextmenue(e) {
   if (halten || ziehen.value) e.preventDefault()
 }
 
-onBeforeUnmount(onAbbruch)
+// --- Trainingstage umsortieren (Gabriel 05.10.2026) --------------------------
+// Eigenes Fenster mit nur den Tagesnamen, weil die Tageskarten zum Ziehen zu
+// lang sind. Gezogen wird sofort, ohne Halten: das Fenster ist nur zum
+// Sortieren da, und `touch-action: none` an den Zeilen haelt das Scrollen
+// fern. Jedes Loslassen speichert; "Fertig" schliesst nur. Die Reihenfolge
+// gilt auch auf dem Startbildschirm (getDaysForPlan). Regeln in
+// utils/planReihenfolge.js.
+const showTageSortieren = ref(false)
+const tageSortierenPlan = ref(null) // { planId, variant }
+// { von, nach, dy, hoehe, mitten, startY }; hoehe = Abstand zweier Zeilen
+const tagZiehen = ref(null)
+// Neue Reihenfolge, bis der Store sie hat (sonst springt die Liste kurz zurueck)
+const tageGespeichert = shallowRef(null)
+const tageFehler = ref(null)
+
+const sortierTage = computed(() => {
+  if (tageGespeichert.value) return tageGespeichert.value
+  const p = tageSortierenPlan.value
+  return p ? plansStore.getDaysForPlan(p.planId, p.variant) : []
+})
+
+const tageSortierenTitel = computed(() => {
+  const variant = tageSortierenPlan.value?.variant
+  return variant ? `Reihenfolge Woche ${variant}` : 'Reihenfolge der Tage'
+})
+
+function oeffneTageSortieren(plan) {
+  tageSortierenPlan.value = {
+    planId: plan.id,
+    variant: plan.type === 'alternating' ? (selectedWeekVariant[plan.id] || 'A') : null
+  }
+  tageFehler.value = null
+  showTageSortieren.value = true
+}
+
+function anzahlUebungen(day) {
+  const n = (day.exercises || []).length
+  return n === 1 ? '1 Uebung' : `${n} Uebungen`
+}
+
+function tagZeilenStil(idx) {
+  const z = tagZiehen.value
+  if (!z) return null
+  if (idx === z.von) return { transform: `translateY(${z.dy}px)` }
+  return { transform: `translateY(${versatz(idx, z.von, z.nach, z.hoehe)}px)`, transition: 'transform 0.15s ease' }
+}
+
+function onTagZiehStart(e, idx) {
+  if (tagZiehen.value) return
+  if (e.type === 'mousedown') {
+    if (e.button !== 0) return
+    e.preventDefault() // kein Markieren von Text beim Ziehen mit der Maus
+  }
+  const rects = [...e.currentTarget.parentElement.children].map(z => z.getBoundingClientRect())
+  if (!rects[idx]) return
+  tageFehler.value = null
+  tagZiehen.value = {
+    von: idx,
+    nach: idx,
+    dy: 0,
+    hoehe: rects.length > 1 ? rects[1].top - rects[0].top : rects[idx].height,
+    mitten: rects.map(r => r.top + r.height / 2),
+    startY: punkt(e).y
+  }
+  window.addEventListener('touchmove', onTagBewegung, { passive: false })
+  window.addEventListener('touchend', onTagLoslassen)
+  window.addEventListener('touchcancel', onTagAbbruch)
+  window.addEventListener('mousemove', onTagBewegung)
+  window.addEventListener('mouseup', onTagLoslassen)
+}
+
+function onTagBewegung(e) {
+  const z = tagZiehen.value
+  if (!z) return
+  if (e.cancelable) e.preventDefault() // alte WebViews ohne touch-action
+  z.dy = punkt(e).y - z.startY
+  z.nach = zielIndex(z.mitten, z.mitten[z.von] + z.dy, z.von)
+}
+
+function beendeTagZiehen() {
+  window.removeEventListener('touchmove', onTagBewegung)
+  window.removeEventListener('touchend', onTagLoslassen)
+  window.removeEventListener('touchcancel', onTagAbbruch)
+  window.removeEventListener('mousemove', onTagBewegung)
+  window.removeEventListener('mouseup', onTagLoslassen)
+}
+
+async function onTagLoslassen() {
+  const z = tagZiehen.value
+  beendeTagZiehen()
+  if (!z) return
+  const tage = sortierTage.value
+  const plaetze = neueTagesPlaetze(tage, z.von, z.nach)
+  if (!plaetze.length) {
+    tagZiehen.value = null
+    return
+  }
+  tageGespeichert.value = verschiebe(tage, z.von, z.nach)
+  tagZiehen.value = null
+  try {
+    await plansStore.setzeTagesPlaetze(plaetze)
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Reihenfolge der Tage nicht gespeichert:', err)
+    tageFehler.value = 'Reihenfolge nicht gespeichert — bitte erneut versuchen.'
+  } finally {
+    tageGespeichert.value = null
+  }
+}
+
+function onTagAbbruch() {
+  beendeTagZiehen()
+  tagZiehen.value = null
+}
+
+onBeforeUnmount(() => {
+  onAbbruch()
+  onTagAbbruch()
+})
 
 onMounted(async () => {
   await loadExercises()
@@ -955,6 +1109,83 @@ onMounted(async () => {
 
 .sortier-hinweis.fehler {
   color: var(--color-danger);
+}
+
+/* Ueber den Tageskarten: Anzahl links, Knopf zum Umsortieren rechts */
+.tage-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.tage-sortieren {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+}
+
+/* Fenster "Reihenfolge": eine Zeile je Tag, ziehbar ohne Halten */
+.tage-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.tag-zeile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 48px;
+  padding: 0 var(--space-md) 0 var(--space-sm);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.tag-zeile.wird-gezogen {
+  z-index: 5;
+  border-color: var(--color-accent);
+  box-shadow: 0 8px 20px rgba(30, 31, 35, 0.18);
+  cursor: grabbing;
+}
+
+.tag-zeile-griff {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.tag-zeile-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-zeile-anzahl {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.tage-fertig {
+  margin-top: var(--space-md);
 }
 
 .day-exercise {

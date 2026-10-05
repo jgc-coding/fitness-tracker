@@ -3,6 +3,26 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.11.0] — 2026-10-05
+
+### Features
+- **Trainingstage umsortieren** (Wunsch Gabriel): In der Planung steht ueber
+  den Tagen eines Plans der Knopf "Reihenfolge". Er oeffnet ein Fenster mit
+  nur den Tagesnamen; dort zieht man eine Zeile mit Finger oder Maus an ihren
+  neuen Platz, ohne vorher zu halten. Jedes Loslassen speichert sofort,
+  "Fertig" schliesst nur. Die Tageskarten selbst waren zum Ziehen zu lang.
+- Dieselbe Reihenfolge zeigt der Startbildschirm unter "Training starten"
+  und die Auswahl "Trainingstag waehlen".
+- Bei Plaenen mit Woche A und B sortiert das Fenster die gerade gewaehlte
+  Woche.
+
+### Fixes
+- **Reihenfolge der Tage konnte nach einem Neustart springen** (Befund V16):
+  Wurde ein Tag geloescht und danach ein neuer angelegt, bekamen zwei Tage
+  denselben Platz, und ihre Reihenfolge hing davon ab, wie die Datenbank sie
+  lieferte. Neue Tage kommen jetzt hinter den letzten; bei altem Gleichstand
+  steht der aeltere Tag vorn.
+
 ## [2.10.0] — 2026-10-04
 
 ### Features
