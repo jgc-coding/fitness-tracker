@@ -1,7 +1,26 @@
-# Weitermachen — Stand 2026-10-05 (v2.11.0)
+# Weitermachen — Stand 2026-10-07 (v2.12.0)
 
 ## Stand
-- **Diese Sitzung (05.10.): v2.11.0, live.** Auftrag von Gabriel: die
+- **Diese Sitzung (07.10.): v2.12.0.** Auftrag von Gabriel (vom Handy):
+  beim Laufen nicht nur tauschen, sondern "Anders gelaufen ..." frei
+  eintragen, mit Rueckmeldung; "freiwillig" -> "optional" ueberall; fuer die
+  Person mit Zyklus-Erfassung der errechnete Zyklustag im Lauf-Formular,
+  korrigierbar. Entscheidungen (alle wie empfohlen): Schalter "ausgelassen"
+  (Standard) / "offen lassen"; "+ Lauf eintragen" auch in der Woche; das
+  Zyklus-Rad im Krafttraining startet ebenfalls beim errechneten Tag.
+  Regeln `utils/laufEintrag.js` und `utils/zyklusTag.js` (Vertraege
+  `laufeintrag-test`, `zyklustag-test`, Merge-Test F8-F11), Formular
+  `RunSpontanForm.vue`, Feld `ZyklusTagFeld.vue`.
+- **Geprueft:** Gate gruen (16 Befehle). Headless-Chrome gegen den
+  Produktions-Build, frische `*.localhost`-Adresse, 360 px, Testdaten per
+  Backup-Import: 70 Pruefungen gruen (alle Wege, IndexedDB-Inhalt, Fenster
+  schliessen, Tombstone, Export-Texte, Training-Rad, keine Konsolenfehler).
+  Fotos angesehen. Dabei zwei Fehler gefunden und behoben (leeres Blatt nach
+  Loeschen; Blatt blieb nach "Anders gelaufen" offen). Nicht am Handy, kein
+  Abgleich zweier Handys, kein echter Uhr-Lauf getestet.
+- **Rueckkehr:** vor dieser Sitzung `8eaa3de` (v2.11.0). Datenbank-Schema
+  unveraendert, nur neue optionale Felder.
+- **Davor (05.10.): v2.11.0.** Auftrag von Gabriel: die
   Reihenfolge der Trainingstage gut aenderbar machen. Aus drei Skizzen
   (Pfeile / Sortierfenster / Halten klappt zu) waehlte er B wie empfohlen:
   Knopf "Reihenfolge" ueber den Tagen eines Plans, Fenster mit nur den
@@ -53,6 +72,10 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
+0. **Meldet Gabriel Probleme aus v2.12.0** (Checkliste
+   `docs/tests/v2.12.0-handy.md`): Regeln zuerst in
+   `scripts/laufeintrag-test.mjs` bzw. `zyklustag-test.mjs`, Oberflaeche in
+   `RunSpontanForm.vue`, `ZyklusTagFeld.vue`, `RunSessionSheet.vue`.
 1. **Meldet Gabriel Probleme aus v2.11.0** (Checkliste
    `docs/tests/v2.11.0-handy.md`): Ziehen in `onTagZiehStart`/`onTagBewegung`
    (`PlanningView.vue`), Regeln zuerst im Vertrag
@@ -88,10 +111,14 @@
 - **Erster Deploy nach dem 19.10.2026** laeuft auf Ubuntu 26
   (`ubuntu-latest`): Actions-Lauf dann ansehen; bricht er, `runs-on` in
   `.github/workflows/deploy.yml` voruebergehend auf `ubuntu-24.04` setzen.
-- Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I7**, **I8**,
+- Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I8**,
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.12.0 am Handy testen** (seit 2026-10-07)
+  Beide Handys ganz schliessen und neu oeffnen, dann
+  `docs/tests/v2.12.0-handy.md` abhaken. Erst wenn beide 2.12.0 zeigen,
+  Rueckmeldungen mit Zyklustag aendern.
 - [ ] **v2.10.0 und v2.11.0 am Handy testen** (seit 2026-10-04)
   Beide Handys ganz schliessen und neu oeffnen, dann die Checklisten
   `docs/tests/v2.10.0-handy.md` und `docs/tests/v2.11.0-handy.md` abhaken.

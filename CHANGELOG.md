@@ -3,6 +3,41 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.12.0] — 2026-10-07
+
+### Features
+- **Anders gelaufen** (Wunsch Gabriel, Idee I7): Im Blatt eines geplanten
+  Laufs steht unter "Erledigt" der Knopf "Anders gelaufen ...". Dort traegt
+  man ein, was man stattdessen gelaufen ist: Art, optional einen Titel, Tag,
+  Kilometer, Minuten, Puls, Anstrengung und Notiz. Daraus wird ein eigener,
+  ungeplanter Lauf. Der geplante wird als ausgelassen markiert („Stattdessen:
+  ...") oder bleibt auf Wunsch offen, um ihn nachzuholen. Hatte die Uhr den
+  Lauf schon dem geplanten zugeordnet, wandern Werte, Uhr-Kennung und
+  Rueckmeldung mit — nichts zaehlt doppelt, nichts kommt zweimal von der Uhr.
+- **+ Lauf eintragen:** Unter der Wochenansicht laesst sich ein spontaner
+  Lauf auch ohne geplanten Lauf eintragen, z.B. am Ruhetag, fuer jede Person.
+- **Ungeplante Laeufe bearbeiten:** Selbst eingetragene und von der Uhr
+  gekommene ungeplante Laeufe haben "Bearbeiten"; selbst eingetragene lassen
+  sich nach Rueckfrage loeschen.
+- **Zyklustag beim Laufen:** Fuer die Person mit Zyklus-Erfassung zeigen
+  "Erledigt", "Wie war es?" und "Anders gelaufen" den Zyklustag, errechnet aus
+  dem letzten Eintrag (Training oder Lauf) plus den Tagen seitdem, mit
+  Herkunft. Er laesst sich mit − / + oder per Eingabe korrigieren und wird mit
+  der Rueckmeldung gespeichert; er reist im Status-Export und im
+  Rueckmeldungs-Text mit zu Claude.
+- **Zyklus-Rad im Krafttraining** startet beim errechneten Tag statt bei 1
+  und nennt die Herkunft. Eingetragen wird weiter erst mit "Speichern".
+- **"optional" statt "freiwillig"** in allen Texten.
+
+### Fixes
+- Das Lauf-Blatt warf ein halb ausgefuelltes Formular weg, sobald sich der
+  Lauf aenderte (z.B. per Sync vom anderen Handy). Es setzt sich jetzt nur
+  noch zurueck, wenn ein anderer Lauf geoeffnet wird.
+
+### Format
+- `feedback.cycleDay` (1-45, optional) in `docs/laufplan-format.md`; fehlt,
+  wenn nicht gesetzt — aeltere Rueckmeldungen bleiben unveraendert.
+
 ## [2.11.0] — 2026-10-05
 
 ### Features

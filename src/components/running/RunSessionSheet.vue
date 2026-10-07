@@ -39,11 +39,12 @@
         Anstrengung {{ session.feedback.rpe }}/5 · {{ effortLabelOf(session.feedback.rpe) }}
       </p>
       <p v-if="session.feedback?.note" class="sheet-note">„{{ session.feedback.note }}"</p>
+      <p v-if="session.feedback?.cycleDay" class="sheet-effort">Zyklustag {{ session.feedback.cycleDay }}</p>
 
       <!-- Erledigt (mit Rueckmeldung) und spaeter nachgereichte Rueckmeldung -->
       <div v-if="mode === 'done' || mode === 'feedback'" class="sheet-form">
         <template v-if="mode === 'done'">
-          <p class="form-title">Werte eintragen (alles freiwillig)</p>
+          <p class="form-title">Werte eintragen (alles optional)</p>
           <div class="form-grid">
             <label class="form-field">
               <span>Kilometer</span>
@@ -60,22 +61,7 @@
           </div>
         </template>
 
-        <p class="form-title">Wie anstrengend war es?</p>
-        <div class="effort-row">
-          <button
-            v-for="stufe in EFFORT_SCALE"
-            :key="stufe.value"
-            type="button"
-            class="effort-btn"
-            :class="{ active: feedbackRpe === stufe.value }"
-            :aria-pressed="feedbackRpe === stufe.value"
-            :aria-label="stufe.value + ' von 5, ' + stufe.label"
-            @click="toggleEffort(stufe.value)"
-          >
-            {{ stufe.value }}
-          </button>
-        </div>
-        <p class="effort-hint">{{ effortHint }}</p>
+        <RunEffortPicker v-model="feedbackRpe" />
 
         <label class="form-field">
           <span>Notiz</span>
@@ -87,6 +73,8 @@
           />
         </label>
 
+        <ZyklusTagFeld v-model="feedbackCycle" :user-id="session.userId" :date="session.date" />
+
         <div class="form-actions">
           <button class="btn btn-secondary" @click="mode = null">Abbrechen</button>
           <button class="btn btn-primary" @click="mode === 'done' ? saveDone() : saveFeedbackOnly()">
@@ -97,7 +85,7 @@
 
       <!-- Ausgelassen: Grund -->
       <div v-else-if="mode === 'skip'" class="sheet-form">
-        <p class="form-title">Warum ausgelassen? (freiwillig)</p>
+        <p class="form-title">Warum ausgelassen? (optional)</p>
         <input v-model="skipNote" type="text" class="form-input" placeholder="z.B. krank, keine Zeit" />
         <div class="form-actions">
           <button class="btn btn-secondary" @click="mode = null">Abbrechen</button>
@@ -153,6 +141,16 @@
         </div>
       </div>
 
+      <!-- Anders gelaufen / ungeplanten Lauf bearbeiten (seit v2.12.0) -->
+      <RunSpontanForm
+        v-else-if="mode === 'anders' || mode === 'bearbeiten'"
+        :key="mode + session.id"
+        :modus="mode"
+        :lauf="session"
+        @fertig="close"
+        @abbrechen="mode = null"
+      />
+
       <!-- Standard: die Knoepfe -->
       <div v-else class="sheet-actions">
         <button v-if="session.status !== 'done'" class="btn btn-primary btn-block" @click="openDone">
@@ -160,6 +158,12 @@
         </button>
         <button v-else class="btn btn-primary btn-block" @click="openFeedback">
           {{ session.feedback ? 'Rueckmeldung aendern' : 'Wie war es?' }}
+        </button>
+        <button v-if="session.unplanned" class="btn btn-secondary btn-block" @click="mode = 'bearbeiten'">
+          Bearbeiten
+        </button>
+        <button v-else class="btn btn-secondary btn-block" @click="mode = 'anders'">
+          Anders gelaufen ...
         </button>
         <button v-if="session.status !== 'skipped'" class="btn btn-secondary btn-block" @click="mode = 'skip'">
           Ausgelassen
@@ -183,8 +187,13 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import Modal from '../shared/Modal.vue'
+import RunEffortPicker from './RunEffortPicker.vue'
+import RunSpontanForm from './RunSpontanForm.vue'
+import ZyklusTagFeld from './ZyklusTagFeld.vue'
 import { useRunningStore } from '../../stores/running.js'
-import { getRunType, getEffortLabel, RUN_EFFORT_SCALE } from '../../utils/runPlanSchema.js'
+import { useAuthStore } from '../../stores/auth.js'
+import { getRunType, getEffortLabel } from '../../utils/runPlanSchema.js'
+import { leseZyklusEingabe } from '../../utils/zyklusTag.js'
 import { formatRunValue, formatRunValueFull } from '../../utils/formatters.js'
 import { weekdayShort, formatDayShort, addDaysToDate } from '../../utils/dateHelpers.js'
 
@@ -198,6 +207,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const running = useRunningStore()
+const authStore = useAuthStore()
 
 const mode = ref(null)
 const doneKm = ref('')
@@ -205,12 +215,13 @@ const doneMinutes = ref('')
 const doneHr = ref('')
 const feedbackRpe = ref(null)
 const feedbackNote = ref('')
+// Rohwert des Zyklustag-Felds (Zahl, Text oder leer), siehe ZyklusTagFeld.
+const feedbackCycle = ref(null)
 const skipNote = ref('')
 const moveDate = ref('')
 const errorMessage = ref('')
 
 const STATUS_LABELS = { planned: 'geplant', done: 'erledigt', skipped: 'ausgelassen' }
-const EFFORT_SCALE = RUN_EFFORT_SCALE
 
 const typeInfo = computed(() => getRunType(props.session?.type))
 const statusLabel = computed(() => STATUS_LABELS[props.session?.status] || '')
@@ -235,13 +246,6 @@ const targetRows = computed(() => {
 
 const effortLabelOf = (rpe) => getEffortLabel(rpe)
 
-// Solange nichts gewaehlt ist, erklaert die Zeile die Skala; danach die Stufe.
-const effortHint = computed(() => {
-  const stufe = EFFORT_SCALE.find(e => e.value === feedbackRpe.value)
-  if (stufe) return `${stufe.label} — ${stufe.hint}`
-  return '1 = sehr locker, 5 = maximal. Freiwillig.'
-})
-
 // Sieben Tage vor und nach dem aktuellen Tag.
 const moveDays = computed(() => {
   if (!props.session) return []
@@ -253,12 +257,26 @@ const moveDays = computed(() => {
   return days
 })
 
-// Beim Oeffnen eines anderen Laufs alles zuruecksetzen.
+// Beim Oeffnen eines anderen Laufs alles zuruecksetzen. Als Text verglichen:
+// ein neues Array waere bei jeder Aenderung am Lauf "anders" (Speichern,
+// Sync vom anderen Handy) — das warf ein halb ausgefuelltes Formular weg und
+// verschluckte die Fertig-Meldung von "Anders gelaufen".
 watch(
-  () => [props.modelValue, props.session?.id],
+  () => `${props.modelValue}|${props.session?.id ?? ''}`,
   () => {
     mode.value = null
     errorMessage.value = ''
+  }
+)
+
+// Verschwindet der Lauf, waehrend das Blatt offen ist (geloescht, oder per
+// Sync vom anderen Handy), geht das Blatt zu — sonst bliebe ein leeres
+// Fenster stehen. Das Formular selbst kann dann nicht mehr melden: Vue
+// verwirft Ereignisse einer schon entfernten Komponente.
+watch(
+  () => props.session,
+  (session) => {
+    if (!session && props.modelValue) close()
   }
 )
 
@@ -286,11 +304,27 @@ function openFeedback() {
 function ladeFeedback() {
   feedbackRpe.value = props.session?.feedback?.rpe ?? null
   feedbackNote.value = props.session?.feedback?.note ?? ''
+  feedbackCycle.value = props.session?.feedback?.cycleDay ?? null
 }
 
-/** Nochmal auf dieselbe Stufe tippen loescht sie — die Angabe ist freiwillig. */
-function toggleEffort(value) {
-  feedbackRpe.value = feedbackRpe.value === value ? null : value
+/**
+ * Rueckmeldung aus dem Formular. Den Zyklustag gibt es nur fuer die Person
+ * mit Zyklus-Erfassung; ein ungueltiger Wert haelt das Speichern an, statt
+ * still zu verschwinden (null = Fehler gemeldet).
+ */
+function feedbackAusFormular() {
+  const istZyklus = authStore.users.some(u => u.id === props.session?.userId && u.zyklus)
+  const zyklus = leseZyklusEingabe(feedbackCycle.value)
+  if (istZyklus && !zyklus.ok) {
+    errorMessage.value = 'Zyklustag: bitte eine Zahl von 1 bis 45 oder leer lassen.'
+    return null
+  }
+  return {
+    rpe: feedbackRpe.value,
+    note: feedbackNote.value,
+    // Fuer alle anderen bleibt ein vorhandener Wert unangetastet.
+    cycleDay: istZyklus ? zyklus.wert : (props.session?.feedback?.cycleDay ?? null)
+  }
 }
 
 function openMove() {
@@ -310,6 +344,9 @@ async function run(action) {
 }
 
 function saveDone() {
+  errorMessage.value = ''
+  const feedback = feedbackAusFormular()
+  if (!feedback) return
   run(() =>
     running.markDone(
       props.session.id,
@@ -321,13 +358,16 @@ function saveDone() {
         // erhalten; der eigene Text gehoert zur Rueckmeldung.
         note: props.session.actual?.note ?? ''
       },
-      { rpe: feedbackRpe.value, note: feedbackNote.value }
+      feedback
     )
   )
 }
 
 function saveFeedbackOnly() {
-  run(() => running.saveFeedback(props.session.id, { rpe: feedbackRpe.value, note: feedbackNote.value }))
+  errorMessage.value = ''
+  const feedback = feedbackAusFormular()
+  if (!feedback) return
+  run(() => running.saveFeedback(props.session.id, feedback))
 }
 
 function saveSkipped() {
@@ -506,36 +546,6 @@ function doReset() {
 .form-input:focus {
   outline: none;
   border-color: var(--color-accent);
-}
-
-/* Anstrengung 1-5: fuenf Flaechen, die sich mit dem Daumen sicher treffen lassen. */
-.effort-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-xs);
-}
-
-.effort-btn {
-  min-height: 44px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-white);
-  color: var(--color-text);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  font-variant-numeric: tabular-nums;
-}
-
-.effort-btn.active {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: var(--color-white);
-}
-
-.effort-hint {
-  min-height: 1.2em;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
 }
 
 .sheet-effort {

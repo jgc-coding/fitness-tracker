@@ -53,7 +53,7 @@ Schluessel selbst bleibt auf dem Geraet, an dem er eingetragen wurde.
 > Dieser Punkt ist ab Version 1.5.0 in der App. Ohne die Schritte 1 bis 3
 > bleibt die Karte leer — sie sind die Voraussetzung.
 
-### 5. Nur fuer Claude-Sitzungen am PC (freiwillig)
+### 5. Nur fuer Claude-Sitzungen am PC (optional)
 Damit Claude in einer Anpass-Sitzung die letzten Laeufe selbst ansehen kann,
 legt ihr die Zugaenge einmal lokal ab, in `privat\intervals.json`:
 

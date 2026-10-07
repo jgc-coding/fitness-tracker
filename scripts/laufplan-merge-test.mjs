@@ -6,7 +6,8 @@
  * Funktionen sind (src/utils/runPlanSchema.js, src/utils/runPlanMerge.js).
  * Jede Regel aus docs/laufplaner-plan.md Abschnitt 5.4 hat mindestens einen
  * Fall; dazu die drei Sonderfaelle (leere Datei, fremder Nutzer, zweimal
- * derselbe Import), die Rueckmeldung nach dem Lauf (Faelle F1-F7) und die
+ * derselbe Import), die Rueckmeldung nach dem Lauf (Faelle F1-F7, mit
+ * Zyklustag und selbst eingetragenen Laeufen F8-F11) und die
  * Puls- und Tempovorgabe je Lauf (Faelle T1-T13).
  *
  * Aufruf (Windows PowerShell):  node .\scripts\laufplan-merge-test.mjs
@@ -355,6 +356,57 @@ function diff(plans, sessions, file) {
     plans: [filePlan({ sessions: [fileSession({ feedback: 'hart' })] })]
   })
   check('F7 Text statt Objekt wird abgelehnt', falscherTyp.ok === false)
+}
+
+{
+  // F8: Zyklustag in der Rueckmeldung (seit v2.12) — 1 bis 45, allein gueltig.
+  const mitTag = validFile([filePlan({ sessions: [fileSession({ feedback: { rpe: null, note: '', cycleDay: 18, at: null } })] })])
+  equal('F8 Zyklustag allein bleibt', mitTag.plans[0].sessions[0].feedback, { rpe: null, note: '', cycleDay: 18, at: null })
+
+  const ohneTag = validFile([filePlan({ sessions: [fileSession({ feedback: { rpe: 2, note: 'ok', cycleDay: null, at: null } })] })])
+  check('F8 ohne Zyklustag kein Feld', !('cycleDay' in ohneTag.plans[0].sessions[0].feedback),
+    JSON.stringify(ohneTag.plans[0].sessions[0].feedback))
+
+  for (const [name, wert] of [['Null', 0], ['46', 46], ['Kommazahl', 12.5], ['Text', '12']]) {
+    const result = validateRunPlanFile({
+      format: 'fittrack-laufplan',
+      formatVersion: 1,
+      plans: [filePlan({ sessions: [fileSession({ feedback: { rpe: 3, cycleDay: wert } })] })]
+    })
+    check(`F8 Zyklustag ${name} wird abgelehnt`, result.ok === false)
+    check(
+      `F8 Zyklustag ${name} nennt den Pfad`,
+      (result.errors || []).some(e => e.startsWith('plans[0].sessions[0].feedback.cycleDay:')),
+      (result.errors || []).join(' | ')
+    )
+  }
+}
+
+{
+  // F9: Rueckreise mit Zyklustag und ungeplantem Lauf meldet keine Aenderung.
+  const fb = { rpe: 3, note: 'solide', cycleDay: 21, at: '2030-01-19T18:30:00.000Z' }
+  const local = localSession({ id: 's9', status: 'done', unplanned: true, source: 'manual', feedback: fb })
+  const exported = validFile([filePlan({ sessions: [
+    fileSession({ id: 's9', status: 'done', source: 'manual', unplanned: true, actual: null, feedback: fb })
+  ] })])
+  const zweite = diff([localPlan()], [local], exported)
+  check('F9 Rueckreise mit Zyklustag ohne Aenderung', zweite.summary.unchanged === true,
+    JSON.stringify(zweite.sessionsToPut))
+}
+
+{
+  // F10: Datei ohne Rueckmeldung loescht einen lokalen Zyklustag nicht.
+  const local = localSession({ id: 's1', feedback: { rpe: null, note: '', cycleDay: 9, at: '2030-01-19T20:00:00.000Z' } })
+  const { sessionsToPut } = diff([localPlan()], [local], validFile([filePlan({ sessions: [fileSession({ title: 'Locker neu' })] })]))
+  equal('F10 Zyklustag bleibt erhalten', sessionsToPut[0]?.feedback?.cycleDay, 9)
+}
+
+{
+  // F11: Ein selbst eingetragener Lauf, der in der Datei fehlt, bleibt — auch
+  // in der Zukunft (er ist erledigt und ungeplant).
+  const eigener = localSession({ id: 'eigen', date: '2030-01-25', status: 'done', unplanned: true, source: 'manual' })
+  const { sessionIdsToDelete } = diff([localPlan()], [eigener], validFile([filePlan({ sessions: [fileSession()] })]))
+  equal('F11 eigener Lauf bleibt', sessionIdsToDelete, [])
 }
 
 // --- Puls- und Tempovorgabe (Faelle T1-T13) ---------------------------------

@@ -22,6 +22,15 @@ import { computeImportDiff } from '../utils/runPlanMerge.js'
 import { pushRecord, pushDelete, pushBulkDelete } from '../services/syncService.js'
 import { holeLaeufe, testeVerbindung } from '../utils/intervalsApi.js'
 import { ordneZu } from '../utils/runMatch.js'
+import {
+  normalizeFeedback,
+  gleicheRueckmeldung,
+  hatRueckmeldung,
+  baueSpontanLauf,
+  ersetzeGeplantenLauf,
+  bearbeiteSpontanLauf,
+  darfLoeschen
+} from '../utils/laufEintrag.js'
 
 /**
  * Laufplaner: Plaene und einzelne Laeufe.
@@ -195,7 +204,7 @@ export const useRunningStore = defineStore('running', () => {
   /**
    * Haken setzen. `actual` darf leer sein — dann ist der Lauf einfach erledigt
    * und zaehlt in der Wochenbilanz mit seinem Planwert. `feedback` ist die
-   * freiwillige Rueckmeldung; wird nichts uebergeben, bleibt eine vorhandene
+   * optionale Rueckmeldung; wird nichts uebergeben, bleibt eine vorhandene
    * unangetastet.
    */
   async function markDone(id, actual = null, feedback = undefined) {
@@ -228,26 +237,79 @@ export const useRunningStore = defineStore('running', () => {
     }
     const before = current.feedback || null
     const next = normalizeFeedback(feedback, before)
-    const gleich = (before?.rpe ?? null) === (next?.rpe ?? null) && (before?.note || '') === (next?.note || '')
-    if (gleich) return current
+    if (gleicheRueckmeldung(before, next)) return current
     return patchSession(id, { feedback: next })
   }
 
+  // --- Selbst eingetragene Laeufe (seit v2.12.0, Regeln in utils/laufEintrag.js)
+
+  /** Wirft mit den Saetzen aus der Pruefung, damit das Formular sie zeigt. */
+  function eingabeFehler(fehler) {
+    const e = new Error(fehler.join(' '))
+    e.eingabeFehler = fehler
+    return e
+  }
+
+  async function legeLaufAn(lauf) {
+    const sauber = toPlain(lauf)
+    await db.runSessions.put(sauber)
+    sessions.value = [...sessions.value, sauber]
+    pushRecord('runSessions', sauber.id, sauber)
+    return sauber
+  }
+
+  /** "+ Lauf eintragen": ein Lauf ohne geplanten Bezug. */
+  async function addSpontanLauf(userId, eingabe) {
+    const jetzt = new Date().toISOString()
+    const r = baueSpontanLauf(eingabe, {
+      id: generateId(),
+      userId,
+      planId: activePlan(userId)?.id || null,
+      jetzt
+    })
+    if (!r.ok) throw eingabeFehler(r.fehler)
+    return legeLaufAn(r.lauf)
+  }
+
   /**
-   * Rueckmeldung in die Form bringen, die auch das Dateiformat kennt
-   * (docs/laufplan-format.md): Anstrengung 1-5 oder null, Notiz als Text.
-   * Ist beides leer, gibt es keine Rueckmeldung — ein leeres Objekt waere beim
-   * naechsten Import eine Scheinaenderung. Der Zeitstempel bleibt stehen,
-   * solange sich inhaltlich nichts aendert.
+   * "Anders gelaufen": neuer Lauf plus Aenderung am geplanten in EINER
+   * Transaktion — sonst stuende nach einem Absturz der spontane Lauf da und
+   * der geplante zaehlte trotzdem noch als erledigt (doppelt).
    */
-  function normalizeFeedback(input, previous = null) {
-    if (!input) return null
-    const zahl = Number(input.rpe)
-    const rpe = Number.isInteger(zahl) && zahl >= 1 && zahl <= 5 ? zahl : null
-    const note = typeof input.note === 'string' ? input.note.trim() : ''
-    if (rpe === null && note === '') return null
-    const unveraendert = previous && (previous.rpe ?? null) === rpe && (previous.note || '') === note
-    return { rpe, note, at: unveraendert && previous.at ? previous.at : new Date().toISOString() }
+  async function ersetzeLauf(geplantId, eingabe, behandlung) {
+    const geplant = await db.runSessions.get(geplantId)
+    if (!geplant) throw eingabeFehler(['Der geplante Lauf ist nicht mehr da.'])
+    const jetzt = new Date().toISOString()
+    const r = ersetzeGeplantenLauf(geplant, eingabe, behandlung, { id: generateId(), jetzt })
+    if (!r.ok) throw eingabeFehler(r.fehler)
+
+    const neu = toPlain(r.neu)
+    const alt = toPlain({ ...geplant, ...r.geplantUpdates, updatedAt: jetzt })
+    await db.transaction('rw', db.runSessions, async () => {
+      await db.runSessions.put(neu)
+      await db.runSessions.put(alt)
+    })
+    sessions.value = [...sessions.value.filter(s => s.id !== alt.id), alt, neu]
+    pushRecord('runSessions', alt.id, alt)
+    pushRecord('runSessions', neu.id, neu)
+    return neu
+  }
+
+  /** Ungeplanten Lauf aendern (Art, Titel, Tag, Werte, Rueckmeldung). */
+  async function bearbeiteLauf(id, eingabe) {
+    const lauf = await db.runSessions.get(id)
+    const r = bearbeiteSpontanLauf(lauf, eingabe)
+    if (!r.ok) throw eingabeFehler(r.fehler)
+    return patchSession(id, r.updates)
+  }
+
+  /** Nur selbst eingetragene Laeufe; mit Tombstone fuer den Cloud-Sync. */
+  async function loescheLauf(id) {
+    const lauf = await db.runSessions.get(id)
+    if (!darfLoeschen(lauf)) throw eingabeFehler(['Dieser Lauf laesst sich nicht loeschen.'])
+    await db.runSessions.delete(id)
+    sessions.value = sessions.value.filter(s => s.id !== id)
+    await pushDelete('runSessions', id)
   }
 
   async function markSkipped(id, note = '') {
@@ -423,8 +485,8 @@ export const useRunningStore = defineStore('running', () => {
         .sort((a, b) => (a.date === b.date ? a.id.localeCompare(b.id) : a.date.localeCompare(b.date)))
       if (meine.length === 0) continue
 
-      const mitFeedback = meine.filter(s => s.feedback && (s.feedback.rpe || s.feedback.note))
-      const ohneFeedback = meine.filter(s => s.status === 'done' && !(s.feedback && (s.feedback.rpe || s.feedback.note)))
+      const mitFeedback = meine.filter(s => hatRueckmeldung(s.feedback))
+      const ohneFeedback = meine.filter(s => s.status === 'done' && !hatRueckmeldung(s.feedback))
       const plan = activePlan(userId)
 
       zeilen.push('')
@@ -439,7 +501,8 @@ export const useRunningStore = defineStore('running', () => {
         // ("Langer Lauf (Langer Lauf)" liest sich albern).
         const typ = getRunType(s.type).label
         const kopf = typ.toLowerCase() === (s.title || '').trim().toLowerCase() ? s.title : `${s.title} (${typ})`
-        zeilen.push(`  ${weekdayShort(s.date)} ${formatDayShort(s.date)} · ${kopf}${s.status === 'skipped' ? ' · ausgelassen' : ''}`)
+        const zusatz = `${s.unplanned ? ' · ungeplant' : ''}${s.status === 'skipped' ? ' · ausgelassen' : ''}`
+        zeilen.push(`  ${weekdayShort(s.date)} ${formatDayShort(s.date)} · ${kopf}${zusatz}`)
 
         const werte = []
         const geplant = formatRunValueFull(s.planned)
@@ -454,6 +517,7 @@ export const useRunningStore = defineStore('running', () => {
           zeilen.push(`    Anstrengung ${s.feedback.rpe}/5${label ? ` (${label})` : ''}`)
         }
         if (s.feedback.note) zeilen.push(`    Notiz: ${s.feedback.note}`)
+        if (s.feedback.cycleDay) zeilen.push(`    Zyklustag ${s.feedback.cycleDay}`)
       }
 
       if (ohneFeedback.length > 0) {
@@ -651,6 +715,10 @@ export const useRunningStore = defineStore('running', () => {
     markSkipped,
     saveFeedback,
     resetToPlanned,
+    addSpontanLauf,
+    ersetzeLauf,
+    bearbeiteLauf,
+    loescheLauf,
     prepareImport,
     applyImport,
     importPlanFile,

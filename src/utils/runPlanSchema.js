@@ -458,13 +458,15 @@ function validateSession(raw, S, err, sessionIds, rawPlan) {
     }
   }
 
-  // Rueckmeldung nach dem Lauf. Beide Teile sind freiwillig: Anstrengung 1-5
-  // und/oder ein Satz. Ist beides leer, steht hier null — ein leeres Objekt
-  // waere beim naechsten Vergleich eine Scheinaenderung.
+  // Rueckmeldung nach dem Lauf. Alle Teile sind optional: Anstrengung 1-5,
+  // ein Satz und (seit v2.12) der Zyklustag 1-45. Ist alles leer, steht hier
+  // null — ein leeres Objekt waere beim naechsten Vergleich eine
+  // Scheinaenderung. `cycleDay` steht nur drin, wenn er gesetzt ist, damit
+  // aeltere Rueckmeldungen unveraendert bleiben.
   let feedback = null
   if (raw.feedback !== undefined && raw.feedback !== null) {
     if (!isPlainObject(raw.feedback)) {
-      err(`${S}.feedback`, 'muss ein Objekt { rpe, note, at } oder null sein')
+      err(`${S}.feedback`, 'muss ein Objekt { rpe, note, cycleDay, at } oder null sein')
     } else {
       let rpe = null
       const rawRpe = raw.feedback.rpe
@@ -473,9 +475,18 @@ function validateSession(raw, S, err, sessionIds, rawPlan) {
         err(`${S}.feedback.rpe`, 'muss eine ganze Zahl von 1 bis 5 oder null sein')
       } else rpe = rawRpe
 
+      let cycleDay = null
+      const rawCycle = raw.feedback.cycleDay
+      if (rawCycle === null || rawCycle === undefined || rawCycle === '') cycleDay = null
+      else if (!Number.isInteger(rawCycle) || rawCycle < 1 || rawCycle > 45) {
+        err(`${S}.feedback.cycleDay`, 'muss eine ganze Zahl von 1 bis 45 oder null sein')
+      } else cycleDay = rawCycle
+
       const note = typeof raw.feedback.note === 'string' ? raw.feedback.note.trim() : ''
       const at = typeof raw.feedback.at === 'string' && raw.feedback.at !== '' ? raw.feedback.at : null
-      if (rpe !== null || note !== '') feedback = { rpe, note, at }
+      if (rpe !== null || note !== '' || cycleDay !== null) {
+        feedback = cycleDay === null ? { rpe, note, at } : { rpe, note, cycleDay, at }
+      }
     }
   }
 

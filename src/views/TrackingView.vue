@@ -379,6 +379,9 @@
           unit="Tag"
         />
       </div>
+      <p v-if="cycleVorschlag" class="cycle-vorschlag">
+        Vorschlag: errechnet aus Tag {{ cycleVorschlag.basis.day }} am {{ formatDayShort(cycleVorschlag.basis.date) }}
+      </p>
       <button class="btn btn-primary btn-block" @click="saveCycleDay">Speichern</button>
       <button
         class="btn btn-secondary btn-block"
@@ -498,7 +501,8 @@ import { usePlansStore } from '../stores/plans.js'
 import { useAuthStore } from '../stores/auth.js'
 import { useExercises } from '../composables/useExercises.js'
 import { useHistory } from '../composables/useHistory.js'
-import { isDeloadWeek, formatDate, getToday } from '../utils/dateHelpers.js'
+import { errechneZyklustagFuer } from '../composables/useZyklusTag.js'
+import { isDeloadWeek, formatDate, formatDayShort, getToday } from '../utils/dateHelpers.js'
 import { MUSCLE_GROUPS } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
 import { vorschauUrl, eintragFuerKey } from '../utils/uebungsBilder.js'
@@ -951,8 +955,20 @@ async function saveNote() {
   showNoteModal.value = false
 }
 
-function openCycleModal() {
-  cycleDraft.value = currentCycleDay.value ?? 1
+// Woraus der Vorschlag im Rad stammt (seit v2.12.0) — nur gesetzt, wenn das
+// Rad mit einem errechneten Tag startet. Gespeichert wird weiter erst mit
+// "Speichern".
+const cycleVorschlag = ref(null)
+
+async function openCycleModal() {
+  cycleVorschlag.value = null
+  if (currentCycleDay.value != null) {
+    cycleDraft.value = currentCycleDay.value
+  } else {
+    const errechnet = await errechneZyklustagFuer(zyklusUser.value?.id, workoutStore.activeWorkout?.date)
+    cycleDraft.value = errechnet?.tag ?? 1
+    cycleVorschlag.value = errechnet
+  }
   showCycleModal.value = true
 }
 
@@ -1698,6 +1714,13 @@ onUnmounted(() => {
 .cycle-wheel {
   max-width: 160px;
   margin: 0 auto var(--space-md);
+}
+
+.cycle-vorschlag {
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-md);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
 .workout-header h2 {

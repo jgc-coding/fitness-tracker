@@ -49,7 +49,8 @@ src/
                          uebungsRing, uebungsBilder, uebungsDubletten,
                          planReihenfolge, radWerte (Vorwert ausserhalb des
                          Rasters nie still ersetzen), verlauf, trainingGeraet,
-                         runPlanMerge, runMatch; dazu runPlanSchema (Format),
+                         runPlanMerge, runMatch, laufEintrag, zyklusTag;
+                         dazu runPlanSchema (Format),
                          intervalsApi (Browser + Node), exportData (CSV mit
                          BOM, JSON-Backup, Import merge-only), formatters
 public/sw-custom.js      notificationclick + Quick-Log (schreibt in IndexedDB)
@@ -163,7 +164,9 @@ npm run preview   # Build lokal testen (Port 4173)
   per Sync in das laufende Training des anderen und schreibt dessen Besetzung um
   (01.10.2026). Logs ohne `deviceId` gelten als fremd.
 - **Notiz und Zyklustag haengen am workoutLog** (`note`, `cycleDays` `{ userId:
-  Zahl }`, beide optional — immer mit Fallback lesen). Zyklustag-Knopf nur, wenn
+  Zahl }`, beide optional — immer mit Fallback lesen; am Lauf: Laufplaner).
+  Das Rad startet beim ERRECHNETEN Tag (`useZyklusTag`), gespeichert wird erst
+  mit "Speichern". Zyklustag-Knopf nur, wenn
   ein aktiver Nutzer `zyklus: true` traegt (constants.js, nur ein Nutzer). `cycleDays` IMMER als flache
   Kopie mergen, nie ersetzen. Aktives Workout: Store-Funktionen; nachtraeglich in
   der History: eigener Weg `patchLog`.
@@ -265,6 +268,26 @@ npm run preview   # Build lokal testen (Port 4173)
   `runSessions`, `meta/userName_user1|2` per REST, nur lesend; Bahn-Tabellen aus
   `targets`, Dauer aus dem label ("Steigerungen 20 s"). Wer Format, Labels oder
   Firebase-Projekt aendert, zieht dort `src/lib/cloud.ts` bzw. `training.ts` mit.
+- **Selbst eingetragene Laeufe** (Gabriel 07.10.2026) sind normale Laeufe mit
+  `unplanned: true`, `source: 'manual'` — kein neues Feld, kein neuer Status.
+  "Anders gelaufen" legt einen neuen Lauf an und setzt den geplanten auf
+  `skipped` ("Stattdessen: <Titel>" in `actual.note`) oder laesst ihn `planned`;
+  war er schon erledigt, WANDERN `actual`, `externalId`, `source` und `feedback`
+  auf den neuen (sonst doppelt gezaehlt bzw. von der Uhr doppelt geholt). Beides
+  in EINER Transaktion. Loeschen nur ohne `externalId` (die Uhr holte ihn
+  zurueck), mit Tombstone. Regeln in `utils/laufEintrag.js`, Vertrag
+  `scripts/laufeintrag-test.mjs`.
+- **Zyklustag am Lauf = `feedback.cycleDay`** (1-45), damit gilt die
+  Feedback-Regel: kein Import und kein Abgleich verliert ihn. Das Feld steht
+  nur drin, wenn gesetzt (sonst Scheinaenderung bei aelteren Rueckmeldungen).
+  Vorschlag = zeitlich naechster Eintrag aus Training ODER Lauf plus
+  Kalendertage (`utils/zyklusTag.js`, Vertrag `scripts/zyklustag-test.mjs`);
+  gespeichert wird, was im Formular stand. Versionen vor 2.12 verlieren den
+  Wert, wenn sie die Rueckmeldung neu speichern.
+- **Das Lauf-Blatt setzt sich nur beim Wechsel des Laufs zurueck** (Watch auf
+  einen TEXT aus `modelValue|id`, nie ein Array): sonst warf jede Aenderung am
+  Lauf das offene Formular weg, und die Fertig-Meldung des Unterformulars ging
+  verloren (Vue verwirft Ereignisse entfernter Komponenten).
 - **Schluessel fuer intervals.icu sind GERAETE-lokal:** nicht in `db.meta`, nicht in
   der Cloud, nicht im Backup. Die Athleten-Id in `externalId` ist gewollt gesynct.
 
