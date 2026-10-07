@@ -1,7 +1,7 @@
 # Weitermachen — Stand 2026-10-07 (v2.12.0)
 
 ## Stand
-- **Diese Sitzung (07.10.): v2.12.0.** Auftrag von Gabriel (vom Handy):
+- **Diese Sitzung (07.10.): v2.12.0, live** (Deploy gruen, Live-Seite liefert 2.12.0, Tag `v2.12.0`). Auftrag von Gabriel (vom Handy):
   beim Laufen nicht nur tauschen, sondern "Anders gelaufen ..." frei
   eintragen, mit Rueckmeldung; "freiwillig" -> "optional" ueberall; fuer die
   Person mit Zyklus-Erfassung der errechnete Zyklustag im Lauf-Formular,
