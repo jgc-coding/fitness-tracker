@@ -11,5 +11,7 @@ node ./scripts/uebungsdubletten-test.mjs
 node ./scripts/planreihenfolge-test.mjs
 node ./scripts/laufplan-merge-test.mjs
 node ./scripts/runmatch-test.mjs
+node ./scripts/laufeintrag-test.mjs
+node ./scripts/zyklustag-test.mjs
 node ./scripts/pace-modell-test.mjs
 npm run build

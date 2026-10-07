@@ -67,12 +67,28 @@
       </div>
     </template>
 
+    <!-- Spontaner Lauf ohne geplanten Bezug (seit v2.12.0), z.B. am Ruhetag -->
+    <button class="btn btn-secondary btn-block add-run-btn" @click="openNeu">+ Lauf eintragen</button>
+
     <RunSessionSheet
       v-model="sheetOpen"
       :session="selectedSession"
       :swap-candidates="swapCandidates"
       :user-name="selectedUserName"
     />
+
+    <Modal v-model="neuOpen" title="Lauf eintragen">
+      <RunSpontanForm
+        v-if="neuOpen"
+        :key="neuKey"
+        modus="neu"
+        :personen="personen"
+        :start-user-id="authStore.defaultUserId"
+        :start-datum="neuDatum"
+        @fertig="neuFertig"
+        @abbrechen="neuOpen = false"
+      />
+    </Modal>
   </div>
 </template>
 
@@ -80,7 +96,9 @@
 import { ref, computed } from 'vue'
 import RunSessionChip from './RunSessionChip.vue'
 import RunSessionSheet from './RunSessionSheet.vue'
+import RunSpontanForm from './RunSpontanForm.vue'
 import EmptyState from '../shared/EmptyState.vue'
+import Modal from '../shared/Modal.vue'
 import { useRunningStore } from '../../stores/running.js'
 import { useAuthStore } from '../../stores/auth.js'
 import { USERS } from '../../utils/constants.js'
@@ -204,6 +222,31 @@ function goToday() {
 function openSession(session) {
   selectedId.value = session.id
   sheetOpen.value = true
+}
+
+// --- "+ Lauf eintragen" -------------------------------------------------------
+
+const neuOpen = ref(false)
+const neuKey = ref(0)
+// Vorbelegt mit heute; nur in einer vergangenen Woche mit deren Montag (das
+// Datum laesst sich im Formular aendern, Zukunft geht nicht).
+const neuDatum = computed(() => (props.monday < mondayOf(today) ? props.monday : today))
+
+const personen = computed(() =>
+  authStore.users.map(u => ({ id: u.id, name: u.name, color: u.color }))
+)
+
+function openNeu() {
+  neuKey.value += 1
+  neuOpen.value = true
+}
+
+/** Gespeichert: Fenster zu und die Woche des Laufs zeigen. */
+function neuFertig(lauf) {
+  neuOpen.value = false
+  if (lauf?.date && mondayOf(lauf.date) !== props.monday) {
+    emit('update:monday', mondayOf(lauf.date))
+  }
 }
 </script>
 
@@ -376,5 +419,9 @@ function openSession(session) {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   padding: var(--space-sm) 0;
+}
+
+.add-run-btn {
+  margin-top: var(--space-md);
 }
 </style>

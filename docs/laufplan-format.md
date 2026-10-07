@@ -156,11 +156,11 @@ ist meistens ein echter Rechenfehler im Plan.
 | `targets` | nein | Puls und Tempo, siehe unten. Liste oder `null`. |
 | `status` | nein | `planned` (Standard), `done` oder `skipped`. |
 | `actual` | nein | `{ km, minutes, avgHr, note }` oder `null`. |
-| `feedback` | nein | Rueckmeldung des Laeufers: `{ rpe, note, at }` oder `null`, siehe unten. |
+| `feedback` | nein | Rueckmeldung des Laeufers: `{ rpe, note, cycleDay, at }` oder `null`, siehe unten. |
 | `source` | nein | Woher der Status kommt: `plan`, `manual` oder `intervals`. |
 | `originalDate` | nein | Urspruenglich geplanter Tag, wenn in der App verschoben. |
 | `externalId` | nein | Kennung der Garmin-Aktivitaet (`athletId:aktivitaetsId`). |
-| `unplanned` | nein | `true` = Lauf kam von der Uhr, stand nicht im Plan. |
+| `unplanned` | nein | `true` = Lauf stand nicht im Plan: von der Uhr (`source: intervals`) oder selbst eingetragen (`source: manual`, "Anders gelaufen" / "+ Lauf eintragen"). |
 
 **Regel fuer `planned`:** Mindestens eines von `km`, `minutes` oder `loops` muss
 gesetzt sein — ausser bei den Arten `strength`, `race` und `other`, die auch ohne
@@ -230,18 +230,32 @@ geht.
 |------|---------|-----------|
 | `rpe` | nein | Anstrengung als ganze Zahl von 1 bis 5, oder `null`. |
 | `note` | nein | Ein Satz in eigenen Worten. |
+| `cycleDay` | nein | Zyklustag als ganze Zahl von 1 bis 45 (seit v2.12, nur bei der Person mit Zyklus-Erfassung). Fehlt, wenn nicht gesetzt. |
 | `at` | nein | Wann die Rueckmeldung entstand (Zeitstempel, rein informativ). |
 
 Die Skala ist subjektiv gemeint, sie wird nicht aus dem Puls berechnet:
 1 = sehr locker, 2 = locker, 3 = mittel, 4 = hart, 5 = maximal.
 
-Beide Teile sind freiwillig. Sind Stufe und Notiz leer, steht `null` statt eines
-leeren Objekts — sonst waere jede Rueckreise der Datei eine Scheinaenderung.
+Alle Teile sind optional. Sind Stufe, Notiz und Zyklustag leer, steht `null`
+statt eines leeren Objekts — sonst waere jede Rueckreise der Datei eine
+Scheinaenderung. Aus demselben Grund steht `cycleDay` nur drin, wenn er
+gesetzt ist.
+
+Den Zyklustag schlaegt die App vor: letzter bekannter Eintrag (Training oder
+Lauf) plus die Tage dazwischen (`src/utils/zyklusTag.js`). Gespeichert ist nur,
+was die Person im Formular gesehen und mit "Speichern" bestaetigt hat.
 
 `actual.note` und `feedback.note` sind zwei verschiedene Dinge. In `actual.note`
 steht Technisches, das die App selbst eintraegt (zum Beispiel „Gesamtzeit
 12:00 h" beim Abgleich mit der Uhr) sowie der Grund fuer einen ausgelassenen
 Lauf. In `feedback.note` steht, was der Laeufer selbst geschrieben hat.
+
+**Anders gelaufen:** Ist jemand statt des geplanten Laufs etwas ganz anderes
+gelaufen, steht das als eigener Lauf mit `unplanned: true` und
+`source: manual` am selben Tag. Der geplante Lauf ist dann `skipped` mit
+`actual.note` "Stattdessen: <Titel>" — oder noch `planned`, wenn er nachgeholt
+werden soll. Hatte die Uhr den Lauf schon dem geplanten zugeordnet, wandern
+`actual`, `externalId` und `feedback` auf den neuen Lauf.
 
 ---
 
@@ -262,7 +276,8 @@ Test in `scripts/laufplan-merge-test.mjs`:
 5. **Neue Kennung:** Der Lauf wird angelegt.
 6. **Lokaler Lauf fehlt in der Datei:** Er wird nur geloescht, wenn er noch
    geplant ist **und** in der Zukunft liegt. Vergangenes bleibt stehen.
-7. **Laeufe von der Uhr** (`unplanned: true`) werden nie durch einen Import geloescht.
+7. **Ungeplante Laeufe** (`unplanned: true`, von der Uhr oder selbst eingetragen)
+   werden nie durch einen Import geloescht.
 8. **Rueckmeldungen gehen nie verloren.** Bringt die Datei fuer einen noch
    geplanten Lauf keine `feedback` mit, bleibt die vorhandene stehen. Bei
    erledigten Laeufen aendert ein Import ohnehin nichts (Regel 4).

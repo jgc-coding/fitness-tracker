@@ -33,12 +33,6 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       (GitHub Pages braucht dann ein bezahltes Konto) oder so lassen.
 
 ## Ideen
-- **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — Aufwand: S
-      Nutzen: Paket 1 kennt nur Laeufe aus dem Claude-Plan; ein spontaner Lauf
-      laesst sich bis Paket 2 nirgends festhalten. Abgrenzung: ein Knopf in der
-      Wochenansicht, der einen Lauf mit `unplanned: true` anlegt — mit Paket 2
-      kommt derselbe Lauf ohnehin automatisch von der Uhr, deshalb erst danach
-      entscheiden, ob es den Knopf noch braucht.
 - **I8** (Erweiterung) Alle Saetze eines Tages in der History zeigen — Aufwand: S-M
       Nutzen: Seit v2.4.0 erfasst user1 jeden Satz einzeln; History und CSV
       zeigen je Tag aber nur den schwersten. Abgrenzung: Tipp auf eine Zelle
@@ -61,6 +55,10 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 (noch nichts — V8/I1/I5 sind zurueckgestellt, nicht abgelehnt)
 
 ## Erledigt
+- **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — erledigt in
+  v2.12.0 (07.10.2026, Wunsch Gabriel): "Anders gelaufen ..." im Lauf-Blatt
+  und "+ Lauf eintragen" in der Woche, dazu Bearbeiten/Loeschen und der
+  Zyklustag am Lauf.
 - **V14** (C) Deploy-Workflow auf Node-24-faehige Actions heben — erledigt in
   v2.7.1 (01.10.2026, Freigabe Gabriel): checkout@v7, setup-node@v7 mit Node 24,
   upload-pages-artifact@v5, deploy-pages@v5. `ubuntu-latest` bleibt; der
