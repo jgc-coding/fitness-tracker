@@ -1,16 +1,17 @@
 # Weitermachen — Stand 2026-10-07 (v2.12.0)
 
 ## Stand
-- **Diese Sitzung (07.10.): v2.12.0, live** (Deploy gruen, Live-Seite liefert 2.12.0, Tag `v2.12.0`). Auftrag von Gabriel (vom Handy):
-  beim Laufen nicht nur tauschen, sondern "Anders gelaufen ..." frei
-  eintragen, mit Rueckmeldung; "freiwillig" -> "optional" ueberall; fuer die
-  Person mit Zyklus-Erfassung der errechnete Zyklustag im Lauf-Formular,
-  korrigierbar. Entscheidungen (alle wie empfohlen): Schalter "ausgelassen"
-  (Standard) / "offen lassen"; "+ Lauf eintragen" auch in der Woche; das
-  Zyklus-Rad im Krafttraining startet ebenfalls beim errechneten Tag.
-  Regeln `utils/laufEintrag.js` und `utils/zyklusTag.js` (Vertraege
+- **Diese Sitzung (07.10.): v2.12.0, live** (Deploy gruen, Live-Seite liefert
+  2.12.0, Tag `v2.12.0`). Auftrag von Gabriel (vom Handy): beim Laufen nicht
+  nur tauschen, sondern "Anders gelaufen ..." frei eintragen, mit
+  Rueckmeldung; "freiwillig" -> "optional" ueberall; fuer die Person mit
+  Zyklus-Erfassung der errechnete Zyklustag im Lauf-Formular, korrigierbar.
+  Entscheidungen (alle wie empfohlen): Schalter "ausgelassen" (Standard) /
+  "offen lassen"; "+ Lauf eintragen" auch in der Woche; das Zyklus-Rad im
+  Krafttraining startet ebenfalls beim errechneten Tag. Regeln
+  `utils/laufEintrag.js` und `utils/zyklusTag.js` (Vertraege
   `laufeintrag-test`, `zyklustag-test`, Merge-Test F8-F11), Formular
-  `RunSpontanForm.vue`, Feld `ZyklusTagFeld.vue`.
+  `RunSpontanForm.vue`, Feld `ZyklusTagFeld.vue`. I7 damit erledigt.
 - **Geprueft:** Gate gruen (16 Befehle). Headless-Chrome gegen den
   Produktions-Build, frische `*.localhost`-Adresse, 360 px, Testdaten per
   Backup-Import: 70 Pruefungen gruen (alle Wege, IndexedDB-Inhalt, Fenster
@@ -18,43 +19,28 @@
   Fotos angesehen. Dabei zwei Fehler gefunden und behoben (leeres Blatt nach
   Loeschen; Blatt blieb nach "Anders gelaufen" offen). Nicht am Handy, kein
   Abgleich zweier Handys, kein echter Uhr-Lauf getestet.
-- **Rueckkehr:** vor dieser Sitzung `8eaa3de` (v2.11.0). Datenbank-Schema
-  unveraendert, nur neue optionale Felder.
-- **Davor (05.10.): v2.11.0.** Auftrag von Gabriel: die
-  Reihenfolge der Trainingstage gut aenderbar machen. Aus drei Skizzen
-  (Pfeile / Sortierfenster / Halten klappt zu) waehlte er B wie empfohlen:
-  Knopf "Reihenfolge" ueber den Tagen eines Plans, Fenster mit nur den
-  Tagesnamen, Ziehen ohne Halten, jedes Loslassen speichert. Startbildschirm
-  und "Tag wechseln" zeigen dieselbe Reihenfolge (ausdruecklicher Wunsch).
-  Regeln `sortiereTage`, `neueTagesPlaetze`, `naechsterTagesPlatz` in
-  `utils/planReihenfolge.js` (Vertrag `scripts/planreihenfolge-test.mjs`),
-  Speichern `setzeTagesPlaetze` im plans store, Fenster in `PlanningView.vue`.
-  Nebenbei V16 behoben (doppelter Platz nach Loeschen + Neuanlegen).
-- **Geprueft:** Gate gruen (14 Befehle, 15 neue Vertragsfaelle).
-  Headless-Chrome gegen den Produktions-Build, frische `*.localhost`-Adresse,
-  360 px, Testdaten per Backup-Import: 20 Pruefungen gruen (Finger- und
-  Mausziehen, sofort in IndexedDB, Startbildschirm vor/nach Neuladen, Woche
-  A/B getrennt, neuer Tag am Ende, keine Konsolenfehler). Fotos angesehen.
-  Nicht am Handy, kein Abgleich zweier Handys getestet.
-- **Rueckkehr:** vor dieser Sitzung `6deda0f` (v2.10.0). Datenbank-Schema
-  unveraendert; alte Versionen lesen `dayOrder` genauso.
-- **Davor (04.10.): v2.10.0** — Uebungswechsel fuer alle zusammen
-  (`utils/uebungsRing.js`), V15 Namen nur noch in `db.meta` (Cloud-Datensaetze
-  `meta/userName_user1..3` am 04.10. angelegt). Echte Einzel-Sterne in der
-  Cloud gelten seitdem fuer die ganze Karte.
-- **Aus frueheren Sitzungen:** Rueckkehrpunkte `e9c2a67` (v2.9.2),
+- **Aufgeraeumt (save-state clean):** drei gemergte Branches lokal geloescht,
+  verwaisten Worktree-Eintrag bereinigt. Es gibt nur noch `master`, keine
+  Worktrees. Uebrig ist ein LEERER Ordner
+  `.claude\worktrees\exercise-images-crop-e10a06` (gitignoriert, harmlos).
+- **Rueckkehrpunkte:** `c3937d6` (Stand nach dieser Sitzung), `8eaa3de`
+  (v2.11.0, vor dieser Sitzung), `6deda0f` (v2.10.0), `e9c2a67` (v2.9.2),
   `2eae34a` (v2.9.0), `5ab01dc` (v2.8.1), `be06855` (v2.7.1), `01031c1`
-  (v2.6.0). Cloud-Sicherungen der Uebungs- und Log-Korrekturen liegen in
-  `privat\`. impeccable auf 4.3.1 (Claude-Skills-Commit `d45f982`, nicht
-  gepusht); `PRODUCT.md` steht noch im Schema von 3.5.0.
+  (v2.6.0). Datenbank-Schema seit v2.x unveraendert (Dexie v4), v2.12 nur
+  neue optionale Felder. Cloud-Sicherungen der Uebungs- und Log-Korrekturen
+  liegen in `privat\`. impeccable auf 4.3.1 (Claude-Skills-Commit `d45f982`,
+  nicht gepusht); `PRODUCT.md` steht noch im Schema von 3.5.0.
 
 ## Stolperfallen (aktuell)
 - **Headless-Chrome aus Claude heraus:** Profilordner NICHT unter AppData
   (die App-Kapsel virtualisiert ihn, IndexedDB scheitert mit "backing store"),
   ohne `--incognito`. Erprobt: `C:\Users\chime\fittrack-testprofil-<zeit>`,
   danach loeschen. Testdaten per `DOM.setFileInputFiles` auf das Backup-Feld
-  in Settings; Navigation per `__vue_app__...$router.push`. Testskripte lagen
-  im Scratchpad der Sitzungen (nicht im Repo).
+  in Settings; Navigation per `__vue_app__...$router.push`. Testskripte liegen
+  im Scratchpad der Sitzungen (nicht im Repo), zuletzt `lauf-test.mjs` unter
+  `%LOCALAPPDATA%\Temp\claude\C--Projekte\93d43c28-...\scratchpad\`.
+  Jedes "Fenster zu" als Pruefung werten — ein still offenes Blatt verdeckte
+  sonst zwei Fehler.
 - **Derselbe Trainingstag am selben Tag erneut gestartet** uebernimmt den Stand
   seines Logs (gewollt) — Starttests brauchen einen Tag ohne heutigen Log.
 - **Ein Handy, das offline ein altes Geraet haelt,** koennte es beim
@@ -98,7 +84,8 @@
    `docs/laufplan-vorgaben.md` Abschnitt 5; Garmin-Abgleich zuerst in
    `scripts/runmatch-test.mjs`.
 7. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
-   Regeln in `docs/laufplan-format.md` Abschnitt 5).
+   Regeln in `docs/laufplan-format.md` Abschnitt 5) — seit v2.12 mit
+   Zyklustag (`feedback.cycleDay`) und ungeplanten Laeufen ("Stattdessen: ...").
 8. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
 9. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
    ausdruecklicher Freigabe.
@@ -107,7 +94,9 @@
 - **Im intervals.icu-Konto von user2 liegt noch keine Aktivitaet** (seit
   19.07.); erster echter Garmin-Test mit einem Plan-Lauf.
 - **Der erste Lauf von user1 ist der eigentliche Test der Garmin-Anbindung**
-  — das Konto bekommt nur Laeufe nach dem Verbinden (Stand 10.09.).
+  — das Konto bekommt nur Laeufe nach dem Verbinden (Stand 10.09.). Seit
+  v2.12 auch: ein spontaner Lauf, den die Uhr dem geplanten zuordnet, laesst
+  sich per "Anders gelaufen" umhaengen (nur im Test mit Testdaten belegt).
 - **Erster Deploy nach dem 19.10.2026** laeuft auf Ubuntu 26
   (`ubuntu-latest`): Actions-Lauf dann ansehen; bricht er, `runs-on` in
   `.github/workflows/deploy.yml` voruebergehend auf `ubuntu-24.04` setzen.
@@ -124,10 +113,3 @@
   `docs/tests/v2.10.0-handy.md` und `docs/tests/v2.11.0-handy.md` abhaken.
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
-- [ ] **Alte Worktrees entfernen**, wenn keine Sitzung mehr darauf zeigt (seit 2026-09-22)
-  Noch vier (Stand 05.10.). Ignoriert liegt darin nur `.claude/` und
-  nachbaubares `dist/` bzw. `node_modules/`. Je Zeile ein Worktree (PowerShell):
-  - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\exercise-images-crop-e10a06"`
-  - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\ubungen-system-refinements-64f8ad"`
-  - `git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\fittrack-fortsetzung-ef2a20"`
-  - `Remove-Item -LiteralPath "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387\.claude\autopilot" -Recurse -Force; git -C "C:\Projekte\Fitness Tracker" worktree remove "C:\Projekte\Fitness Tracker\.claude\worktrees\vigorous-elion-220387"`
