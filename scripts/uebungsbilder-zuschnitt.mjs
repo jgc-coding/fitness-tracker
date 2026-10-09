@@ -50,7 +50,8 @@ export const QUELLEN = {
   'neu-12.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
   'neu-13.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
   'neu-14.webp': { breite: 1024, hoehe: 1536, hintergrund: 'weiss', schilder: 0 },
-  'neu-15.webp': { breite: 1536, hoehe: 1024, hintergrund: 'weiss', schilder: 0 }
+  'neu-15.webp': { breite: 1536, hoehe: 1024, hintergrund: 'weiss', schilder: 0 },
+  'neu-16.webp': { breite: 1536, hoehe: 1024, hintergrund: 'weiss', schilder: 0 }
 }
 
 export const UEBUNGEN = {
@@ -120,5 +121,12 @@ export const UEBUNGEN = {
   // neu-15.webp: nur chest-press-machine, Querformat, Seitenansicht. Griff und
   // Scheibe haengen an EINEM Hebel; der wird im ENDE etwas laenger, statt im
   // Bogen zu schwingen (Gabriel hat es so freigegeben).
-  'chest-press-machine': { quelle: 'neu-15.webp', phasen: { 1: [78, 40, 750, 963], 3: [751, 40, 1518, 962] } }
+  'chest-press-machine': { quelle: 'neu-15.webp', phasen: { 1: [78, 40, 750, 963], 3: [751, 40, 1518, 962] } },
+  // neu-16.webp: nur biceps-curl-machine (v2.13.0, nach Gabriels Fotos der
+  // Scheiben-Maschine), Querformat, Seitenansicht. Die Scheibe haengt an EINEM
+  // Arm am Gelenk neben den Ellbogen; erst der dritte Auftrag zeichnete ihn
+  // in beiden Haelften gleich (vorher wanderte die Scheibe zwischen Rahmen
+  // und Arm). Vorschau in der Endhaltung: der gebeugte Arm zeigt klein
+  // eindeutiger, dass es um den Bizeps geht.
+  'biceps-curl-machine': { quelle: 'neu-16.webp', phasen: { 1: [10, 196, 692, 893], 3: [782, 196, 1424, 893] }, vorschau: 3 }
 }
