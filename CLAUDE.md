@@ -192,6 +192,10 @@ npm run preview   # Build lokal testen (Port 4173)
   Katalog legt sie nur in der Datenbank an. Was `uebungen-cloud.mjs` als "nur in
   der App" zeigt, kommt mit exaktem Namen, Gruppe und Geraet in die Standardliste
   und den Bild-Vertrag (der verlangt fuer jede Standard-Uebung ein Bild).
+  Eine NEUE Standard-Uebung (z.B. Bizeps Machine, v2.13.0) erreicht die Handys
+  erst ueber "Standard-Uebungen laden", ihr Bild erst ueber "Bilder automatisch
+  zuordnen" — die Anzeige liest nur `imageKey`, nie den Namen. Beides gehoert
+  in die Gabriel-Aufgaben des Releases.
 - **Uebung umbenennen = vier Stellen zugleich:** Standardliste, Alias im Manifest
   (alter Name bleibt Alias), Bild-Vertrag, Cloud per `uebungen-korrigieren.mjs`.
   Vertauschte Uebungen tauschen Name und Bild statt Saetze umzuhaengen. Bis alle
