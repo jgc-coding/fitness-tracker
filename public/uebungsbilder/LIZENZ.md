@@ -11,10 +11,12 @@ Alle 36 Uebungen: am 28.09.2026 mit ChatGPT neu erstellt, je Auftrag drei
 Uebungen mit Start- und Endhaltung, alle nach demselben Stil-Vorbild (gute
 Figuren der frueheren KI-Bilder aus Version 2.1.0 bis 2.2.0). Am 02.10.2026
 im selben Verfahren nachgebessert: Brustpresse an der Maschine,
-Ausfallschritt und sitzender Beinbeuger.
+Ausfallschritt und sitzender Beinbeuger. Am 09.10.2026 im selben Verfahren
+neu dazu: die Bizeps-Maschine (Version 2.13.0, gezeichnet nach Fotos des
+Geraets).
 
 Zugeschnitten mit `scripts/uebungsbilder-schneiden.mjs` aus den Reihenbildern
-`neu-01.webp` bis `neu-15.webp` in `scripts/uebungsbilder-quellen/`: je
+`neu-01.webp` bis `neu-16.webp` in `scripts/uebungsbilder-quellen/`: je
 Uebung zwei Bewegungsphasen (die Plank eine) und ein Vorschaubild. Ablauf und
 Prompt-Vorlage: `docs/uebungsbilder-chatgpt.md`.
 

@@ -3,6 +3,18 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.13.0] — 2026-10-09
+
+### Features
+- **Neue Uebung "Bizeps Machine"** (Wunsch Gabriel): die Scheiben-Maschine
+  fuer Bizeps-Curls aus dem Studio, Gruppe Arme, Geraet "Maschine
+  (Gewichte)" (Rad in 1,25-kg-Schritten). Eigenes Bild im Stil der anderen
+  (Start- und Endhaltung, von ChatGPT nach Gabriels Fotos gezeichnet),
+  Muskelgrafik Bizeps, Unterarme mit. Ins Handy kommt sie ueber
+  Einstellungen -> "Standard-Uebungen laden", das Bild danach ueber "Bilder
+  automatisch zuordnen". Auch von Hand angelegt als "Bizeps Maschine",
+  "Biceps Machine" oder "Bicep Curl Machine" findet sie ihr Bild.
+
 ## [2.12.0] — 2026-10-07
 
 ### Features

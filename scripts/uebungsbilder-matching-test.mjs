@@ -1,16 +1,16 @@
 // Vertragstest fuers Namens-Matching und das Bild-Manifest der Uebungszeichnungen
 // (src/utils/uebungsBilder.js, src/data/uebungskatalog.json).
 //
-// Der Test ist der Vertrag: alle 36 Namen der Standardliste
+// Der Test ist der Vertrag: alle 37 Namen der Standardliste
 // (src/data/standardUebungen.js: 31 aus der Plan-Tabelle in
 // docs/plan-fittrack-v2.md, "Chin Up" seit 22.09.2026, dazu seit 24.09.2026
 // die vier in der App nachgetragenen Butterfly, Butterfly reverse, DB Shrugs
-// und Dips) muessen ihren Key treffen, Fantasienamen duerfen nichts treffen,
+// und Dips, seit v2.13.0 "Bizeps Machine") muessen ihren Key treffen, Fantasienamen duerfen nichts treffen,
 // und jede im Manifest genannte Datei muss unter public/ liegen. Die Keys stammen aus der
 // Workout-Guide-Sammlung (Zeichnungen, CC BY-SA 4.0); seit v2.1.0 zeigen die
 // meisten davon KI-generierte Bilder (quelle "ki", zugeschnitten von
 // scripts/uebungsbilder-schneiden.mjs), seit v2.2.0 auch die vier
-// Arm-Uebungen, dazu neu Dips. Seit v2.6.0 (28.09.2026) kommen ALLE 36 aus
+// Arm-Uebungen, dazu neu Dips. Seit v2.6.0 (28.09.2026) kommen ALLE aus
 // neuen ChatGPT-Reihenbildern (je Bild drei Uebungen, START links, ENDE
 // rechts, weisser Grund) — keine Zeichnung mehr im Manifest. Wer
 // Matching-Regeln, das Manifest oder die Schnitt-Tabelle aendert, erweitert
@@ -49,7 +49,7 @@ function pruefe(beschreibung, bedingung) {
   }
 }
 
-// Die 36 Namen der Standardliste -> erwarteter Key. Namen stehen hier EXAKT
+// Die 37 Namen der Standardliste -> erwarteter Key. Namen stehen hier EXAKT
 // wie in src/data/standardUebungen.js (und damit in der App), inklusive
 // Anfuehrungszeichen, Doppelpunkten und Gross-/Kleinschreibung; ein Test
 // unten wacht darueber, dass beide Listen dieselben Namen tragen.
@@ -94,11 +94,13 @@ const ERWARTET = [
   ['Butterfly', 'butterfly-machine'],
   ['Butterfly reverse', 'reverse-pec-deck'],
   ['DB Shrugs', 'dumbbell-shrug'],
-  ['Dips', 'dips']
+  ['Dips', 'dips'],
+  // Seit v2.13.0 (Gabriel 08.10.2026, Scheiben-Maschine aus dem Studio)
+  ['Bizeps Machine', 'biceps-curl-machine']
 ]
 
-console.log('[matching-test] 36 Namen der Standardliste muessen ihren Key treffen:')
-pruefe(`Vertrag umfasst 36 Namen (ist: ${ERWARTET.length})`, ERWARTET.length === 36)
+console.log('[matching-test] 37 Namen der Standardliste muessen ihren Key treffen:')
+pruefe(`Vertrag umfasst 37 Namen (ist: ${ERWARTET.length})`, ERWARTET.length === 37)
 for (const [name, key] of ERWARTET) {
   const treffer = findeImageKey(katalog, name)
   pruefe(`"${name}" -> ${key}`, treffer === key)
@@ -130,7 +132,16 @@ for (const [name, key] of [
   ['Triceps Dips', 'dips'],
   // Namen bis v2.6 (alte Backups, Handys vor dem Update)
   ['"bad girl"', 'hip-abduction-machine'],
-  ['"good girl"', 'hip-adduction-machine']
+  ['"good girl"', 'hip-adduction-machine'],
+  // seit v2.13.0: so koennte die Bizeps-Maschine von Hand angelegt heissen
+  ['Bizeps Maschine', 'biceps-curl-machine'],
+  ['Bizepsmaschine', 'biceps-curl-machine'],
+  ['Biceps Machine', 'biceps-curl-machine'],
+  ['Bicep Curl Machine', 'biceps-curl-machine'],
+  ['Machine: Bicep Curl', 'biceps-curl-machine'],
+  ['Preacher Curl Machine', 'biceps-curl-machine'],
+  // der Kabel-Curl behaelt sein eigenes Bild
+  ['Cable Bicep Curl', 'cable-curl']
 ]) {
   pruefe(`"${name}" -> ${key}`, findeImageKey(katalog, name) === key)
 }
@@ -179,7 +190,7 @@ pruefe('vorschauUrl ohne Eintrag -> null', vorschauUrl(null, '/') === null)
 
 console.log('[matching-test] Manifest-Vertrag (Schluessel, Pfade, Dateien, Muskeln):')
 const keys = katalog.map(e => e.key)
-pruefe(`36 Eintraege (ist: ${katalog.length})`, katalog.length === 36)
+pruefe(`37 Eintraege (ist: ${katalog.length})`, katalog.length === 37)
 pruefe('Keys sind eindeutig', new Set(keys).size === keys.length)
 // Die Quelle bestimmt Dateiformat und zustaendiges Skript: workout-guide ->
 // SVG von uebungsbilder-holen.mjs, ki -> WebP von uebungsbilder-schneiden.mjs
@@ -187,8 +198,8 @@ const ENDUNG = { 'workout-guide': 'svg', ki: 'webp' }
 const quelleFalsch = katalog.filter(e => !ENDUNG[e.quelle]).map(e => e.key)
 pruefe(`jede Quelle ist workout-guide oder ki${quelleFalsch.length ? ' (falsch: ' + quelleFalsch.join(', ') + ')' : ''}`,
   quelleFalsch.length === 0)
-pruefe('36 KI-Bilder, keine Zeichnung mehr (seit v2.6.0 auch Leg Curl liegend, Core, Butterfly reverse)',
-  katalog.filter(e => e.quelle === 'ki').length === 36 && katalog.filter(e => e.quelle === 'workout-guide').length === 0)
+pruefe('37 KI-Bilder, keine Zeichnung mehr (seit v2.6.0 auch Leg Curl liegend, Core, Butterfly reverse)',
+  katalog.filter(e => e.quelle === 'ki').length === 37 && katalog.filter(e => e.quelle === 'workout-guide').length === 0)
 // Die Reihenbilder zeigen je Uebung START (Phase 1) und ENDE (Phase 3); nur
 // die Plank ist eine Halteuebung mit einem einzigen Bild
 const phasenFalsch = katalog.filter(e => {

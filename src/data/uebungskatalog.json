@@ -642,6 +642,35 @@
     ]
   },
   {
+    "key": "biceps-curl-machine",
+    "name": "Biceps Curl Machine",
+    "quelle": "ki",
+    "bilder": [
+      "uebungsbilder/biceps-curl-machine/frame-1.webp",
+      "uebungsbilder/biceps-curl-machine/frame-3.webp"
+    ],
+    "vorschau": "uebungsbilder/biceps-curl-machine/vorschau.webp",
+    "primaer": [
+      "biceps"
+    ],
+    "sekundaer": [
+      "forearms"
+    ],
+    "aliasse": [
+      "bizeps machine",
+      "bizeps maschine",
+      "bizepsmaschine",
+      "bizeps-maschine",
+      "biceps machine",
+      "bicep machine",
+      "biceps curl machine",
+      "bicep curl machine",
+      "machine: biceps curl",
+      "machine: bicep curl",
+      "preacher curl machine"
+    ]
+  },
+  {
     "key": "rope-tricep-pushdown",
     "name": "Rope Tricep Pushdown",
     "quelle": "ki",

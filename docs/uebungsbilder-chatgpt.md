@@ -29,6 +29,15 @@ fuer neue Uebungen oder einzelne Nachbesserungen, damit der Stil gleich bleibt.
   "ONE rigid lever arm ... handle and weight plate are one rigid part and
   always move together", dazu wohin Griff UND Scheibe im ENDE gewandert sind.
   Eine einzelne Uebung geht als Querformat mit einer Reihe.
+- **Stimmt nur eine Haelfte, die andere an sie angleichen lassen:** Bei der
+  Bizeps-Maschine (09.10.2026, neu-16) hing die Scheibe zweimal in START und
+  ENDE an verschiedenen Teilen, egal wie genau die Mechanik beschrieben war.
+  Geklappt hat im dritten Auftrag: "keep END unchanged, redraw only START so
+  that the machine is IDENTICAL to END", dazu die Teile von END in Worten
+  (welcher Arm die Scheibe traegt, wo er sitzt). Danach in der
+  Ueberblendung pruefen: nur bewegte Teile duerfen doppelt erscheinen.
+- **Bilder im Gratis-Konto** (Stand 09.10.2026): drei Bilder am Stueck gingen
+  durch; danach warb ChatGPT fuer "Plus", ein Limit kam noch nicht.
 - **Vor dem Herunterladen jede Haelfte in voller Aufloesung ansehen** (das
   Bild per Canvas gross ueber die Seite legen, dann zoomen): In der kleinen
   Ansicht sah das Leg-Curl-Polster richtig aus, Gabriel fand am Handy, dass
@@ -66,8 +75,10 @@ Halteuebungen (Plank): "ONE single figure centered across the whole row
 
 So lief es am 28.09.2026 ueber die Chrome-Erweiterung (Gabriel unterwegs):
 - **Herunterladen braucht Gabriels ausdrueckliches Ja** — vorher Anzahl,
-  Quelle und Groesse nennen (je Bild ca. 1,5 MB PNG von chatgpt.com, landet als
-  "ChatGPT-Bild <Datum>.png" in `C:\Users\chime\Downloads`, danach verschieben).
+  Quelle und Groesse nennen (je Bild ca. 1,5 MB PNG von chatgpt.com, landet in
+  `C:\Users\chime\Downloads`, danach verschieben). Der Dateiname wechselt:
+  28.09. "ChatGPT-Bild <Datum>.png", 09.10. ein von ChatGPT erfundener Titel
+  ("Bizepscurl-Maschine_ Start und Kontraktion.png") — die neueste Datei nehmen.
   Soweit bekannt verbieten OpenAIs Nutzungsbedingungen automatisches Abgreifen;
   Gabriel kennt das Risiko und hat zugestimmt.
 - **Gesperrter Bildschirm:** der Tab ist dann "hidden" — Screenshots laufen in

@@ -61,6 +61,9 @@ export const STANDARD_UEBUNGEN = [
   { name: 'Cable Bicep Curl', muscleGroup: 'arms', equipment: 'machine_cable' },
   { name: 'Cable Rope Triceps Pushdown', muscleGroup: 'arms', equipment: 'machine_cable' },
   { name: 'Cable Overhead Triceps Extension', muscleGroup: 'arms', equipment: 'machine_cable' },
+  // Seit v2.13.0 (Gabriel 08.10.2026): Scheiben-Maschine, darum machine_weight
+  // (Rad in 1,25-kg-Schritten)
+  { name: 'Bizeps Machine', muscleGroup: 'arms', equipment: 'machine_weight' },
 
   // Core
   { name: 'core', muscleGroup: 'core', equipment: 'bodyweight' }
