@@ -1,7 +1,27 @@
-# Weitermachen — Stand 2026-10-09 (v2.13.0)
+# Weitermachen — Stand 2026-10-17 (v2.14.0)
 
 ## Stand
-- **Diese Sitzung (08./09.10.): v2.13.0, live** (Actions-Lauf 37887792158
+- **Diese Sitzung (17.10.): v2.14.0, live** (Actions-Lauf 39055268751 gruen,
+  Live-Bundle traegt 2.14.0, Tag `v2.14.0` auf `d725233`). Auftrag Gabriel:
+  (1) "Rueckgaengig" 5 s nach jedem Speichern (er hatte im Reiter einer
+  anderen Person gespeichert); (2) Rad "Pro Seite | Gesamt | Reps" bei
+  Langhantel und den Scheiben-Maschinen chest press, incline chest press,
+  shoulder press (Merker `proSeite`, Haken im Katalog). Gesamt = Scheiben
+  ohne Stange (Gabriels Entscheidung). (3) user1 hatte immer pro Seite
+  notiert: 20 Saetze in der Cloud verdoppelt, 3 Maschinen markiert
+  (`gewicht-pro-seite-umrechnen.mjs`, Sicherung
+  `privat\cloud-sicherung-pro-seite-2026-10-17T17-46-12-256Z.json`, zweiter
+  Lauf: "Alles schon erledigt"). Ausgenommen: Bankdruecken 40 kg vom 08.04.
+  (`mnugry3zavcbnmc`) — laut Gabriel ein falscher Wert, nie gedrueckt;
+  bleibt unveraendert, loeschen nur auf sein Wort.
+- **Geprueft:** Gate gruen (17 Befehle, neu `gewicht-pro-seite-test.mjs`).
+  Headless-Chrome gegen den Produktions-Build, frische `*.localhost`, 360 px,
+  Testdaten per Backup-Import: 37 Pruefungen gruen (Raeder gekoppelt,
+  29,375 exakt, Rueckgaengig fuer neuen und ueberschriebenen Satz samt
+  Tombstone, Leiste ueber der Navigation, Katalog-Haken, keine
+  Konsolenfehler). Nicht geprueft: echtes Handy, Sync zwischen zwei Handys.
+  Testskript `pro-seite-test.mjs` lag im Scratchpad dieser Sitzung.
+- **Vorige Sitzung (08./09.10.): v2.13.0, live** (Actions-Lauf 37887792158
   gruen, Live-Seite liefert 2.13.0 und die drei neuen Bilder, Tag
   `v2.13.0` auf `e6e555d`). Auftrag von Gabriel: neue Uebung "Bizeps
   Machine" (Scheiben-Maschine, zwei Fotos von ihm), Bild per ChatGPT im
@@ -60,6 +80,14 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
+00. **Meldet Gabriel Probleme aus v2.14.0** (Checkliste
+   `docs/tests/v2.14.0-handy.md`): Regeln zuerst in
+   `scripts/gewicht-pro-seite-test.mjs` bzw. `saetze-test.mjs`
+   (`rueckgaengigSchritt`), Oberflaeche in `TrackingView.vue`
+   (`zeigeRueckgaengig`, `macheRueckgaengig`, Raeder in `.wheels-row`).
+   Hat user1 nach dem 16.10. noch auf einer alten Version pro Seite
+   eingetragen: nur diese Saetze mit `--bis` UND `--ohne` gezielt umrechnen,
+   nie blind erneut. Rueckweg: `--zurueck --jetzt`.
 0. **Meldet Gabriel Probleme aus v2.13.0** (Checkliste
    `docs/tests/v2.13.0-handy.md`): Fehlt die Uebung, mit `uebungen-cloud.mjs`
    den Cloud-Bestand lesen (doppelt? fehlt?). Stoert der doppelte Fuss: ein
@@ -112,6 +140,13 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.14.0 auf BEIDE Handys holen, vor dem naechsten Training von user1** (seit 2026-10-17)
+  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.14.0.
+  Eine alte Version zeigt die Werte von user1 schon verdoppelt, aber ohne
+  "Pro Seite" — dort wuerde wieder pro Seite eingetragen. Danach
+  `docs/tests/v2.14.0-handy.md` abhaken.
+- [ ] **Entscheiden: Bankdruecken 40 kg von user1 vom 08.04. loeschen?** (seit 2026-10-17)
+  Laut Gabriel ein falscher Wert; steht unveraendert im Verlauf.
 - [ ] **v2.13.0 aufs Handy holen und testen** (seit 2026-10-09)
   Beide Handys ganz schliessen und neu oeffnen. An EINEM Handy (angemeldet,
   online): Einstellungen -> "Standard-Uebungen laden", dann "Bilder
