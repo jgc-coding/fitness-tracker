@@ -22,7 +22,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { werteMitVorwert, radText } from '../../utils/radWerte.js'
+import { werteMitVorwert, radText, wertAnStelle, stelleFuerWert } from '../../utils/radWerte.js'
 
 const props = defineProps({
   modelValue: { type: Number, default: 0 },
@@ -32,10 +32,17 @@ const props = defineProps({
   decimals: { type: Boolean, default: false },
   // Gekoppelte Raeder (Pro Seite / Gesamt): ein Wert von aussen dreht das
   // Rad sichtbar an seine Stelle, statt zu springen
-  mitlaufen: { type: Boolean, default: false }
+  mitlaufen: { type: Boolean, default: false },
+  // Live-Kopplung (v2.14.1): solange das PARTNER-Rad gezogen wird, steht hier
+  // dessen umgerechneter Wert (auch zwischen zwei Positionen) und dieses Rad
+  // folgt ihm ohne Verzoegerung; null = niemand zieht
+  liveWert: { type: Number, default: null }
 })
 
-const emit = defineEmits(['update:modelValue'])
+// 'live': Wert unter der Mitte, solange gezogen wird oder das Rad nachlaeuft
+// (Kommawerte zwischen zwei Positionen), zum Schluss null — erst danach kommt
+// der eingerastete Wert per update:modelValue
+const emit = defineEmits(['update:modelValue', 'live'])
 
 const ITEM_HEIGHT = 44
 const VISIBLE_ITEMS = 5
@@ -81,11 +88,21 @@ function setOffsetFromIndex(index) {
   offset.value = centerOffset - index * ITEM_HEIGHT
 }
 
+let liveGemeldet = false
+function meldeLive() {
+  liveGemeldet = true
+  emit('live', wertAnStelle(werte.value, (centerOffset - offset.value) / ITEM_HEIGHT))
+}
+
 function snapToNearest() {
   const rawIndex = Math.round((centerOffset - offset.value) / ITEM_HEIGHT)
   const clampedIndex = Math.max(0, Math.min(werte.value.length - 1, rawIndex))
 
   animateToIndex(clampedIndex)
+  if (liveGemeldet) {
+    liveGemeldet = false
+    emit('live', null)
+  }
 
   const newVal = werte.value[clampedIndex]
   if (newVal !== props.modelValue) {
@@ -133,6 +150,7 @@ function momentumScroll() {
     return
   }
 
+  meldeLive()
   animationFrame = requestAnimationFrame(momentumScroll)
 }
 
@@ -152,6 +170,7 @@ function onTouchMove(e) {
   const y = e.touches[0].clientY
   const delta = y - startY
   offset.value = startOffset + delta
+  meldeLive()
 
   const now = performance.now()
   const dt = now - lastTime
@@ -185,6 +204,7 @@ function onMouseDown(e) {
     const y = e.clientY
     const delta = y - startY
     offset.value = startOffset + delta
+    meldeLive()
 
     const now = performance.now()
     const dt = now - lastTime
@@ -219,6 +239,20 @@ watch(() => props.modelValue, neu => {
     if (props.mitlaufen && vonAussen) animateToIndex(selectedIndex.value)
     else setOffsetFromIndex(selectedIndex.value)
   }
+})
+
+// Partner-Rad wird gezogen: ohne Animation genau auf dessen umgerechneten
+// Wert stellen (auch zwischen zwei Positionen). Laesst der Partner los (null),
+// zurueck auf den eigenen Wert — kommt gleichzeitig ein neuer Wert, faehrt
+// der modelValue-Watch dasselbe Ziel an.
+watch(() => props.liveWert, wert => {
+  if (isDragging) return
+  if (wert == null) {
+    animateToIndex(selectedIndex.value)
+    return
+  }
+  if (animationFrame) cancelAnimationFrame(animationFrame)
+  offset.value = centerOffset - stelleFuerWert(werte.value, wert) * ITEM_HEIGHT
 })
 
 // Anderes Raster (Uebung mit anderem Geraet im selben Rad)

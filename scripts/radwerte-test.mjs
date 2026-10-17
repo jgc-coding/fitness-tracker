@@ -8,7 +8,8 @@
 //
 // Aufruf:  node ./scripts/radwerte-test.mjs
 
-import { werteMitVorwert, radText } from '../src/utils/radWerte.js'
+import { werteMitVorwert, radText, wertAnStelle, stelleFuerWert } from '../src/utils/radWerte.js'
+import { seitenRaster } from '../src/utils/gewichtProSeite.js'
 
 let fehler = 0
 function pruefe(beschreibung, bedingung) {
@@ -48,6 +49,27 @@ pruefe('ganze Zahl ohne Komma', radText(20, true) === '20')
 pruefe('zwei Stellen wie bisher', radText(47.5, true) === '47.50' && radText(23.75, true) === '23.75')
 pruefe('drei Stellen nur bei echter dritter Stelle (29,375 pro Seite)', radText(29.375, true) === '29.375')
 pruefe('ohne Kommastellen-Rad: Text wie er ist', radText(12, false) === '12' && radText(2.5, false) === '2.5')
+
+console.log('[radwerte-test] Live-Kopplung (Stelle <-> Wert, Kommastellen erlaubt):')
+const kurz = [1.25, 2.5, 3.75]
+pruefe('ganze Stelle = Wert der Position', wertAnStelle(kurz, 1) === 2.5)
+pruefe('halbe Stelle = Mitte zwischen zwei Werten', wertAnStelle(kurz, 0.5) === 1.875)
+pruefe('vor dem Anfang und hinter dem Ende geklemmt', wertAnStelle(kurz, -2) === 1.25 && wertAnStelle(kurz, 7) === 3.75)
+pruefe('Wert -> Stelle, auch zwischen zwei Positionen', stelleFuerWert(kurz, 2.5) === 1 && stelleFuerWert(kurz, 1.875) === 0.5)
+pruefe('Wert ausserhalb -> Rand', stelleFuerWert(kurz, 0) === 0 && stelleFuerWert(kurz, 99) === 2)
+const mitZusatz = werteMitVorwert(raster125, 22)
+pruefe('mit Zusatzwert: Stelle des Zusatzwerts trifft ihn genau', wertAnStelle(mitZusatz, stelleFuerWert(mitZusatz, 22)) === 22)
+pruefe('leere Liste -> null bzw. 0', wertAnStelle([], 1) === null && stelleFuerWert([], 5) === 0)
+const seite = seitenRaster(1.25, 300)
+const gesamt = []
+for (let w = 1.25; w <= 300; w += 1.25) gesamt.push(Math.round(w * 100) / 100)
+const gesamtStelle = (s) => stelleFuerWert(gesamt, wertAnStelle(seite, s) * 2)
+pruefe('Pro Seite eine Position weiter -> Gesamt zwei Positionen (doppelt so schnell)',
+  Math.abs((gesamtStelle(11) - gesamtStelle(10)) - 2) < 1e-9)
+pruefe('... auch mitten im Ziehen (Stelle 10,3 -> 10,8)', Math.abs((gesamtStelle(10.8) - gesamtStelle(10.3)) - 1) < 1e-9)
+const seitenStelle = (g) => stelleFuerWert(seite, wertAnStelle(gesamt, g) / 2)
+pruefe('Gesamt eine Position weiter -> Pro Seite eine halbe (halb so schnell)',
+  Math.abs((seitenStelle(47) - seitenStelle(46)) - 0.5) < 1e-9)
 
 if (fehler > 0) {
   console.error(`[radwerte-test] ROT: ${fehler} Pruefung(en) fehlgeschlagen`)

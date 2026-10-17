@@ -131,7 +131,10 @@ npm run preview   # Build lokal testen (Port 4173)
   "Pro Seite | Gesamt | Reps"; pro Seite = Gesamt / 2, gespeichert wird NUR das
   Gesamt. Das Pro-Seite-Rad hat denselben Schritt wie das Gesamt-Rad, eine
   ungerade Haelfte (29,375) steht als Zusatzwert drin (`radWerte`), nie
-  gerundet. Bis v2.13 hatte user1 pro Seite notiert: in der Cloud verdoppelt,
+  gerundet. Beim Ziehen drehen beide LIVE mit (v2.14.1): das gezogene Rad
+  meldet per `live` den Wert unter seiner Mitte (auch zwischen zwei
+  Positionen, `wertAnStelle`), das andere stellt sich per `liveWert` dorthin
+  (`stelleFuerWert`); zum Schluss `live` null, dann erst der eingerastete Wert. Bis v2.13 hatte user1 pro Seite notiert: in der Cloud verdoppelt,
   der alte Wert steht in `gewichtVorUmrechnung` (nie ohne `--bis` erneut
   umrechnen — neue Eintraege sind Gesamtwerte).
 - **Rueckgaengig nach dem Speichern** (v2.14.0): `saveSet` liefert den

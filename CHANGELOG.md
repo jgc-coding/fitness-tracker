@@ -3,6 +3,20 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.14.1] — 2026-10-17
+
+### Verbessert
+- **Pro Seite und Gesamt drehen live mit** (Wunsch Gabriel): Waehrend man
+  eines der beiden Gewichts-Raeder zieht, dreht das andere gleichzeitig mit,
+  nicht erst nach dem Loslassen — Pro Seite eine Position weiter heisst
+  Gesamt zwei, Gesamt eine Position heisst Pro Seite eine halbe. Auch beim
+  Nachlaufen nach einem schnellen Wisch.
+
+### Daten
+- Der falsche Bankdrueck-Wert (40 kg vom 08.04.) ist auf Gabriels Wort aus
+  der Cloud geloescht, mit Merker gegen Wiederauftauchen und Sicherung in
+  `privat\`.
+
 ## [2.14.0] — 2026-10-17
 
 ### Features

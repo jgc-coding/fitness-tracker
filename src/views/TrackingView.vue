@@ -339,6 +339,8 @@
             unit="kg"
             decimals
             mitlaufen
+            :liveWert="liveGewicht?.quelle === 'gesamt' ? proSeite(liveGewicht.gesamt) : null"
+            @live="liveGewicht = $event == null ? null : { quelle: 'seite', gesamt: gesamtAusSeite($event) }"
           />
           <WheelPicker
             key="gewicht"
@@ -349,6 +351,8 @@
             unit="kg"
             :decimals="useDecimalSteps"
             :mitlaufen="pickerZweiSeiten"
+            :liveWert="liveGewicht?.quelle === 'seite' ? liveGewicht.gesamt : null"
+            @live="liveGewicht = pickerZweiSeiten && $event != null ? { quelle: 'gesamt', gesamt: $event } : null"
           />
           <WheelPicker
             key="wdh"
@@ -733,6 +737,11 @@ const weightValues = computed(() => {
 const pickerZweiSeiten = computed(() => hatZweiSeiten(getExerciseById(pickerExId.value)))
 const seitenWerte = computed(() => seitenRaster(useDecimalSteps.value ? 1.25 : 1, 300))
 const pickerSeite = computed(() => proSeite(pickerWeight.value))
+// Live-Kopplung (v2.14.1): waehrend ein Gewichts-Rad gezogen wird, steht hier,
+// welches es ist und welches Gesamt gerade unter seiner Mitte liegt (auch
+// zwischen zwei Positionen) — das andere Rad dreht im Verhaeltnis 2:1 mit.
+// null = niemand zieht; der eingerastete Wert kommt wie bisher als pickerWeight.
+const liveGewicht = ref(null)
 
 const repsValues = computed(() => {
   const vals = []
@@ -1214,6 +1223,7 @@ function radVorbelegen() {
   const exId = pickerExId.value
   if (!exId) return
   const userId = pickerUserId.value
+  liveGewicht.value = null
   const v = vorbelegung(saetzeHeute(exId, userId), pickerSatz.value, satzVorschlag(exId, userId, pickerSatz.value))
   pickerWeight.value = v?.weight ?? 20
   pickerReps.value = v?.reps ?? 10
