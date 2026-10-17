@@ -5,6 +5,7 @@ node ./scripts/musclemap-pruefen.mjs
 node ./scripts/uebungsring-test.mjs
 node ./scripts/saetze-test.mjs
 node ./scripts/radwerte-test.mjs
+node ./scripts/gewicht-pro-seite-test.mjs
 node ./scripts/verlauf-test.mjs
 node ./scripts/training-geraet-test.mjs
 node ./scripts/uebungsdubletten-test.mjs

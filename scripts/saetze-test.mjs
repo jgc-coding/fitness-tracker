@@ -16,7 +16,8 @@ import {
   vorschlagsSatz,
   vorbelegung,
   naechsterSchritt,
-  quickLogFolge
+  quickLogFolge,
+  rueckgaengigSchritt
 } from '../src/utils/saetze.js'
 
 let fehler = 0
@@ -133,6 +134,14 @@ pruefe('ohne jeden Vorschlag: Standard 20 kg x 10 wie bisher', f4[0].weight === 
 const f5 = quickLogFolge(3, [satz(2, 45, 8)], vorschlagJeSatz)
 pruefe('Luecke: Satz 1 aus dem Vorschlag, dann Satz 3 nach Satz 2',
   f5.map(e => e.setNumber).join(',') === '1,3' && f5[0].weight === 41 && f5[1].weight === 45)
+
+console.log('[saetze-test] Rueckgaengig nach dem Speichern:')
+pruefe('Satz war neu: er verschwindet wieder', rueckgaengigSchritt(null).art === 'loeschen')
+const zurueck = rueckgaengigSchritt({ weight: 57.5, reps: 10 })
+pruefe('Satz war ueberschrieben: alter Wert kommt zurueck',
+  zurueck.art === 'zuruecksetzen' && zurueck.weight === 57.5 && zurueck.reps === 10)
+const nullKilo = rueckgaengigSchritt({ weight: 0, reps: 12 })
+pruefe('0 kg (Koerpergewicht) ist ein echter Vorwert', nullKilo.art === 'zuruecksetzen' && nullKilo.weight === 0)
 
 if (fehler > 0) {
   console.error(`[saetze-test] ROT: ${fehler} Pruefung(en) fehlgeschlagen`)

@@ -142,3 +142,12 @@ export function quickLogFolge(slots, saetzeHeute = [], vorschlagFuer) {
   }
   return folge
 }
+
+// Rueckgaengig nach dem Speichern (v2.14.0, Gabriel 17.10.2026: Gewicht im
+// falschen Namens-Reiter eingetragen). `vorher` ist der Stand DIESES Satzes
+// direkt vor dem Speichern: null = es gab ihn noch nicht -> er verschwindet
+// wieder (mit Tombstone); sonst kommen genau Gewicht und Wdh von vorher zurueck.
+export function rueckgaengigSchritt(vorher) {
+  if (!vorher) return { art: 'loeschen' }
+  return { art: 'zuruecksetzen', weight: vorher.weight, reps: vorher.reps }
+}

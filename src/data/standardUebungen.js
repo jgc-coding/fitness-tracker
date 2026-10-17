@@ -30,8 +30,10 @@ export const STANDARD_UEBUNGEN = [
   // Chest
   { name: 'DB Bench press', muscleGroup: 'chest', equipment: 'dumbbell' },
   { name: 'DB incline Bench press', muscleGroup: 'chest', equipment: 'dumbbell' },
-  { name: 'machine: chest press', muscleGroup: 'chest', equipment: 'machine_weight' },
-  { name: 'machine: incline chest press', muscleGroup: 'chest', equipment: 'machine_weight' },
+  // proSeite: Scheiben auf zwei Seiten, im Rad zusaetzlich "Pro Seite" wie
+  // bei der Langhantel (Gabriel 17.10.2026, utils/gewichtProSeite.js)
+  { name: 'machine: chest press', muscleGroup: 'chest', equipment: 'machine_weight', proSeite: true },
+  { name: 'machine: incline chest press', muscleGroup: 'chest', equipment: 'machine_weight', proSeite: true },
   { name: 'Cable Crossover', muscleGroup: 'chest', equipment: 'machine_cable' },
   { name: 'BB Bench press', muscleGroup: 'chest', equipment: 'barbell' },
   { name: 'BB incline Bench press', muscleGroup: 'chest', equipment: 'barbell' },
@@ -51,7 +53,7 @@ export const STANDARD_UEBUNGEN = [
   { name: 'DB Shrugs', muscleGroup: 'back', equipment: 'dumbbell' },
 
   // Shoulders
-  { name: 'shoulder press', muscleGroup: 'shoulders', equipment: 'machine_weight' },
+  { name: 'shoulder press', muscleGroup: 'shoulders', equipment: 'machine_weight', proSeite: true },
   { name: 'BB overhead press', muscleGroup: 'shoulders', equipment: 'barbell' },
   { name: 'DB Side lateral', muscleGroup: 'shoulders', equipment: 'dumbbell' },
   { name: 'Butterfly reverse', muscleGroup: 'shoulders', equipment: 'machine_cable' },
