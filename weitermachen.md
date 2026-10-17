@@ -1,6 +1,13 @@
-# Weitermachen — Stand 2026-10-17 (v2.14.0)
+# Weitermachen — Stand 2026-10-17 (v2.14.1)
 
 ## Stand
+- **Nachtrag 17.10.: v2.14.1** — Pro Seite und Gesamt drehen beim Ziehen
+  live im Verhaeltnis 2:1 mit (Gabriel: "funktioniert alles super", dann
+  dieser Wunsch). Headless-Test 43 Pruefungen gruen, darunter Versatz
+  mitten im Ziehen und schneller Wisch. Der 40-kg-Satz `mnugry3zavcbnmc`
+  ist auf Gabriels Wort geloescht (Merker `setLogs:mnugry3zavcbnmc`,
+  Sicherung `privat\cloud-sicherung-satz-mnugry3zavcbnmc-*.json`); ein
+  erneuter Umrechnungs-Lauf braucht darum kein `--ohne` mehr.
 - **Diese Sitzung (17.10.): v2.14.0, live** (Actions-Lauf 39055268751 gruen,
   Live-Bundle traegt 2.14.0, Tag `v2.14.0` auf `d725233`). Auftrag Gabriel:
   (1) "Rueckgaengig" 5 s nach jedem Speichern (er hatte im Reiter einer
@@ -13,7 +20,7 @@
   `privat\cloud-sicherung-pro-seite-2026-10-17T17-46-12-256Z.json`, zweiter
   Lauf: "Alles schon erledigt"). Ausgenommen: Bankdruecken 40 kg vom 08.04.
   (`mnugry3zavcbnmc`) — laut Gabriel ein falscher Wert, nie gedrueckt;
-  bleibt unveraendert, loeschen nur auf sein Wort.
+  danach auf sein Wort geloescht (siehe Nachtrag oben).
 - **Geprueft:** Gate gruen (17 Befehle, neu `gewicht-pro-seite-test.mjs`).
   Headless-Chrome gegen den Produktions-Build, frische `*.localhost`, 360 px,
   Testdaten per Backup-Import: 37 Pruefungen gruen (Raeder gekoppelt,
@@ -140,13 +147,11 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **v2.14.0 auf BEIDE Handys holen, vor dem naechsten Training von user1** (seit 2026-10-17)
-  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.14.0.
+- [ ] **v2.14.1 auf BEIDE Handys holen, vor dem naechsten Training von user1** (seit 2026-10-17)
+  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.14.1.
   Eine alte Version zeigt die Werte von user1 schon verdoppelt, aber ohne
   "Pro Seite" — dort wuerde wieder pro Seite eingetragen. Danach
   `docs/tests/v2.14.0-handy.md` abhaken.
-- [ ] **Entscheiden: Bankdruecken 40 kg von user1 vom 08.04. loeschen?** (seit 2026-10-17)
-  Laut Gabriel ein falscher Wert; steht unveraendert im Verlauf.
 - [ ] **v2.13.0 aufs Handy holen und testen** (seit 2026-10-09)
   Beide Handys ganz schliessen und neu oeffnen. An EINEM Handy (angemeldet,
   online): Einstellungen -> "Standard-Uebungen laden", dann "Bilder
