@@ -10,3 +10,12 @@ export function werteMitVorwert(werte, vorwert) {
   const stelle = werte.findIndex(w => w > vorwert)
   return stelle < 0 ? [...werte, vorwert] : [...werte.slice(0, stelle), vorwert, ...werte.slice(stelle)]
 }
+
+// Text eines Rad-Werts: ganze Zahlen ohne Komma, sonst zwei Stellen wie
+// bisher (47.50). Drei Stellen nur, wenn der Wert sie wirklich hat — die
+// Haelfte eines ungeraden Gesamtgewichts (58,75 -> 29,375) stuende sonst
+// gerundet und damit falsch im Rad.
+export function radText(wert, decimals) {
+  if (!decimals || wert % 1 === 0) return String(wert)
+  return wert.toFixed(Math.round(wert * 100) === wert * 100 ? 2 : 3)
+}

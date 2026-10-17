@@ -3,6 +3,34 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.14.0] — 2026-10-17
+
+### Features
+- **Rueckgaengig nach dem Speichern** (Wunsch Gabriel: Gewicht im falschen
+  Namens-Reiter eingetragen und so das der anderen Person ueberschrieben).
+  Nach jedem Speichern steht 5 Sekunden lang "Eins: 60 kg × 8 gespeichert ·
+  Rückgängig" bereit, im Rad unter "Speichern" bzw. unten ueber der
+  Navigation, wenn das Rad schon zu ist. Ein Tipp stellt den Stand davor her,
+  auch in der Cloud: ein neuer Satz verschwindet wieder, ein ueberschriebener
+  bekommt seinen alten Wert zurueck. Das Rad bleibt, wo es ist — meist steht
+  es dann schon bei der Person, fuer die der Wert gedacht war.
+- **Pro Seite bei Langhantel und Scheiben-Maschinen:** Das Rad hat dort drei
+  Spalten: links "Pro Seite", in der Mitte "Gesamt" wie bisher, rechts Reps.
+  Dreht man links oder in der Mitte, dreht das andere Rad mit. Gesamt ist
+  die Summe der Scheiben ohne Stange, pro Seite genau die Haelfte; ein
+  ungerades Gesamt zeigt die Haelfte exakt (58,75 -> 29,375). Gespeichert
+  wird nur das Gesamt. Gilt fuer alle Langhantel-Uebungen und fuer die
+  Maschinen mit Haken "Scheiben auf zwei Seiten" im Katalog (gesetzt fuer
+  machine: chest press, machine: incline chest press, shoulder press).
+
+### Daten
+- **Alte Pro-Seite-Eintraege umgerechnet:** Eine Person hatte an diesen
+  Uebungen immer pro Seite eingetragen, die anderen das Gesamt. Ihre alten
+  Werte sind in der Cloud verdoppelt (`scripts/gewicht-pro-seite-umrechnen.mjs`,
+  Sicherung in `privat\`); jeder umgerechnete Satz traegt den alten Wert in
+  `gewichtVorUmrechnung` (Schutz gegen doppeltes Umrechnen, Rueckweg mit
+  `--zurueck`). Ein offensichtlich falscher Wert blieb unangetastet.
+
 ## [2.13.0] — 2026-10-09
 
 ### Features

@@ -8,7 +8,7 @@
 //
 // Aufruf:  node ./scripts/radwerte-test.mjs
 
-import { werteMitVorwert } from '../src/utils/radWerte.js'
+import { werteMitVorwert, radText } from '../src/utils/radWerte.js'
 
 let fehler = 0
 function pruefe(beschreibung, bedingung) {
@@ -42,6 +42,12 @@ console.log('[radwerte-test] leere und unsinnige Vorwerte aendern nichts:')
 for (const leer of [null, undefined, Number.NaN, Infinity, '22']) {
   pruefe(`${String(leer)} -> Raster unveraendert`, gleich(werteMitVorwert(raster1, leer), raster1))
 }
+
+console.log('[radwerte-test] Text im Rad:')
+pruefe('ganze Zahl ohne Komma', radText(20, true) === '20')
+pruefe('zwei Stellen wie bisher', radText(47.5, true) === '47.50' && radText(23.75, true) === '23.75')
+pruefe('drei Stellen nur bei echter dritter Stelle (29,375 pro Seite)', radText(29.375, true) === '29.375')
+pruefe('ohne Kommastellen-Rad: Text wie er ist', radText(12, false) === '12' && radText(2.5, false) === '2.5')
 
 if (fehler > 0) {
   console.error(`[radwerte-test] ROT: ${fehler} Pruefung(en) fehlgeschlagen`)

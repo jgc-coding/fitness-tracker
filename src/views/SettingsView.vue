@@ -374,6 +374,8 @@ async function seedExercises() {
         name: ex.name,
         muscleGroup: ex.muscleGroup,
         equipment: ex.equipment,
+        // Scheiben-Maschine mit zwei Seiten ("Pro Seite" im Rad)
+        ...(ex.proSeite ? { proSeite: true } : {}),
         notes: '',
         createdAt: now,
         updatedAt: now

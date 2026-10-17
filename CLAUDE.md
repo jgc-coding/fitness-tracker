@@ -48,7 +48,8 @@ src/
                          scripts/ (zuerst Test, dann Regeln): saetze,
                          uebungsRing, uebungsBilder, uebungsDubletten,
                          planReihenfolge, radWerte (Vorwert ausserhalb des
-                         Rasters nie still ersetzen), verlauf, trainingGeraet,
+                         Rasters nie still ersetzen), gewichtProSeite,
+                         verlauf, trainingGeraet,
                          runPlanMerge, runMatch, laufEintrag, zyklusTag;
                          dazu runPlanSchema (Format),
                          intervalsApi (Browser + Node), exportData (CSV mit
@@ -63,7 +64,8 @@ scripts/                 Aufruf und Flags stehen im Kopf jedes Skripts.
                          uebungen-cloud (nur lesen: Bestand vs. Standardliste
                          und Bilder), uebungen-dubletten, uebungen-korrigieren
                          (umbenennen/tauschen/Geraet; --zurueck nur mit
-                         --gruppe). Bilder:
+                         --gruppe), gewicht-pro-seite-umrechnen (--nutzer,
+                         --bis Pflicht, --ohne, --zurueck). Bilder:
                          uebungsbilder-schneiden (--bogen, --vermessen),
                          uebungsbilder-zuschnitt (Tabelle),
                          uebungsbilder-reihen-messen, uebungsbilder-holen,
@@ -123,6 +125,22 @@ npm run preview   # Build lokal testen (Port 4173)
   steht DOPPELT — `buildNotificationActions` (TrackingView) und
   `showCompactNotification` (Service Worker) gleich halten.
 - **Gewichtsschritte:** 1.25 kg fuer Barbell/Machine-Weight, 1 kg sonst.
+- **Gewicht = Summe der Scheiben OHNE Stange** (Gabriel 17.10.2026, so wurde
+  immer notiert). Uebungen mit zwei Seiten (`hatZweiSeiten`: Langhantel immer,
+  sonst Merker `proSeite: true` an der Uebung, Haken im Katalog) zeigen im Rad
+  "Pro Seite | Gesamt | Reps"; pro Seite = Gesamt / 2, gespeichert wird NUR das
+  Gesamt. Das Pro-Seite-Rad hat denselben Schritt wie das Gesamt-Rad, eine
+  ungerade Haelfte (29,375) steht als Zusatzwert drin (`radWerte`), nie
+  gerundet. Bis v2.13 hatte user1 pro Seite notiert: in der Cloud verdoppelt,
+  der alte Wert steht in `gewichtVorUmrechnung` (nie ohne `--bis` erneut
+  umrechnen — neue Eintraege sind Gesamtwerte).
+- **Rueckgaengig nach dem Speichern** (v2.14.0): `saveSet` liefert den
+  Rueckweg (Satz-Id + Stand davor), `undoSet` nimmt genau das zurueck — neuer
+  Satz per Tombstone weg, ueberschriebener bekommt Gewicht und Wdh zurueck
+  (Regel `rueckgaengigSchritt`). 5 s, nur das zuletzt Gespeicherte, nur im
+  laufenden Training; das Rad bleibt, wo es ist (meist schon bei der
+  naechsten Person). Leiste im Rad unter "Speichern" (fester Fuss, nichts
+  springt), bei geschlossenem Rad unten ueber der Navigation.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
 - **Umsortieren in der Planung:** langer Druck (HALTEN_MS) hebt eine Gruppe samt
   Alternativen an. Touch- und Maus-Events, KEINE Pointer-Events (nur ein

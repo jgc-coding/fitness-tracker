@@ -132,6 +132,14 @@
           <option v-for="e in equipmentTypes" :key="e.id" :value="e.id">{{ e.label }}</option>
         </select>
       </div>
+      <!-- Scheiben-Maschinen mit zwei Seiten bekommen im Rad "Pro Seite" wie
+           die Langhantel (die hat es immer, utils/gewichtProSeite.js) -->
+      <div v-if="editEquipmentVal !== 'barbell'" class="form-group">
+        <label class="pro-seite-zeile">
+          <input v-model="editProSeite" type="checkbox" />
+          <span>Scheiben auf zwei Seiten: im Rad zusätzlich „Pro Seite“ zeigen</span>
+        </label>
+      </div>
       <div class="form-group">
         <label>Notizen</label>
         <input v-model="editNotes" type="text" class="form-input" />
@@ -194,6 +202,7 @@ const editMuscle = ref('')
 const editEquipmentVal = ref('')
 const editNotes = ref('')
 const editImageKey = ref('')
+const editProSeite = ref(false)
 
 // Vorschaubild zum im Formular gewaehlten Bild-Key
 function vorschauFuerKey(key) {
@@ -245,6 +254,7 @@ function editExercise(ex) {
   editEquipmentVal.value = ex.equipment
   editNotes.value = ex.notes || ''
   editImageKey.value = ex.imageKey || ''
+  editProSeite.value = ex.proSeite === true
   showEditExercise.value = true
 }
 
@@ -255,7 +265,8 @@ async function saveEditExercise() {
     muscleGroup: editMuscle.value,
     equipment: editEquipmentVal.value,
     notes: editNotes.value,
-    imageKey: editImageKey.value || null
+    imageKey: editImageKey.value || null,
+    proSeite: editProSeite.value === true
   })
   showEditExercise.value = false
 }
@@ -391,6 +402,22 @@ onMounted(() => loadExercises())
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   margin-bottom: var(--space-xs);
+}
+
+.form-group .pro-seite-zeile {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  font-weight: var(--font-weight-normal, 400);
+  line-height: 1.35;
+}
+
+.pro-seite-zeile input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
 }
 
 .form-input {

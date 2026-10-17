@@ -324,17 +324,34 @@
           <span v-if="pickerShouldIncrease" class="increase-hint"> &#8593; erhoeht</span>
         </div>
 
-        <!-- Wheel pickers side by side -->
-        <div class="wheels-row">
+        <!-- Wheel pickers side by side. Langhantel und Scheiben-Maschinen mit
+             zwei Seiten (utils/gewichtProSeite.js): links "Pro Seite", in der
+             Mitte das Gesamtgewicht wie bisher — beide drehen gegenseitig mit,
+             gespeichert wird nur das Gesamt. -->
+        <div class="wheels-row" :class="{ drei: pickerZweiSeiten }">
           <WheelPicker
+            v-if="pickerZweiSeiten"
+            key="seite"
+            :modelValue="pickerSeite"
+            @update:modelValue="pickerWeight = gesamtAusSeite($event)"
+            :values="seitenWerte"
+            label="Pro Seite"
+            unit="kg"
+            decimals
+            mitlaufen
+          />
+          <WheelPicker
+            key="gewicht"
             :modelValue="pickerWeight"
             @update:modelValue="pickerWeight = $event"
             :values="weightValues"
-            label="Gewicht"
+            :label="pickerZweiSeiten ? 'Gesamt' : 'Gewicht'"
             unit="kg"
             :decimals="useDecimalSteps"
+            :mitlaufen="pickerZweiSeiten"
           />
           <WheelPicker
+            key="wdh"
             :modelValue="pickerReps"
             @update:modelValue="pickerReps = $event"
             :values="repsValues"
@@ -348,13 +365,41 @@
           Speichern
         </button>
 
-        <!-- Nutzer-Wechsel-Hinweis: nutzerzahl-neutral, bei nur einem aktiven
-             Nutzer gibt es nichts zu wechseln -->
-        <p v-if="authStore.activeUsers.length > 1" class="picker-hint">
-          Tippe oben auf einen Namen, um fuer diese Person einzutragen.
-        </p>
+        <!-- Fuss des Rads: 5 s nach dem Speichern der Rueckgaengig-Knopf (das
+             Rad steht dann meist schon bei der naechsten Person), sonst der
+             Nutzer-Wechsel-Hinweis (nutzerzahl-neutral, bei nur einem aktiven
+             Nutzer gibt es nichts zu wechseln). Feste Mindesthoehe: das Rad
+             darueber springt nicht, wenn der Knopf kommt und geht. -->
+        <div class="picker-fuss">
+          <div v-if="rueckgaengig" class="rueckgaengig-zeile" :class="{ fehler: rueckgaengig.fehler }" role="status">
+            <span class="rueckgaengig-text">
+              {{ rueckgaengig.text }}
+              <small v-if="rueckgaengig.diagnose" class="rueckgaengig-diagnose">{{ rueckgaengig.diagnose }}</small>
+            </span>
+            <button v-if="!rueckgaengig.fehler" class="rueckgaengig-knopf" @click="macheRueckgaengig">Rückgängig</button>
+            <span v-if="!rueckgaengig.fehler" :key="rueckgaengig.nr" class="rueckgaengig-zeit" aria-hidden="true"></span>
+          </div>
+          <p v-else-if="authStore.activeUsers.length > 1" class="picker-hint">
+            Tippe oben auf einen Namen, um fuer diese Person einzutragen.
+          </p>
+        </div>
       </div>
     </Modal>
+
+    <!-- Rueckgaengig nach dem Speichern, wenn das Rad schon zu ist (letzte
+         Person, letzter Satz): unten ueber der Navigation, 5 s lang -->
+    <Teleport to="body">
+      <Transition name="rueckgaengig">
+        <div v-if="rueckgaengig && !showWheelPicker" class="rueckgaengig-leiste" :class="{ fehler: rueckgaengig.fehler }" role="status">
+          <span class="rueckgaengig-text">
+            {{ rueckgaengig.text }}
+            <small v-if="rueckgaengig.diagnose" class="rueckgaengig-diagnose">{{ rueckgaengig.diagnose }}</small>
+          </span>
+          <button v-if="!rueckgaengig.fehler" class="rueckgaengig-knopf" @click="macheRueckgaengig">Rückgängig</button>
+          <span v-if="!rueckgaengig.fehler" :key="rueckgaengig.nr" class="rueckgaengig-zeit" aria-hidden="true"></span>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Workout-Notiz (P11): Freitext am workoutLog -->
     <Modal v-model="showNoteModal" title="Workout-Notiz">
@@ -536,6 +581,7 @@ import {
 } from '../utils/notifications.js'
 import { syncStatus, flushQueue } from '../services/syncService.js'
 import { db } from '../db/dexie.js'
+import { hatZweiSeiten, proSeite, gesamtAusSeite, seitenRaster } from '../utils/gewichtProSeite.js'
 
 const route = useRoute()
 const workoutStore = useWorkoutStore()
@@ -681,6 +727,12 @@ const weightValues = computed(() => {
     return vals
   }
 })
+
+// Zwei Seiten (Langhantel, Scheiben-Maschine mit Merker): drittes Rad
+// "Pro Seite" links, Regel in utils/gewichtProSeite.js
+const pickerZweiSeiten = computed(() => hatZweiSeiten(getExerciseById(pickerExId.value)))
+const seitenWerte = computed(() => seitenRaster(useDecimalSteps.value ? 1.25 : 1, 300))
+const pickerSeite = computed(() => proSeite(pickerWeight.value))
 
 const repsValues = computed(() => {
   const vals = []
@@ -1173,7 +1225,8 @@ async function savePickerValues() {
   const userId = pickerUserId.value
   // Der Satz gehoert zur aktiven Uebung DES NUTZERS — bei Altbestand mit
   // Abweichung landet ein Latzug-Satz bei Latzug, ein Klimmzug-Satz bei Klimmzug
-  await workoutStore.saveSet(aktiveId(ex, userId), userId, pickerSatz.value, pickerWeight.value, pickerReps.value)
+  const rueckweg = await workoutStore.saveSet(aktiveId(ex, userId), userId, pickerSatz.value, pickerWeight.value, pickerReps.value)
+  if (rueckweg) zeigeRueckgaengig(rueckweg, pickerSlots.value)
 
   // Auto-Wechsel (Regel: naechsterSchritt in utils/saetze.js): reihum der
   // naechste AKTIVE Nutzer mit offenem Satz (gemessen an SEINER aktiven
@@ -1192,6 +1245,76 @@ async function savePickerValues() {
 
   showWheelPicker.value = false
   activeExerciseIndex.value = -1
+  updateNotification()
+}
+
+// --- Rueckgaengig nach dem Speichern (v2.14.0) ---
+// Gabriel 17.10.2026: im falschen Namens-Reiter eingetragen und so das
+// Gewicht der anderen Person ueberschrieben. Nach jedem Speichern steht 5 s
+// lang ein Knopf bereit; nur das zuletzt Gespeicherte laesst sich
+// zuruecknehmen. Das Rad bleibt, wo es ist — meist steht es schon bei der
+// naechsten Person, fuer die der Wert eigentlich gedacht war.
+const RUECKGAENGIG_MS = 5000
+const rueckgaengig = ref(null) // { rueckweg, text, nr }
+let rueckgaengigTimer = null
+let rueckgaengigNr = 0
+
+function zeigeRueckgaengig(rueckweg, slots) {
+  clearTimeout(rueckgaengigTimer)
+  const name = authStore.users.find(u => u.id === rueckweg.userId)?.name || ''
+  const satz = slots > 1 ? ` Satz ${rueckweg.setNumber}` : ''
+  rueckgaengig.value = {
+    rueckweg,
+    text: `${name}${satz}: ${rueckweg.weight} kg × ${rueckweg.reps} gespeichert`,
+    nr: ++rueckgaengigNr
+  }
+  rueckgaengigTimer = setTimeout(versteckeRueckgaengig, RUECKGAENGIG_MS)
+}
+
+function versteckeRueckgaengig() {
+  clearTimeout(rueckgaengigTimer)
+  rueckgaengigTimer = null
+  rueckgaengig.value = null
+}
+
+// Hat das Zuruecknehmen nicht geklappt, sagt die Leiste es (ohne Knopf),
+// darunter die Diagnose-Zeile, die auch im Log steht
+function zeigeRueckgaengigFehler(diagnose) {
+  clearTimeout(rueckgaengigTimer)
+  rueckgaengig.value = {
+    fehler: true,
+    text: 'Rückgängig hat nicht geklappt. Bitte den Wert von Hand korrigieren.',
+    diagnose: `Technische Ursache: ${diagnose}`,
+    nr: ++rueckgaengigNr
+  }
+  rueckgaengigTimer = setTimeout(versteckeRueckgaengig, 8000)
+}
+
+async function macheRueckgaengig() {
+  const eintrag = rueckgaengig.value
+  versteckeRueckgaengig()
+  if (!eintrag) return
+  const { rueckweg } = eintrag
+  try {
+    const ok = await workoutStore.undoSet(rueckweg)
+    if (!ok) {
+      console.warn('[Fitness Tracker] [WARN] Rueckgaengig ohne Wirkung, Satz nicht im laufenden Training:', rueckweg.setId)
+      zeigeRueckgaengigFehler(`Satz nicht im laufenden Training · ID ${rueckweg.setId}`)
+      return
+    }
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Rueckgaengig fehlgeschlagen:', rueckweg.setId, err)
+    zeigeRueckgaengigFehler(`${err?.name || 'Fehler'} · ID ${rueckweg.setId}`)
+    return
+  }
+  // Steht das Rad noch bei derselben Person und Uebung (eine Person, mehrere
+  // Saetze), zurueck auf den zurueckgenommenen Satz — mit den eben
+  // eingetragenen Werten, damit nur der Fehler korrigiert werden muss
+  if (showWheelPicker.value && pickerUserId.value === rueckweg.userId && pickerExId.value === rueckweg.exerciseId) {
+    waehleImRad(rueckweg.userId, rueckweg.setNumber)
+    pickerWeight.value = rueckweg.weight
+    pickerReps.value = rueckweg.reps
+  }
   updateNotification()
 }
 
@@ -1323,6 +1446,7 @@ async function onSwMessage(e) {
   // Ueber den Notification-Knopf beendet: der Service Worker hat completedAt
   // schon geschrieben — hier nur noch die offene Ansicht zuruecksetzen.
   if (e.data?.type === 'workout-finished') {
+    versteckeRueckgaengig()
     workoutStore.clearActiveWorkout()
     clearWorkoutView()
     authStore.resetActiveUsers()
@@ -1350,6 +1474,7 @@ async function startWorkout(day) {
 
 async function switchDay(day) {
   showDaySelector.value = false
+  versteckeRueckgaengig()
   await workoutStore.finishWorkout()
   await startWorkout(day)
 }
@@ -1462,6 +1587,8 @@ function clearWorkoutView() {
 }
 
 async function finishWorkout() {
+  // Nach dem Beenden gibt es keinen Rueckweg mehr (undoSet prueft das Training)
+  versteckeRueckgaengig()
   await workoutStore.finishWorkout()
   clearWorkoutView()
   dismissWorkoutNotification()
@@ -1512,6 +1639,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  versteckeRueckgaengig()
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.removeEventListener('message', onSwMessage)
   }
@@ -2173,11 +2301,113 @@ onUnmounted(() => {
   justify-content: center;
 }
 
+/* Drei Raeder (Pro Seite / Gesamt / Reps): auf 360 px bleiben so je Rad
+   gut 100 px, genug fuer "29.375" */
+.wheels-row.drei {
+  gap: var(--space-sm);
+}
+
 .picker-hint {
   text-align: center;
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  margin-top: var(--space-md);
+}
+
+/* Fuss unter "Speichern": Hinweis ODER Rueckgaengig-Zeile, gleiche Hoehe */
+.picker-fuss {
+  min-height: 52px;
+  margin-top: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Rueckgaengig nach dem Speichern: dunkle Leiste wie bei Android, damit sie
+   sich vom weissen Rad abhebt; der Strich unten laeuft die 5 s ab */
+.rueckgaengig-zeile,
+.rueckgaengig-leiste {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-md);
+  min-height: 44px;
+  background: var(--color-text);
+  color: var(--color-white);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.rueckgaengig-leiste {
+  position: fixed;
+  left: var(--space-md);
+  right: var(--space-md);
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-sm));
+  max-width: 568px;
+  margin: 0 auto;
+  z-index: 150;
+  box-shadow: var(--shadow-lg);
+}
+
+.rueckgaengig-text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.rueckgaengig-diagnose {
+  display: block;
+  font-size: var(--font-size-xs);
+  opacity: 0.75;
+}
+
+.rueckgaengig-knopf {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--color-white);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.rueckgaengig-knopf:active {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.rueckgaengig-zeit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.45);
+  transform-origin: left center;
+  animation: rueckgaengig-ablauf 5s linear forwards;
+}
+
+@keyframes rueckgaengig-ablauf {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+.rueckgaengig-zeile.fehler,
+.rueckgaengig-leiste.fehler {
+  background: #fbeaec;
+  color: #7a1a27;
+}
+
+.rueckgaengig-enter-active,
+.rueckgaengig-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.rueckgaengig-enter-from,
+.rueckgaengig-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .search-input {

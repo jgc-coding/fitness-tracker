@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { db, generateId } from '../db/dexie.js'
 import { getToday } from '../utils/dateHelpers.js'
-import { pushRecord } from '../services/syncService.js'
+import { pushRecord, pushDelete } from '../services/syncService.js'
 import { useAuthStore } from './auth.js'
 import { offenesTrainingDiesesGeraets, logFuerTagDiesesGeraets } from '../utils/trainingGeraet.js'
+import { rueckgaengigSchritt } from '../utils/saetze.js'
 
 export const useWorkoutStore = defineStore('workout', () => {
   const authStore = useAuthStore()
@@ -154,21 +155,34 @@ export const useWorkoutStore = defineStore('workout', () => {
       .toArray()
   }
 
+  // Gibt zurueck, was "Rueckgaengig" braucht: Id des Satzes und seinen Stand
+  // direkt vor dem Speichern (`vorher` null = Satz war neu) — oder null, wenn
+  // nichts gespeichert wurde.
   async function saveSet(exerciseId, userId, setNumber, weight, reps) {
-    if (!activeWorkout.value) return
+    if (!activeWorkout.value) return null
 
     // Validate numeric inputs — NaN would be serialized as null by Firestore
     // and break max/volume calculations downstream.
     const w = Number(weight)
     const r = Number(reps)
-    if (!Number.isFinite(w) || w < 0) return
-    if (!Number.isFinite(r) || r < 0) return
+    if (!Number.isFinite(w) || w < 0) return null
+    if (!Number.isFinite(r) || r < 0) return null
     weight = w
     reps = r
 
     const existing = currentSets.value.find(
       s => s.exerciseId === exerciseId && s.userId === userId && s.setNumber === setNumber
     )
+    const rueckweg = {
+      setId: existing?.id ?? null,
+      workoutLogId: activeWorkout.value.id,
+      exerciseId,
+      userId,
+      setNumber,
+      weight,
+      reps,
+      vorher: existing ? { weight: existing.weight, reps: existing.reps } : null
+    }
 
     if (existing) {
       const updatedAt = new Date().toISOString()
@@ -199,9 +213,36 @@ export const useWorkoutStore = defineStore('workout', () => {
       await db.setLogs.add(setLog)
       currentSets.value.push(setLog)
       pushRecord('setLogs', setLog.id, setLog)
+      rueckweg.setId = setLog.id
     }
 
     markExerciseUsed(exerciseId)
+    return rueckweg
+  }
+
+  // "Rueckgaengig" nach dem Speichern (Regel: rueckgaengigSchritt in
+  // utils/saetze.js). Nur im selben laufenden Training — danach gibt es keinen
+  // Rueckweg mehr. Wirft bei einem Fehler, damit die Oberflaeche es zeigt.
+  async function undoSet(rueckweg) {
+    if (!rueckweg || activeWorkout.value?.id !== rueckweg.workoutLogId) return false
+    const satz = currentSets.value.find(s => s.id === rueckweg.setId)
+    if (!satz) return false
+    const schritt = rueckgaengigSchritt(rueckweg.vorher)
+    if (schritt.art === 'loeschen') {
+      await db.setLogs.delete(satz.id)
+      currentSets.value = currentSets.value.filter(s => s.id !== satz.id)
+      // Tombstone zuerst (offline-faehig), sonst laedt reconcile den Satz
+      // vom anderen Handy wieder hoch
+      await pushDelete('setLogs', satz.id)
+    } else {
+      const updatedAt = new Date().toISOString()
+      await db.setLogs.update(satz.id, { weight: schritt.weight, reps: schritt.reps, updatedAt })
+      satz.weight = schritt.weight
+      satz.reps = schritt.reps
+      satz.updatedAt = updatedAt
+      pushRecord('setLogs', satz.id, { ...satz })
+    }
+    return true
   }
 
   // Nutzung fuer die "zuletzt benutzt"-Sortierung merken (Tausch-/Add-Listen).
@@ -317,6 +358,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     persistWorkoutExercises,
     loadSets,
     saveSet,
+    undoSet,
     toggleIncreaseNextTime,
     finishWorkout,
     clearActiveWorkout,

@@ -22,14 +22,17 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { werteMitVorwert } from '../../utils/radWerte.js'
+import { werteMitVorwert, radText } from '../../utils/radWerte.js'
 
 const props = defineProps({
   modelValue: { type: Number, default: 0 },
   values: { type: Array, required: true },
   label: { type: String, default: '' },
   unit: { type: String, default: '' },
-  decimals: { type: Boolean, default: false }
+  decimals: { type: Boolean, default: false },
+  // Gekoppelte Raeder (Pro Seite / Gesamt): ein Wert von aussen dreht das
+  // Rad sichtbar an seine Stelle, statt zu springen
+  mitlaufen: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -71,10 +74,7 @@ let lastTime = 0
 let animationFrame = null
 
 function formatValue(val) {
-  if (props.decimals && val % 1 !== 0) {
-    return val.toFixed(2)
-  }
-  return String(val)
+  return radText(val, props.decimals)
 }
 
 function setOffsetFromIndex(index) {
@@ -212,10 +212,12 @@ function onMouseDown(e) {
 
 watch(() => props.modelValue, neu => {
   // Eigene Ausgabe (Nutzer hat gedreht): Liste bleibt, wie sie ist
-  if (neu !== eigeneAusgabe) zusatzBestimmen()
+  const vonAussen = neu !== eigeneAusgabe
+  if (vonAussen) zusatzBestimmen()
   eigeneAusgabe = null
   if (!isDragging) {
-    setOffsetFromIndex(selectedIndex.value)
+    if (props.mitlaufen && vonAussen) animateToIndex(selectedIndex.value)
+    else setOffsetFromIndex(selectedIndex.value)
   }
 })
 
