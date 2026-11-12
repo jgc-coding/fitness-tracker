@@ -73,8 +73,9 @@ export function dismissWorkoutNotification() {
 
 // getLastReps kommt aus der TrackingView: dieselbe Quelle wie Karte und Rad,
 // damit der Sperrbildschirm dieselben Wdh zeigt. getSatzPunkte (optional)
-// liefert fuer Mehrsatz-Nutzer { slots, fertig } — die Zeile zeigt dann den
-// Fortschritt, z.B. "(2/3)".
+// liefert fuer Mehrsatz-Nutzer { slots, fertig, ausgelassen } — die Zeile
+// zeigt dann den Fortschritt, z.B. "(2/3)". Ausgelassene Saetze zaehlen
+// nicht mit: 2 gemacht, 1 ausgelassen ist "(2/2)", also fertig (v2.15.0).
 export function buildExerciseLines(workoutExercises, getExerciseName, users, recommendations, getSavedValue, getLastReps, getUserExerciseId, getSatzPunkte) {
   const lines = []
   // Aktive Uebung je Nutzer (Schnellwechsel-Ring); ohne die Funktion gilt
@@ -92,7 +93,7 @@ export function buildExerciseLines(workoutExercises, getExerciseName, users, rec
       const savedWeight = getSavedValue(exId, user.id, 'weight')
       const savedReps = getSavedValue(exId, user.id, 'reps')
       const punkte = getSatzPunkte ? getSatzPunkte(exId, user.id) : null
-      const fortschritt = punkte ? ` (${punkte.fertig}/${punkte.slots})` : ''
+      const fortschritt = punkte ? ` (${punkte.fertig}/${punkte.slots - (punkte.ausgelassen || 0)})` : ''
 
       if (savedWeight) {
         userParts.push(`${user.name}: ${savedWeight}kg x${savedReps}${fortschritt}`)

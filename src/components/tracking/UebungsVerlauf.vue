@@ -158,8 +158,10 @@
               class="verlauf-zeile-1rm"
             >≈ {{ einRMText(p) }}</span>{{ wertText(p) }}</span>
           </div>
-          <div v-if="p.saetze.length > 1" class="verlauf-zeile-saetze">
-            {{ p.saetze.length }} Saetze: {{ p.saetze.map(satzText).join(' · ') }}
+          <div v-if="p.saetze.length > 1 || ausgelassenAm(p.date).length" class="verlauf-zeile-saetze">
+            {{ p.saetze.length }} {{ p.saetze.length === 1 ? 'Satz' : 'Saetze' }}: {{ p.saetze.map(satzText).join(' · ') }}<template
+              v-if="ausgelassenAm(p.date).length"
+            > · {{ satzListeText(ausgelassenAm(p.date)) }} ausgelassen</template>
           </div>
         </li>
       </ul>
@@ -176,6 +178,7 @@ import {
   ZEITRAEUME, zeitraumStart, verlaufPunkte, messgroesse, achse, formatZahl, naechsterIndex, monatsMarken,
   mitEinRM
 } from '../../utils/verlauf.js'
+import { ausgelasseneEintraege, satzListeText } from '../../utils/saetze.js'
 
 const props = defineProps({
   exerciseId: { type: String, required: true },
@@ -192,6 +195,8 @@ const nutzer = computed(() => authStore.users.find(u => u.id === userId.value))
 const saetze = ref([])
 const geladen = ref(false)
 const ladeFehler = ref(false)
+// Ausgelassene Saetze je Tag (v2.15.0, liegen am workoutLog): date -> [3]
+const ausgelassen = ref(new Map())
 
 async function lade() {
   geladen.value = false
@@ -201,12 +206,28 @@ async function lade() {
       .where('[exerciseId+userId]')
       .equals([props.exerciseId, userId.value])
       .toArray()
+    const logIds = [...new Set(saetze.value.map(s => s.workoutLogId))]
+    // Auch Trainings ohne Satz dieser Uebung koennen sie ganz ausgelassen
+    // haben — die zeigt die Liste nicht (kein Punkt), darum reichen die Logs
+    // der vorhandenen Saetze
+    const logs = (await db.workoutLogs.bulkGet(logIds)).filter(Boolean)
+    const jeTag = new Map()
+    for (const e of ausgelasseneEintraege(logs, saetze.value)) {
+      if (e.exerciseId !== props.exerciseId || e.userId !== userId.value) continue
+      jeTag.set(e.date, [...(jeTag.get(e.date) || []), ...e.saetze])
+    }
+    ausgelassen.value = jeTag
   } catch (e) {
     console.error('[FitTrack] [ERROR] Verlauf nicht ladbar:', props.exerciseId, userId.value, e)
     saetze.value = []
+    ausgelassen.value = new Map()
     ladeFehler.value = true
   }
   geladen.value = true
+}
+
+function ausgelassenAm(date) {
+  return ausgelassen.value.get(date) || []
 }
 
 watch([() => props.exerciseId, userId], lade, { immediate: true })

@@ -5,7 +5,7 @@ import { getToday } from '../utils/dateHelpers.js'
 import { pushRecord, pushDelete } from '../services/syncService.js'
 import { useAuthStore } from './auth.js'
 import { offenesTrainingDiesesGeraets, logFuerTagDiesesGeraets } from '../utils/trainingGeraet.js'
-import { rueckgaengigSchritt } from '../utils/saetze.js'
+import { rueckgaengigSchritt, ausgelasseneAusLog, mitAusgelassenen } from '../utils/saetze.js'
 
 export const useWorkoutStore = defineStore('workout', () => {
   const authStore = useAuthStore()
@@ -245,6 +245,37 @@ export const useWorkoutStore = defineStore('workout', () => {
     return true
   }
 
+  // --- Ausgelassene Saetze (v2.15.0) — Regeln in utils/saetze.js ---
+  // Liegen als Satznummern am aktiven workoutLog (`ausgelasseneSaetze`), nie
+  // als setLog. Gelesen wird die rohe Liste; was davon heute doch gespeichert
+  // ist, filtert der Aufrufer per wirksamAusgelassen heraus.
+  function ausgelasseneSaetze(exerciseId, userId) {
+    return ausgelasseneAusLog(activeWorkout.value, exerciseId, userId)
+  }
+
+  // Setzt die Liste dieser Uebung und Person (leer = nichts ausgelassen).
+  // Gibt den Rueckweg fuer "Rueckgaengig" zurueck oder null ohne Training.
+  async function setzeAusgelassen(exerciseId, userId, saetze) {
+    if (!activeWorkout.value) return null
+    const vorher = ausgelasseneSaetze(exerciseId, userId)
+    const ausgelasseneSaetzeNeu = mitAusgelassenen(activeWorkout.value.ausgelasseneSaetze, exerciseId, userId, saetze)
+    const updatedAt = new Date().toISOString()
+    const patch = { ausgelasseneSaetze: ausgelasseneSaetzeNeu, updatedAt }
+    await db.workoutLogs.update(activeWorkout.value.id, patch)
+    activeWorkout.value = { ...activeWorkout.value, ...patch }
+    const full = await db.workoutLogs.get(activeWorkout.value.id)
+    if (full) pushRecord('workoutLogs', full.id, full)
+    return { art: 'auslassen', workoutLogId: activeWorkout.value.id, exerciseId, userId, vorher }
+  }
+
+  // "Rueckgaengig" nach dem Auslassen: die Liste von vorher zurueck. Nur im
+  // selben laufenden Training.
+  async function undoAuslassen(rueckweg) {
+    if (!rueckweg || activeWorkout.value?.id !== rueckweg.workoutLogId) return false
+    await setzeAusgelassen(rueckweg.exerciseId, rueckweg.userId, rueckweg.vorher)
+    return true
+  }
+
   // Nutzung fuer die "zuletzt benutzt"-Sortierung merken (Tausch-/Add-Listen).
   // Bewusst fire-and-forget: ein Fehler hier darf das Satz-Speichern nicht stoeren.
   function markExerciseUsed(exerciseId) {
@@ -359,6 +390,9 @@ export const useWorkoutStore = defineStore('workout', () => {
     loadSets,
     saveSet,
     undoSet,
+    ausgelasseneSaetze,
+    setzeAusgelassen,
+    undoAuslassen,
     toggleIncreaseNextTime,
     finishWorkout,
     clearActiveWorkout,

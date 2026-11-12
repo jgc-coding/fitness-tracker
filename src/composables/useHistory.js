@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { db } from '../db/dexie.js'
+import { ausgelasseneEintraege } from '../utils/saetze.js'
 
 export function useHistory() {
   async function getLatestWeight(exerciseId, userId) {
@@ -66,6 +66,7 @@ export function useHistory() {
 
     // Build exercise data map: exerciseId -> { [date]: { weight, reps } }
     const exerciseData = {}
+    const satzNummern = {} // exerciseId|date -> Set der gespeicherten Satznummern
     for (const set of userSets) {
       if (!exerciseData[set.exerciseId]) exerciseData[set.exerciseId] = {}
       const existing = exerciseData[set.exerciseId][set.date]
@@ -73,6 +74,22 @@ export function useHistory() {
       if (!existing || set.weight > existing.weight) {
         exerciseData[set.exerciseId][set.date] = { weight: set.weight, reps: set.reps }
       }
+      const k = `${set.exerciseId}|${set.date}`
+      if (!satzNummern[k]) satzNummern[k] = new Set()
+      satzNummern[k].add(set.setNumber)
+    }
+
+    // Ausgelassene Saetze (v2.15.0): die Zelle zeigt dann "2/3" — gemacht
+    // von vorgesehen. Nur fuer Zellen mit Wert; eine ganz ausgelassene Uebung
+    // steht im Tages-Detail.
+    const logs = await db.workoutLogs.toArray()
+    for (const e of ausgelasseneEintraege(logs, userSets)) {
+      if (e.userId !== userId) continue
+      const zelle = exerciseData[e.exerciseId]?.[e.date]
+      if (!zelle) continue
+      const gemacht = satzNummern[`${e.exerciseId}|${e.date}`]?.size || 0
+      zelle.ausgelassen = (zelle.ausgelassen || 0) + e.saetze.length
+      zelle.saetze = gemacht
     }
 
     // Group exercises by muscle group, only include those with data

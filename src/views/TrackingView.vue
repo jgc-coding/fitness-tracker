@@ -164,16 +164,19 @@
                       <span v-if="!z.wert.gespeichert && z.steigern" class="increase-hint">&#8593;</span>
                     </template>
                     <template v-else>--</template>
+                    <!-- Je Position ein Punkt: voll = gespeichert, leer =
+                         offen, durchgestrichen = ausgelassen (v2.15.0) -->
                     <span
                       v-if="z.punkte"
                       class="satz-punkte"
                       role="img"
-                      :aria-label="`${z.punkte.fertig} von ${z.punkte.slots} Saetzen gespeichert`"
+                      :aria-label="`${z.punkte.fertig} von ${z.punkte.slots} Saetzen gespeichert${z.punkte.ausgelassen ? `, ${z.punkte.ausgelassen} ausgelassen` : ''}`"
+                      :style="{ '--user-color': z.user.color }"
                     >
                       <i
-                        v-for="n in z.punkte.slots"
-                        :key="n"
-                        :style="{ borderColor: z.user.color, background: n <= z.punkte.fertig ? z.user.color : 'transparent' }"
+                        v-for="(zustand, i) in z.punkte.zustaende"
+                        :key="i"
+                        :class="zustand"
                       ></i>
                     </span>
                   </span>
@@ -301,7 +304,7 @@
             v-for="n in pickerSlots"
             :key="n"
             class="satz-tab"
-            :class="{ active: pickerSatz === n }"
+            :class="{ active: pickerSatz === n, ausgelassen: !pickerGespeichert(n) && pickerAusgelassen.includes(n) }"
             :style="{ '--user-color': pickerUserColor }"
             @click="waehleSatz(n)"
           >
@@ -309,6 +312,7 @@
             <span v-if="pickerGespeichert(n)" class="satz-tab-wert fertig">
               {{ pickerGespeichert(n).weight }} × {{ pickerGespeichert(n).reps }} ✓
             </span>
+            <span v-else-if="pickerAusgelassen.includes(n)" class="satz-tab-wert">ausgelassen</span>
             <span v-else class="satz-tab-wert">offen</span>
           </button>
         </div>
@@ -364,10 +368,32 @@
           />
         </div>
 
-        <!-- Save button -->
-        <button class="btn btn-primary btn-block" @click="savePickerValues" style="margin-top: var(--space-md)">
-          Speichern
-        </button>
+        <!-- Speichern, bei mehreren Saetzen daneben "Auslassen" (v2.15.0,
+             Wunsch Gabriel 12.11.2026: weniger Saetze als vorgesehen, je
+             Uebung verschieden). Auslassen gilt fuer den gewaehlten Satz und
+             alle spaeteren offenen — wer auslaesst, hoert mit der Uebung auf.
+             Ein ausgelassener Satz laesst sich wieder oeffnen oder einfach
+             doch speichern. Kein Knopf bei schon gespeicherten Saetzen. -->
+        <div class="picker-aktionen">
+          <button
+            v-if="pickerAuslassenNeu.length > 0"
+            class="btn btn-secondary auslassen-knopf"
+            :aria-label="`${satzListeText(pickerAuslassenNeu)} auslassen`"
+            @click="lasseAus"
+          >
+            {{ satzKurz(pickerAuslassenNeu) }} auslassen
+          </button>
+          <button
+            v-else-if="pickerSatzAusgelassen"
+            class="btn btn-secondary auslassen-knopf"
+            @click="oeffneWieder"
+          >
+            Wieder öffnen
+          </button>
+          <button class="btn btn-primary speichern-knopf" @click="savePickerValues">
+            Speichern
+          </button>
+        </div>
 
         <!-- Fuss des Rads: 5 s nach dem Speichern der Rueckgaengig-Knopf (das
              Rad steht dann meist schon bei der naechsten Person), sonst der
@@ -567,13 +593,18 @@ import {
 import {
   satzSlots,
   offenerSatz,
-  gespeicherteSaetze,
   letzterSatz,
   satzAusEinheit,
   vorschlagsSatz,
   vorbelegung,
   naechsterSchritt,
-  quickLogFolge
+  quickLogFolge,
+  wirksamAusgelassen,
+  auslassenAb,
+  ohneSatz,
+  satzStand,
+  satzKurz,
+  satzListeText
 } from '../utils/saetze.js'
 import bildKatalog from '../data/uebungskatalog.json'
 import {
@@ -797,6 +828,21 @@ function pickerGespeichert(n) {
   return letzterSatz(saetzeHeute(pickerExId.value, pickerUserId.value).filter(s => s.setNumber === n))
 }
 
+// Ausgelassene Saetze des gewaehlten Nutzers (nur wirksame: ein doch
+// gespeicherter Satz zaehlt als gemacht)
+const pickerAusgelassen = computed(() =>
+  pickerExId.value ? ausgelassenHeute(pickerExId.value, pickerUserId.value) : []
+)
+
+const pickerSatzAusgelassen = computed(() => pickerAusgelassen.value.includes(pickerSatz.value))
+
+// Was ein Tipp auf "Auslassen" markieren wuerde (leer = kein Knopf). Nur wer
+// mehrere Saetze erfasst; ein Satz je Uebung ist ein Referenzwert.
+const pickerAuslassenNeu = computed(() => {
+  if (!pickerExId.value || pickerSlots.value <= 1) return []
+  return auslassenAb(pickerSatz.value, pickerSlots.value, saetzeHeute(pickerExId.value, pickerUserId.value), pickerAusgelassen.value)
+})
+
 // Vorauswahl im Rad und erster Notification-Knopf: der Standard-Nutzer des
 // Geraets — ist er heute nicht aktiv, der erste aktive Nutzer.
 const preferredUserId = computed(() => {
@@ -853,6 +899,12 @@ function slotsFuer(exerciseId, userId) {
   return satzSlots(authStore.satzZahl(userId), saetzeHeute(exerciseId, userId))
 }
 
+// Heute ausgelassene Saetze (v2.15.0, liegen am workoutLog) — ohne die doch
+// gespeicherten. Gilt ueberall: Rad, Karte, Auto-Wechsel, Sperrbildschirm.
+function ausgelassenHeute(exerciseId, userId) {
+  return wirksamAusgelassen(workoutStore.ausgelasseneSaetze(exerciseId, userId), saetzeHeute(exerciseId, userId))
+}
+
 // Gespeicherter Wert fuer Karte und Sperrbildschirm: der zuletzt
 // eingetragene Satz von heute (mit einem Satz je Uebung ist das Satz 1)
 function getSavedValue(exerciseId, userId, field) {
@@ -871,11 +923,10 @@ function kartenWert(exerciseId, userId) {
   return null
 }
 
-// Punkte fuer die Saetze auf der Karte — null bei einem Satz je Uebung
+// Punkte fuer die Saetze auf der Karte — null bei einem Satz je Uebung.
+// { slots, fertig, ausgelassen, erledigt, zustaende } (Regel: satzStand)
 function satzPunkte(exerciseId, userId) {
-  const heute = saetzeHeute(exerciseId, userId)
-  const slots = satzSlots(authStore.satzZahl(userId), heute)
-  return slots > 1 ? { slots, fertig: gespeicherteSaetze(slots, heute) } : null
+  return satzStand(slotsFuer(exerciseId, userId), saetzeHeute(exerciseId, userId), ausgelassenHeute(exerciseId, userId))
 }
 
 // Alles, was eine Karte zeigt, einmal vorgerechnet (statt dieselben Aufrufe
@@ -1199,14 +1250,17 @@ function offenerSatzImRad(userId) {
   const ex = workoutExercises.value[activeExerciseIndex.value]
   if (!ex) return null
   const exId = aktiveId(ex, userId)
-  return offenerSatz(slotsFuer(exId, userId), saetzeHeute(exId, userId))
+  return offenerSatz(slotsFuer(exId, userId), saetzeHeute(exId, userId), ausgelassenHeute(exId, userId))
 }
 
 // Person (und Satz) im Rad waehlen und die Raeder vorbelegen. Ohne Satz:
-// der erste offene, sind alle gespeichert, der letzte (zum Korrigieren).
+// der erste offene; ist nichts mehr offen, der hoechste gespeicherte (zum
+// Korrigieren — nicht ein ausgelassener), ganz ohne Saetze der letzte.
 function waehleImRad(userId, satz = null) {
   pickerUserId.value = userId
-  pickerSatz.value = satz ?? offenerSatzImRad(userId) ?? pickerSlots.value
+  const exId = pickerExId.value
+  const hoechster = exId ? letzterSatz(saetzeHeute(exId, userId))?.setNumber : null
+  pickerSatz.value = satz ?? offenerSatzImRad(userId) ?? hoechster ?? pickerSlots.value
   radVorbelegen()
 }
 
@@ -1237,11 +1291,53 @@ async function savePickerValues() {
   // Abweichung landet ein Latzug-Satz bei Latzug, ein Klimmzug-Satz bei Klimmzug
   const rueckweg = await workoutStore.saveSet(aktiveId(ex, userId), userId, pickerSatz.value, pickerWeight.value, pickerReps.value)
   if (rueckweg) zeigeRueckgaengig(rueckweg, pickerSlots.value)
+  weiterImRad(userId)
+}
 
+// Saetze auslassen (v2.15.0): der gewaehlte und alle spaeteren offenen
+// (Regel: auslassenAb). Danach weiter wie nach dem Speichern.
+async function lasseAus() {
+  const exId = pickerExId.value
+  const userId = pickerUserId.value
+  const neu = pickerAuslassenNeu.value
+  if (!exId || neu.length === 0) return
+  try {
+    const rueckweg = await workoutStore.setzeAusgelassen(exId, userId, [...workoutStore.ausgelasseneSaetze(exId, userId), ...neu])
+    if (!rueckweg) return
+    zeigeAuslassenRueckgaengig({ ...rueckweg, neu })
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Auslassen fehlgeschlagen:', exId, userId, err)
+    zeigeRueckgaengigFehler(`${err?.name || 'Fehler'} · Auslassen ${exId}`, 'Auslassen hat nicht geklappt. Bitte noch einmal tippen.')
+    return
+  }
+  weiterImRad(userId)
+}
+
+// Ausgelassenen Satz wieder oeffnen: er ist dann wieder "offen" und wird
+// vorbelegt wie jeder offene Satz. Doch speichern geht auch ohne diesen Schritt.
+async function oeffneWieder() {
+  const exId = pickerExId.value
+  const userId = pickerUserId.value
+  const n = pickerSatz.value
+  if (!exId) return
+  try {
+    await workoutStore.setzeAusgelassen(exId, userId, ohneSatz(workoutStore.ausgelasseneSaetze(exId, userId), n))
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Wieder oeffnen fehlgeschlagen:', exId, userId, n, err)
+    zeigeRueckgaengigFehler(`${err?.name || 'Fehler'} · Oeffnen ${exId}`, 'Wieder öffnen hat nicht geklappt. Bitte noch einmal tippen.')
+    return
+  }
+  radVorbelegen()
+  updateNotification()
+}
+
+// Nach Speichern oder Auslassen: wohin das Rad geht
+function weiterImRad(userId) {
   // Auto-Wechsel (Regel: naechsterSchritt in utils/saetze.js): reihum der
   // naechste AKTIVE Nutzer mit offenem Satz (gemessen an SEINER aktiven
   // Uebung), sonst der naechste Satz desselben Nutzers, sonst schliessen.
   // Mit einem Satz je Uebung und einem aktiven Nutzer schliesst das Rad.
+  // Ausgelassene Saetze sind nicht offen.
   const schritt = naechsterSchritt(authStore.activeUsers.map(u => u.id), userId, offenerSatzImRad)
   if (schritt) {
     waehleImRad(schritt.userId, schritt.satz)
@@ -1281,6 +1377,18 @@ function zeigeRueckgaengig(rueckweg, slots) {
   rueckgaengigTimer = setTimeout(versteckeRueckgaengig, RUECKGAENGIG_MS)
 }
 
+// Dieselbe Leiste nach dem Auslassen: "Eins: Satz 3 ausgelassen · Rückgängig"
+function zeigeAuslassenRueckgaengig(rueckweg) {
+  clearTimeout(rueckgaengigTimer)
+  const name = authStore.users.find(u => u.id === rueckweg.userId)?.name || ''
+  rueckgaengig.value = {
+    rueckweg,
+    text: `${name}: ${satzListeText(rueckweg.neu)} ausgelassen`,
+    nr: ++rueckgaengigNr
+  }
+  rueckgaengigTimer = setTimeout(versteckeRueckgaengig, RUECKGAENGIG_MS)
+}
+
 function versteckeRueckgaengig() {
   clearTimeout(rueckgaengigTimer)
   rueckgaengigTimer = null
@@ -1289,11 +1397,11 @@ function versteckeRueckgaengig() {
 
 // Hat das Zuruecknehmen nicht geklappt, sagt die Leiste es (ohne Knopf),
 // darunter die Diagnose-Zeile, die auch im Log steht
-function zeigeRueckgaengigFehler(diagnose) {
+function zeigeRueckgaengigFehler(diagnose, text = 'Rückgängig hat nicht geklappt. Bitte den Wert von Hand korrigieren.') {
   clearTimeout(rueckgaengigTimer)
   rueckgaengig.value = {
     fehler: true,
-    text: 'Rückgängig hat nicht geklappt. Bitte den Wert von Hand korrigieren.',
+    text,
     diagnose: `Technische Ursache: ${diagnose}`,
     nr: ++rueckgaengigNr
   }
@@ -1305,6 +1413,10 @@ async function macheRueckgaengig() {
   versteckeRueckgaengig()
   if (!eintrag) return
   const { rueckweg } = eintrag
+  if (rueckweg.art === 'auslassen') {
+    await auslassenZuruecknehmen(rueckweg)
+    return
+  }
   try {
     const ok = await workoutStore.undoSet(rueckweg)
     if (!ok) {
@@ -1324,6 +1436,27 @@ async function macheRueckgaengig() {
     waehleImRad(rueckweg.userId, rueckweg.setNumber)
     pickerWeight.value = rueckweg.weight
     pickerReps.value = rueckweg.reps
+  }
+  updateNotification()
+}
+
+// Rueckgaengig nach dem Auslassen: die Liste von vorher zurueck; steht das
+// Rad noch bei derselben Person und Uebung, auf den ersten wieder offenen Satz
+async function auslassenZuruecknehmen(rueckweg) {
+  try {
+    const ok = await workoutStore.undoAuslassen(rueckweg)
+    if (!ok) {
+      console.warn('[Fitness Tracker] [WARN] Rueckgaengig ohne Wirkung, Training nicht mehr aktiv:', rueckweg.workoutLogId)
+      zeigeRueckgaengigFehler(`Training nicht mehr aktiv · ID ${rueckweg.workoutLogId}`, 'Rückgängig hat nicht geklappt. Bitte den Satz im Rad wieder öffnen.')
+      return
+    }
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Auslassen zuruecknehmen fehlgeschlagen:', rueckweg.workoutLogId, err)
+    zeigeRueckgaengigFehler(`${err?.name || 'Fehler'} · ID ${rueckweg.workoutLogId}`, 'Rückgängig hat nicht geklappt. Bitte den Satz im Rad wieder öffnen.')
+    return
+  }
+  if (showWheelPicker.value && pickerUserId.value === rueckweg.userId && pickerExId.value === rueckweg.exerciseId) {
+    waehleImRad(rueckweg.userId, Math.min(...rueckweg.neu))
   }
   updateNotification()
 }
@@ -1399,7 +1532,7 @@ function buildNotificationQuickLog() {
       // Rad (Regel: quickLogFolge in utils/saetze.js).
       const exId = aktiveId(ex, user.id)
       const slots = slotsFuer(exId, user.id)
-      const folge = quickLogFolge(slots, saetzeHeute(exId, user.id), n => satzVorschlag(exId, user.id, n))
+      const folge = quickLogFolge(slots, saetzeHeute(exId, user.id), n => satzVorschlag(exId, user.id, n), ausgelassenHeute(exId, user.id))
       for (const satz of folge) {
         queue.push({
           label: `${getExerciseName(exId)}${slots > 1 ? ` S${satz.setNumber}` : ''} ${satz.weight}kg x${satz.reps}`,
@@ -2026,8 +2159,20 @@ onUnmounted(() => {
 .satz-punkte i {
   width: 7px;
   height: 7px;
-  border: 1.5px solid;
+  border: 1.5px solid var(--user-color);
   border-radius: 50%;
+  background: transparent;
+}
+
+.satz-punkte i.gespeichert {
+  background: var(--user-color);
+}
+
+/* Ausgelassen: blasser Ring mit Schraegstrich (linear-gradient statt
+   color-mix, alte Android-WebViews) */
+.satz-punkte i.ausgelassen {
+  opacity: 0.45;
+  background: linear-gradient(135deg, transparent 42%, var(--user-color) 42%, var(--user-color) 58%, transparent 58%);
 }
 
 /* Nur Altbestand: abweichende Uebung einer Person in ihrer Farbe, als eigene
@@ -2293,6 +2438,37 @@ onUnmounted(() => {
 
 .satz-tab-wert.fertig {
   color: var(--color-success);
+}
+
+/* Ausgelassener Satz: gestrichelter Rahmen, blasser Text */
+.satz-tab.ausgelassen {
+  border-style: dashed;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}
+
+.satz-tab.ausgelassen.active {
+  border-color: var(--user-color);
+}
+
+/* Speichern, bei mehreren Saetzen links daneben Auslassen / Wieder oeffnen.
+   Der Nebenknopf nimmt seine Textbreite, Speichern den Rest. */
+.picker-aktionen {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.auslassen-knopf {
+  flex: 0 0 auto;
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
+  white-space: nowrap;
+}
+
+.speichern-knopf {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .picker-rec {

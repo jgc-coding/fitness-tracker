@@ -101,7 +101,9 @@ export function messgroesse(punkte) {
 
 // Y-Achse mit runden Teilstrichen (1, 2, 2,5, 5 x Zehnerpotenz), hoechstens
 // sechs, nie unter 0. Ein einzelner Wert bekommt Spielraum darum.
-export function achse(werte) {
+// `abschnitte`: wie viele Abstaende hoechstens (5 = bis zu 6 Teilstriche;
+// die kleinen Diagramme der Auswertung nehmen 3).
+export function achse(werte, abschnitte = 5) {
   const w = (werte || []).filter(Number.isFinite)
   if (w.length === 0) return { min: 0, max: 10, schritt: 5, ticks: [0, 5, 10] }
   let lo = Math.min(...w)
@@ -112,13 +114,13 @@ export function achse(werte) {
     hi += rand
   }
   lo = Math.max(0, lo)
-  const roh = (hi - lo) / 4
+  const roh = (hi - lo) / Math.max(1, abschnitte - 1)
   let zehner = 10 ** Math.floor(Math.log10(roh))
   let schritt = null
   while (schritt === null) {
     for (const f of [1, 2, 2.5, 5]) {
       const s = f * zehner
-      if (s >= roh && Math.ceil(hi / s - 1e-9) - Math.floor(lo / s + 1e-9) <= 5) {
+      if (s >= roh && Math.ceil(hi / s - 1e-9) - Math.floor(lo / s + 1e-9) <= abschnitte) {
         schritt = s
         break
       }

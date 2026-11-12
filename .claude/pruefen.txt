@@ -7,6 +7,7 @@ node ./scripts/saetze-test.mjs
 node ./scripts/radwerte-test.mjs
 node ./scripts/gewicht-pro-seite-test.mjs
 node ./scripts/verlauf-test.mjs
+node ./scripts/auswertung-test.mjs
 node ./scripts/training-geraet-test.mjs
 node ./scripts/uebungsdubletten-test.mjs
 node ./scripts/planreihenfolge-test.mjs
