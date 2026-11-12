@@ -17,7 +17,16 @@ import {
   vorbelegung,
   naechsterSchritt,
   quickLogFolge,
-  rueckgaengigSchritt
+  rueckgaengigSchritt,
+  ausgelasseneAusLog,
+  mitAusgelassenen,
+  wirksamAusgelassen,
+  auslassenAb,
+  ohneSatz,
+  satzStand,
+  satzKurz,
+  satzListeText,
+  ausgelasseneEintraege
 } from '../src/utils/saetze.js'
 
 let fehler = 0
@@ -142,6 +151,122 @@ pruefe('Satz war ueberschrieben: alter Wert kommt zurueck',
   zurueck.art === 'zuruecksetzen' && zurueck.weight === 57.5 && zurueck.reps === 10)
 const nullKilo = rueckgaengigSchritt({ weight: 0, reps: 12 })
 pruefe('0 kg (Koerpergewicht) ist ein echter Vorwert', nullKilo.art === 'zuruecksetzen' && nullKilo.weight === 0)
+
+// --- Ausgelassene Saetze (v2.15.0) -------------------------------------------
+console.log('[saetze-test] Ausgelassene Saetze am Trainings-Eintrag lesen:')
+const logMit = (eintraege) => ({ id: 'log1', date: '2026-11-12', ausgelasseneSaetze: eintraege })
+const log1 = logMit([{ exerciseId: 'ex1', userId: 'user1', saetze: [3] }])
+pruefe('Satz 3 von user1 bei ex1', ausgelasseneAusLog(log1, 'ex1', 'user1').join(',') === '3')
+pruefe('andere Person: nichts', ausgelasseneAusLog(log1, 'ex1', 'user2').length === 0)
+pruefe('andere Uebung: nichts', ausgelasseneAusLog(log1, 'ex2', 'user1').length === 0)
+pruefe('alter Eintrag ohne das Feld: nichts', ausgelasseneAusLog({ id: 'alt' }, 'ex1', 'user1').length === 0)
+pruefe('kein Log: nichts', ausgelasseneAusLog(null, 'ex1', 'user1').length === 0)
+pruefe('kaputtes Feld (kein Array): nichts, kein Absturz',
+  ausgelasseneAusLog({ ausgelasseneSaetze: 'drei' }, 'ex1', 'user1').length === 0)
+pruefe('ungueltige Nummern fliegen raus, Rest sortiert und einmalig',
+  ausgelasseneAusLog(logMit([{ exerciseId: 'ex1', userId: 'user1', saetze: [3, 'x', 0, 2, 3, 2.5, -1] }]), 'ex1', 'user1').join(',') === '2,3')
+pruefe('zwei Eintraege derselben Uebung werden zusammengelegt',
+  ausgelasseneAusLog(logMit([
+    { exerciseId: 'ex1', userId: 'user1', saetze: [3] },
+    { exerciseId: 'ex1', userId: 'user1', saetze: [2] }
+  ]), 'ex1', 'user1').join(',') === '2,3')
+
+console.log('[saetze-test] Ausgelassene Saetze schreiben (frische Kopien):')
+const alt = [{ exerciseId: 'ex1', userId: 'user1', saetze: [3] }, { exerciseId: 'ex2', userId: 'user1', saetze: [2, 3] }]
+const neu1 = mitAusgelassenen(alt, 'ex1', 'user1', [2, 3])
+pruefe('Eintrag wird ersetzt, der andere bleibt',
+  neu1.length === 2 && ausgelasseneAusLog({ ausgelasseneSaetze: neu1 }, 'ex1', 'user1').join(',') === '2,3' &&
+  ausgelasseneAusLog({ ausgelasseneSaetze: neu1 }, 'ex2', 'user1').join(',') === '2,3')
+pruefe('Original bleibt unveraendert', alt[0].saetze.join(',') === '3')
+pruefe('frische Arrays (nie dieselben Objekte wie vorher)', neu1.every(e => !alt.includes(e) && !alt.some(a => a.saetze === e.saetze)))
+const neu2 = mitAusgelassenen(alt, 'ex1', 'user1', [])
+pruefe('leere Liste entfernt den Eintrag ganz', neu2.length === 1 && neu2[0].exerciseId === 'ex2')
+const neu3 = mitAusgelassenen(undefined, 'ex1', 'user2', [3])
+pruefe('erster Eintrag an einem alten Log ohne Feld', neu3.length === 1 && neu3[0].userId === 'user2')
+pruefe('Nummern werden auch beim Schreiben bereinigt',
+  mitAusgelassenen([], 'ex1', 'user1', [3, 3, 2, 'x'])[0].saetze.join(',') === '2,3')
+
+console.log('[saetze-test] Wirksam ausgelassen: ein gespeicherter Satz gewinnt immer:')
+pruefe('Satz 3 ausgelassen, nicht gespeichert: bleibt ausgelassen',
+  wirksamAusgelassen([3], [satz(1, 40, 10), satz(2, 40, 9)]).join(',') === '3')
+pruefe('Satz 3 ausgelassen, dann doch gespeichert: gilt als gemacht',
+  wirksamAusgelassen([3], [satz(1, 40, 10), satz(3, 40, 8)]).length === 0)
+pruefe('Rueckgaengig nimmt den Satz wieder weg: wieder ausgelassen (Liste blieb stehen)',
+  wirksamAusgelassen([3], [satz(1, 40, 10)]).join(',') === '3')
+
+console.log('[saetze-test] Offener Satz mit ausgelassenen Saetzen:')
+pruefe('Saetze 1-2 da, Satz 3 ausgelassen: nichts mehr offen',
+  offenerSatz(3, [satz(1, 40, 10), satz(2, 40, 9)], [3]) === null)
+pruefe('Satz 1 da, Satz 2 ausgelassen: Satz 3 ist offen',
+  offenerSatz(3, [satz(1, 40, 10)], [2]) === 3)
+pruefe('ohne Liste wie bisher', offenerSatz(3, [satz(1, 40, 10)]) === 2)
+
+console.log('[saetze-test] "Auslassen" auf Satz n:')
+pruefe('auf Satz 3 (1-2 gespeichert): nur Satz 3',
+  auslassenAb(3, 3, [satz(1, 40, 10), satz(2, 40, 9)], []).join(',') === '3')
+pruefe('auf Satz 2 (nur 1 gespeichert): Satz 2 UND 3 — wer auslaesst, hoert auf',
+  auslassenAb(2, 3, [satz(1, 40, 10)], []).join(',') === '2,3')
+pruefe('auf Satz 1 ohne Saetze: die ganze Uebung (1-3)', auslassenAb(1, 3, [], []).join(',') === '1,2,3')
+pruefe('ein spaeterer, schon gespeicherter Satz bleibt unangetastet',
+  auslassenAb(2, 3, [satz(1, 40, 10), satz(3, 40, 8)], []).join(',') === '2')
+pruefe('schon ausgelassene Saetze kommen nicht doppelt',
+  auslassenAb(2, 3, [satz(1, 40, 10)], [3]).join(',') === '2')
+pruefe('gespeicherter Satz selbst: nichts zu tun', auslassenAb(2, 3, [satz(2, 40, 9)], []).length === 0)
+pruefe('Satz ausserhalb der Saetze: nichts', auslassenAb(4, 3, [], []).length === 0)
+
+console.log('[saetze-test] Wieder oeffnen:')
+pruefe('Satz 3 aus [2,3] wieder oeffnen: [2]', ohneSatz([2, 3], 3).join(',') === '2')
+pruefe('nicht enthalten: Liste bleibt', ohneSatz([2], 3).join(',') === '2')
+
+console.log('[saetze-test] Stand fuer Karte und Sperrbildschirm:')
+const st1 = satzStand(3, [satz(1, 40, 10), satz(2, 40, 9)], [3])
+pruefe('2 gespeichert, 1 ausgelassen', st1.fertig === 2 && st1.ausgelassen === 1 && st1.slots === 3)
+pruefe('Punkte je Position', st1.zustaende.join(',') === 'gespeichert,gespeichert,ausgelassen')
+pruefe('erledigt = gespeichert + ausgelassen', st1.erledigt === 3)
+const st2 = satzStand(3, [satz(1, 40, 10), satz(3, 40, 8)], [])
+pruefe('Luecke steht an ihrer Stelle (nicht nach vorn gerueckt)',
+  st2.zustaende.join(',') === 'gespeichert,offen,gespeichert')
+const st3 = satzStand(3, [satz(1, 40, 10), satz(3, 40, 8)], [3])
+pruefe('ausgelassen, aber doch gespeichert: zaehlt als gespeichert',
+  st3.ausgelassen === 0 && st3.zustaende[2] === 'gespeichert')
+pruefe('ausgelassene Nummer jenseits der Saetze zaehlt nicht', satzStand(2, [], [3]).ausgelassen === 0)
+pruefe('ein Satz je Uebung: kein Stand (null)', satzStand(1, [], []) === null)
+
+console.log('[saetze-test] Texte fuer Knopf und Meldung:')
+pruefe('Knopf: ein Satz', satzKurz([3]) === 'Satz 3')
+pruefe('Knopf: zwei aufeinander', satzKurz([2, 3]) === 'Satz 2–3')
+pruefe('Knopf: drei aufeinander', satzKurz([1, 2, 3]) === 'Satz 1–3')
+pruefe('Knopf: mit Luecke', satzKurz([2, 4]) === 'Satz 2+4')
+pruefe('Meldung: ein Satz', satzListeText([3]) === 'Satz 3')
+pruefe('Meldung: zwei', satzListeText([2, 3]) === 'Satz 2 und 3')
+pruefe('Meldung: drei', satzListeText([1, 2, 3]) === 'Satz 1, 2 und 3')
+pruefe('leer: leerer Text', satzKurz([]) === '' && satzListeText([]) === '')
+
+console.log('[saetze-test] Ausgelassene Saetze fuer die History:')
+const logsHist = [
+  { id: 'a', date: '2026-11-10', ausgelasseneSaetze: [{ exerciseId: 'ex1', userId: 'user1', saetze: [3] }, { exerciseId: 'ex2', userId: 'user1', saetze: [2, 3] }] },
+  { id: 'b', date: '2026-11-12', ausgelasseneSaetze: [{ exerciseId: 'ex1', userId: 'user1', saetze: [3] }] },
+  { id: 'c', date: '2026-11-12' }
+]
+const setsHist = [
+  { workoutLogId: 'a', exerciseId: 'ex1', userId: 'user1', setNumber: 1 },
+  { workoutLogId: 'a', exerciseId: 'ex1', userId: 'user1', setNumber: 2 },
+  { workoutLogId: 'b', exerciseId: 'ex1', userId: 'user1', setNumber: 1 },
+  { workoutLogId: 'b', exerciseId: 'ex1', userId: 'user1', setNumber: 3 }
+]
+const hist = ausgelasseneEintraege(logsHist, setsHist)
+pruefe('je Log, Uebung und Person ein Eintrag mit Datum', hist.length === 2 &&
+  hist.some(e => e.logId === 'a' && e.exerciseId === 'ex1' && e.date === '2026-11-10' && e.saetze.join(',') === '3'))
+pruefe('Uebung ganz ausgelassen (keine Saetze) bleibt sichtbar',
+  hist.some(e => e.exerciseId === 'ex2' && e.saetze.join(',') === '2,3'))
+pruefe('am 12.11. doch gespeichert: kein Eintrag', !hist.some(e => e.logId === 'b'))
+pruefe('ohne Logs: leer', ausgelasseneEintraege(undefined, undefined).length === 0)
+
+console.log('[saetze-test] Quick-Log ueberspringt ausgelassene Saetze:')
+const f6 = quickLogFolge(3, [satz(1, 42, 10)], vorschlagJeSatz, [3])
+pruefe('Satz 3 ausgelassen: nur noch Satz 2', f6.map(e => e.setNumber).join(',') === '2')
+pruefe('alles gespeichert oder ausgelassen: leere Folge',
+  quickLogFolge(3, [satz(1, 42, 10), satz(2, 42, 9)], vorschlagJeSatz, [3]).length === 0)
 
 if (fehler > 0) {
   console.error(`[saetze-test] ROT: ${fehler} Pruefung(en) fehlgeschlagen`)

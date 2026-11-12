@@ -32,11 +32,13 @@ export function satzSlots(satzZahl, saetzeHeute = []) {
   return Math.max(satzZahl, hoechste)
 }
 
-// Erster offener Satz 1..slots (Luecken zuerst) — alle gespeichert: null.
-export function offenerSatz(slots, saetzeHeute = []) {
+// Erster offener Satz 1..slots (Luecken zuerst) — alle gespeichert oder
+// ausgelassen: null. `ausgelassen` sind Satznummern (siehe unten).
+export function offenerSatz(slots, saetzeHeute = [], ausgelassen = []) {
   const belegt = new Set(saetzeHeute.map(s => s.setNumber))
+  const weg = new Set(ausgelassen)
   for (let n = 1; n <= slots; n++) {
-    if (!belegt.has(n)) return n
+    if (!belegt.has(n) && !weg.has(n)) return n
   }
   return null
 }
@@ -130,11 +132,13 @@ export function naechsterSchritt(nutzerIds, aktuell, offenerSatzVon) {
 // schon eingetragen — der Knopf traegt ihn ja vorher ein.
 // vorschlagFuer(n) liefert { weight, reps } oder null; ohne jede Vorbelegung
 // gilt der Standard 20 kg x 10 wie bisher.
-export function quickLogFolge(slots, saetzeHeute = [], vorschlagFuer) {
+// Ausgelassene Saetze kommen nicht in die Folge.
+export function quickLogFolge(slots, saetzeHeute = [], vorschlagFuer, ausgelassen = []) {
   const simuliert = [...saetzeHeute]
   const folge = []
   for (let n = 1; n <= slots; n++) {
     if (saetzeHeute.some(s => s.setNumber === n)) continue
+    if (ausgelassen.includes(n)) continue
     const v = vorbelegung(simuliert, n, vorschlagFuer(n))
     const eintrag = { setNumber: n, weight: v?.weight ?? 20, reps: v?.reps ?? 10 }
     folge.push(eintrag)
@@ -150,4 +154,130 @@ export function quickLogFolge(slots, saetzeHeute = [], vorschlagFuer) {
 export function rueckgaengigSchritt(vorher) {
   if (!vorher) return { art: 'loeschen' }
   return { art: 'zuruecksetzen', weight: vorher.weight, reps: vorher.reps }
+}
+
+// --- Ausgelassene Saetze (v2.15.0, Wunsch Gabriel 12.11.2026) ---------------
+// Wer mehrere Saetze erfasst, macht manchmal weniger (2 statt 3), je Uebung
+// verschieden. Ein ausgelassener Satz ist KEIN setLog, sondern eine
+// Satznummer am workoutLog:
+//   ausgelasseneSaetze: [{ exerciseId, userId, saetze: [3] }]
+// So muss kein Vorschlag, Verlauf und Maximum einen leeren Satz ueberspringen,
+// und aeltere App-Versionen ignorieren das Feld einfach.
+// Ein gespeicherter Satz gewinnt immer (`wirksamAusgelassen`): die Liste wird
+// beim Speichern nicht angefasst, darum stellt "Rueckgaengig" nach einem doch
+// gespeicherten Satz von selbst den ausgelassenen Zustand wieder her.
+
+// Satznummern bereinigen: ganze Zahlen ab 1, einmalig, aufsteigend
+function satzNummern(liste) {
+  if (!Array.isArray(liste)) return []
+  const gut = liste.filter(n => Number.isInteger(n) && n >= 1)
+  return [...new Set(gut)].sort((a, b) => a - b)
+}
+
+function eintraegeAus(log) {
+  const liste = log?.ausgelasseneSaetze
+  return Array.isArray(liste) ? liste.filter(e => e && typeof e === 'object') : []
+}
+
+// Ausgelassene Satznummern einer Person bei einer Uebung in einem Training
+export function ausgelasseneAusLog(log, exerciseId, userId) {
+  const saetze = []
+  for (const e of eintraegeAus(log)) {
+    if (e.exerciseId === exerciseId && e.userId === userId) saetze.push(...(Array.isArray(e.saetze) ? e.saetze : []))
+  }
+  return satzNummern(saetze)
+}
+
+// Neue Liste fuer den workoutLog: der Eintrag dieser Uebung und Person wird
+// ersetzt (leere Liste = Eintrag weg). Immer frische Objekte und Arrays —
+// reaktive Vue-Proxys sprengen sonst das Dexie-update (DataCloneError).
+export function mitAusgelassenen(eintraege, exerciseId, userId, saetze) {
+  const rest = eintraegeAus({ ausgelasseneSaetze: eintraege })
+    .filter(e => !(e.exerciseId === exerciseId && e.userId === userId))
+    .map(e => ({ exerciseId: e.exerciseId, userId: e.userId, saetze: satzNummern(e.saetze) }))
+  const neu = satzNummern(saetze)
+  return neu.length > 0 ? [...rest, { exerciseId, userId, saetze: neu }] : rest
+}
+
+// Was wirklich als ausgelassen gilt: ohne die heute doch gespeicherten Saetze
+export function wirksamAusgelassen(ausgelassen = [], saetzeHeute = []) {
+  const belegt = new Set(saetzeHeute.map(s => s.setNumber))
+  return satzNummern(ausgelassen).filter(n => !belegt.has(n))
+}
+
+// Welche Saetze ein Tipp auf "Auslassen" bei Satz n markiert: n und alle
+// spaeteren, die weder gespeichert noch schon ausgelassen sind — wer einen
+// Satz auslaesst, hoert mit der Uebung auf (sonst traegt man den naechsten
+// gemachten Satz einfach unter dieser Nummer ein).
+export function auslassenAb(n, slots, saetzeHeute = [], ausgelassen = []) {
+  const belegt = new Set(saetzeHeute.map(s => s.setNumber))
+  if (belegt.has(n) || n < 1 || n > slots) return []
+  const schon = new Set(ausgelassen)
+  const neu = []
+  for (let m = n; m <= slots; m++) {
+    if (!belegt.has(m) && !schon.has(m)) neu.push(m)
+  }
+  return neu
+}
+
+// "Wieder oeffnen": Satz n aus der Liste nehmen
+export function ohneSatz(ausgelassen = [], n) {
+  return satzNummern(ausgelassen).filter(m => m !== n)
+}
+
+// Stand fuer Karte (Punkte) und Sperrbildschirm: je Position gespeichert,
+// ausgelassen oder offen. null bei einem Satz je Uebung (keine Punkte).
+export function satzStand(slots, saetzeHeute = [], ausgelassen = []) {
+  if (slots <= 1) return null
+  const belegt = new Set(saetzeHeute.map(s => s.setNumber))
+  const weg = new Set(wirksamAusgelassen(ausgelassen, saetzeHeute))
+  const zustaende = []
+  for (let n = 1; n <= slots; n++) {
+    zustaende.push(belegt.has(n) ? 'gespeichert' : weg.has(n) ? 'ausgelassen' : 'offen')
+  }
+  const fertig = zustaende.filter(z => z === 'gespeichert').length
+  const aus = zustaende.filter(z => z === 'ausgelassen').length
+  return { slots, fertig, ausgelassen: aus, erledigt: fertig + aus, zustaende }
+}
+
+// Knopf-Text, kurz: "Satz 3", "Satz 2–3", "Satz 2+4"
+export function satzKurz(nummern = []) {
+  const n = satzNummern(nummern)
+  if (n.length === 0) return ''
+  if (n.length === 1) return `Satz ${n[0]}`
+  const amStueck = n.every((x, i) => i === 0 || x === n[i - 1] + 1)
+  return amStueck ? `Satz ${n[0]}–${n[n.length - 1]}` : `Satz ${n.join('+')}`
+}
+
+// Meldungs-Text, ausgeschrieben: "Satz 3", "Satz 2 und 3", "Satz 1, 2 und 3"
+export function satzListeText(nummern = []) {
+  const n = satzNummern(nummern)
+  if (n.length === 0) return ''
+  if (n.length === 1) return `Satz ${n[0]}`
+  return `Satz ${n.slice(0, -1).join(', ')} und ${n[n.length - 1]}`
+}
+
+// Fuer die History: alle wirksam ausgelassenen Saetze, je Training, Uebung
+// und Person ein Eintrag { logId, date, exerciseId, userId, saetze }.
+// `saetze` (setLogs) entscheidet, was doch gespeichert wurde.
+export function ausgelasseneEintraege(logs = [], saetze = []) {
+  const gespeichert = new Set()
+  for (const s of Array.isArray(saetze) ? saetze : []) {
+    gespeichert.add(`${s.workoutLogId}|${s.exerciseId}|${s.userId}|${s.setNumber}`)
+  }
+  const ergebnis = []
+  for (const log of Array.isArray(logs) ? logs : []) {
+    const gesehen = new Set()
+    for (const e of eintraegeAus(log)) {
+      const k = `${e.exerciseId}|${e.userId}`
+      if (gesehen.has(k)) continue
+      gesehen.add(k)
+      const nummern = ausgelasseneAusLog(log, e.exerciseId, e.userId)
+        .filter(n => !gespeichert.has(`${log.id}|${e.exerciseId}|${e.userId}|${n}`))
+      if (nummern.length > 0) {
+        ergebnis.push({ logId: log.id, date: log.date, exerciseId: e.exerciseId, userId: e.userId, saetze: nummern })
+      }
+    }
+  }
+  return ergebnis
 }

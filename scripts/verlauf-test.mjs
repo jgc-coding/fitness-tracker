@@ -108,6 +108,13 @@ pruefe('nur 0 -> Achse beginnt bei 0, nie negativ', a3.min === 0 && a3.max > 0, 
 const a4 = achse([2.5, 180])
 pruefe('grosse Spanne (2,5-180) bleibt bei hoechstens 6 Teilstrichen', a4.ticks.length <= 6 && a4.min <= 2.5 && a4.max >= 180, a4)
 pruefe('keine Werte -> Standardachse ohne Absturz', achse([]).ticks.length >= 2)
+// Kleine Diagramme der Auswertung (v2.15.0): hoechstens 3 Abschnitte
+for (const werte of [[85, 97.5], [2.5, 180], [40, 41.25], [0, 12], [50, 50]]) {
+  const k = achse(werte, 3)
+  pruefe(`kompakte Achse ${werte.join('-')}: hoechstens 4 Teilstriche, Werte eingeschlossen`,
+    k.ticks.length <= 4 && k.ticks.length >= 2 && k.min <= Math.min(...werte) && k.max >= Math.max(...werte), k)
+}
+pruefe('ohne zweites Argument wie bisher (bis zu 6 Teilstriche)', achse([2.5, 180]).ticks.length === a4.ticks.length)
 
 console.log('[verlauf-test] Zahlen mit deutschem Komma:')
 pruefe('97.5 -> "97,5"', formatZahl(97.5) === '97,5', formatZahl(97.5))

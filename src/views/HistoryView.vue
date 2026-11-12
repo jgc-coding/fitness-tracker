@@ -21,10 +21,29 @@
             {{ user.name }}
           </button>
         </div>
+
+        <!-- Tabelle oder Auswertung mehrerer Uebungen (v2.15.0); die Wahl
+             merkt sich das Geraet -->
+        <div class="ansicht-schalter" role="radiogroup" aria-label="Ansicht">
+          <button
+            v-for="a in ANSICHTEN"
+            :key="a.key"
+            type="button"
+            role="radio"
+            class="ansicht-knopf"
+            :class="{ 'is-aktiv': ansicht === a.key }"
+            :aria-checked="ansicht === a.key"
+            @click="waehleAnsicht(a.key)"
+          >{{ a.label }}</button>
+        </div>
+      </div>
+
+      <div v-if="ansicht === 'auswertung'" class="container">
+        <AuswertungsAnsicht :user-id="selectedUser" />
       </div>
 
       <EmptyState
-        v-if="!loading && spreadsheet.dates.length === 0"
+        v-else-if="!loading && spreadsheet.dates.length === 0"
         title="Noch keine Workouts"
         description="Starte dein erstes Workout im Tracking-Bereich."
       />
@@ -72,6 +91,12 @@
                     <template v-if="ex.dates[date]">
                       <span class="cell-weight">{{ ex.dates[date].weight }}</span>
                       <span class="cell-reps">x{{ ex.dates[date].reps }}</span>
+                      <!-- Weniger Saetze als vorgesehen (v2.15.0): gemacht/vorgesehen -->
+                      <span
+                        v-if="ex.dates[date].ausgelassen"
+                        class="cell-saetze"
+                        :title="`${ex.dates[date].saetze} von ${ex.dates[date].saetze + ex.dates[date].ausgelassen} Sätzen gemacht`"
+                      >{{ ex.dates[date].saetze }}/{{ ex.dates[date].saetze + ex.dates[date].ausgelassen }} Sätze</span>
                     </template>
                   </td>
                 </tr>
@@ -102,6 +127,12 @@
               Zyklustag {{ entry.day }} ({{ entry.name }})
             </span>
           </div>
+          <!-- Ausgelassene Saetze (v2.15.0) dieses Trainings -->
+          <ul v-if="ausgelasseneFuer(log).length > 0" class="day-log-ausgelassen">
+            <li v-for="e in ausgelasseneFuer(log)" :key="e.exerciseId + e.userId">
+              {{ e.name }}: {{ satzListeText(e.saetze) }} ausgelassen ({{ authStore.getUserName(e.userId) }})
+            </li>
+          </ul>
           <div class="day-log-actions">
             <button class="btn btn-secondary meta-btn" @click="openLogNote(log)">
               Notiz{{ log.note ? ' ✓' : '' }}
@@ -177,10 +208,42 @@ import { useExercises } from '../composables/useExercises.js'
 import { exportToCSV, exportToJSON } from '../utils/exportData.js'
 import { toTitleCase } from '../utils/formatters.js'
 import { formatDate } from '../utils/dateHelpers.js'
+import { ausgelasseneEintraege, satzListeText } from '../utils/saetze.js'
+import AuswertungsAnsicht from '../components/history/AuswertungsAnsicht.vue'
 
 const authStore = useAuthStore()
 const { buildSpreadsheetData } = useHistory()
-const { loadExercises } = useExercises()
+const { loadExercises, getExerciseById } = useExercises()
+
+// --- Ansicht: Tabelle oder Auswertung (v2.15.0), pro Geraet gemerkt ---
+const ANSICHTEN = [
+  { key: 'tabelle', label: 'Tabelle' },
+  { key: 'auswertung', label: 'Auswertung' }
+]
+const ANSICHT_KEY = `${db.name}:historyAnsicht`
+function gemerkteAnsicht() {
+  try {
+    const wert = localStorage.getItem(ANSICHT_KEY)
+    return ANSICHTEN.some(a => a.key === wert) ? wert : 'tabelle'
+  } catch {
+    return 'tabelle'
+  }
+}
+const ansicht = ref(gemerkteAnsicht())
+
+async function waehleAnsicht(key) {
+  ansicht.value = key
+  try {
+    localStorage.setItem(ANSICHT_KEY, key)
+  } catch {
+    // ohne Speicher (privater Modus) gilt die Wahl nur bis zum Schliessen
+  }
+  // Zurueck zur Tabelle: wieder bei den neuesten Trainings ganz rechts
+  if (key === 'tabelle') {
+    await nextTick()
+    if (sheetWrapper.value) sheetWrapper.value.scrollLeft = sheetWrapper.value.scrollWidth
+  }
+}
 
 const selectedUser = ref('user1')
 const showExport = ref(false)
@@ -274,6 +337,17 @@ async function loadLogs() {
   const titles = {}
   for (const d of days) titles[d.id] = d.title
   trainingDayTitles.value = titles
+  // Ausgelassene Saetze aller Trainings; doch gespeicherte zaehlen nicht
+  ausgelasseneAlle.value = ausgelasseneEintraege(workoutLogsAll.value, await db.setLogs.toArray())
+}
+
+// Ausgelassene Saetze (v2.15.0) je Training fuer das Tages-Detail
+const ausgelasseneAlle = ref([])
+
+function ausgelasseneFuer(log) {
+  return ausgelasseneAlle.value
+    .filter(e => e.logId === log.id)
+    .map(e => ({ ...e, name: toTitleCase(getExerciseById(e.exerciseId)?.name || 'Unbekannte Übung') }))
 }
 
 function openDayModal(date) {
@@ -520,6 +594,53 @@ th.sticky-max {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   margin-left: 1px;
+}
+
+/* Weniger Saetze als vorgesehen: eigene kleine Zeile unter dem Wert */
+.cell-saetze {
+  display: block;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* Tabelle | Auswertung: Segment-Schalter wie im Uebungs-Verlauf */
+.ansicht-schalter {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-md);
+}
+
+.ansicht-knopf {
+  flex: 1;
+  min-height: 40px;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-light);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.ansicht-knopf.is-aktiv {
+  background: var(--color-white);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-sm);
+}
+
+.day-log-ausgelassen {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
 }
 
 /* Tages-Detail (P12) */
