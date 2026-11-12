@@ -3,6 +3,39 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.15.0] — 2026-11-12
+
+### Features
+- **Saetze auslassen** (Wunsch Gabriel: manchmal nur 2 statt 3 Saetze, je
+  Uebung verschieden). Wer mehrere Saetze erfasst, hat im Rad neben
+  "Speichern" einen Knopf "Satz 3 auslassen". Steht man auf Satz 2, heisst
+  er "Satz 2–3 auslassen" — wer einen Satz auslaesst, hoert mit der Uebung
+  auf. Danach geht das Rad weiter wie nach dem Speichern, 5 Sekunden lang
+  mit "Rückgängig". Auf der Karte ist der Punkt durchgestrichen, der Reiter
+  im Rad gestrichelt mit "ausgelassen". Ein Tipp auf den Reiter und "Wieder
+  öffnen" macht ihn wieder offen; einfach doch speichern geht auch. Der
+  Sperrbildschirm bietet ausgelassene Saetze nicht mehr an und zaehlt sie
+  nicht mit ("2/2" statt "2/3").
+- **History zeigt ausgelassene Saetze:** In der Tabelle steht unter dem Wert
+  klein "2/3 Sätze", im Tages-Detail "Butterfly: Satz 2 und 3 ausgelassen",
+  in der Verlaufsliste einer Uebung "· Satz 3 ausgelassen".
+- **Auswertung in der History** (Wunsch Gabriel): Umschalter "Tabelle |
+  Auswertung". Zeitraum 3/6/12 Monate, Alle oder frei von–bis; Auswahl
+  "Alle" (jede Uebung mit mindestens zwei Eintraegen im Zeitraum), je
+  Workout des aktiven Plans (Push, Pull, Legs — der Name vor der Klammer,
+  Woche A und B zusammen) oder "Eigene" mit Mehrfachauswahl. Oben eine
+  Rangliste "Veränderung im Zeitraum" (Gewicht oder geschaetztes 1RM, erster
+  gegen letzten Trainingstag), darunter je Uebung ein kleines Diagramm mit
+  Gewicht und 1RM auf derselben Zeitachse, antippbar zum Ablesen, mit Sprung
+  in den Einzelverlauf. Reine Koerpergewicht-Uebungen zaehlen Wdh. Die
+  Einstellungen merkt sich das Handy.
+
+### Daten
+- Ausgelassene Saetze liegen als Satznummern am Trainings-Eintrag
+  (`ausgelasseneSaetze`), nicht als eigene Saetze. Aeltere App-Versionen
+  ignorieren das Feld; dort erscheint der Satz nur als offen. Keine
+  Schema-Aenderung, keine Migration.
+
 ## [2.14.1] — 2026-10-17
 
 ### Verbessert
