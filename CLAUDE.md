@@ -39,6 +39,8 @@ src/
   components/tracking/   ExerciseDetail (Bild-Ueberblendung, MuscleMap, Notizen,
                          Verlauf), StartNutzerwahl (Farbkreise Startbildschirm),
                          UebungsVerlauf (SVG-Diagramm + Liste)
+  components/history/    AuswertungsAnsicht (History -> Auswertung),
+                         VerlaufMini (kleines Diagramm je Uebung)
   data/uebungskatalog.json  Bild-Manifest: key, quelle, bilder, vorschau,
                          primaer/sekundaer (Muskel-Ids), aliasse (Katalognamen)
   data/standardUebungen.js  Standardliste — liest App, Bild-Vertrag, Cloud-Abgleich
@@ -49,7 +51,7 @@ src/
                          uebungsRing, uebungsBilder, uebungsDubletten,
                          planReihenfolge, radWerte (Vorwert ausserhalb des
                          Rasters nie still ersetzen), gewichtProSeite,
-                         verlauf, trainingGeraet,
+                         verlauf, auswertung, trainingGeraet,
                          runPlanMerge, runMatch, laufEintrag, zyklusTag;
                          dazu runPlanSchema (Format),
                          intervalsApi (Browser + Node), exportData (CSV mit
@@ -104,6 +106,24 @@ npm run preview   # Build lokal testen (Port 4173)
   Referenzwert (Standard), ab 2 je Satz ein setLog mit `setNumber` 1..n (user1: 3).
   Regeln (offener Satz, Vorbelegung, Rad nach dem Speichern, Quick-Log-Folge) in
   `utils/saetze.js`. Das Sets-Feld der Planung bleibt reine Notiz.
+- **Ausgelassene Saetze sind KEINE setLogs** (v2.15.0): Satznummern am
+  workoutLog, `ausgelasseneSaetze: [{ exerciseId, userId, saetze: [3] }]`
+  (optional, immer mit Fallback lesen; schreiben nur ueber
+  `setzeAusgelassen` im Store / `mitAusgelassenen`). Ein gespeicherter Satz
+  gewinnt immer: ueberall `wirksamAusgelassen` statt der rohen Liste — die
+  Liste bleibt beim Speichern stehen, darum stellt "Rueckgaengig" den
+  ausgelassenen Zustand von selbst wieder her. "Auslassen" auf Satz n gilt
+  fuer n und alle spaeteren offenen (`auslassenAb`). Nur ab 2 Saetzen.
+  History liest ueber `ausgelasseneEintraege(logs, setLogs)`.
+- **Auswertung (History -> Auswertung, v2.15.0):** Regeln in
+  `utils/auswertung.js`, Vertrag `scripts/auswertung-test.mjs`. Workout-
+  Gruppen = Trainingstage des AKTIVEN Plans nach Kurztitel ("Push (WE)" ->
+  "Push"), Plan-Uebungen samt Alternativen plus in diesen Trainings
+  zusaetzlich Gemachtes. "Alle" und Gruppen zeigen nur Uebungen mit
+  mindestens zwei Tagen im Zeitraum, "Eigene" alles Gewaehlte. Kleine
+  Vielfache statt einem Diagramm mit vielen Linien (eine Achse je Uebung,
+  gemeinsame Zeitachse). Einstellungen und Tabelle/Auswertung sind
+  GERAETE-lokal (localStorage `<db>:auswertung`, `<db>:historyAnsicht`).
 - **Vorwert = Gewicht x Wdh aus EINEM Datensatz:** Karte, Empfehlung, Rad,
   Quick-Log und Sperrbildschirm lesen die Wdh nur ueber `getLastReps` aus
   `recommendations` — demselben Satz, aus dem das Gewicht kommt (zwei getrennte
