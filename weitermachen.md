@@ -1,75 +1,48 @@
-# Weitermachen — Stand 2026-10-17 (v2.14.1)
+# Weitermachen — Stand 2026-11-12 (v2.15.0)
 
 ## Stand
-- **Nachtrag 17.10.: v2.14.1** — Pro Seite und Gesamt drehen beim Ziehen
-  live im Verhaeltnis 2:1 mit (Gabriel: "funktioniert alles super", dann
-  dieser Wunsch). Headless-Test 43 Pruefungen gruen, darunter Versatz
-  mitten im Ziehen und schneller Wisch. Der 40-kg-Satz `mnugry3zavcbnmc`
-  ist auf Gabriels Wort geloescht (Merker `setLogs:mnugry3zavcbnmc`,
-  Sicherung `privat\cloud-sicherung-satz-mnugry3zavcbnmc-*.json`); ein
-  erneuter Umrechnungs-Lauf braucht darum kein `--ohne` mehr.
-- **Diese Sitzung (17.10.): v2.14.0, live** (Actions-Lauf 39055268751 gruen,
-  Live-Bundle traegt 2.14.0, Tag `v2.14.0` auf `d725233`). Auftrag Gabriel:
-  (1) "Rueckgaengig" 5 s nach jedem Speichern (er hatte im Reiter einer
-  anderen Person gespeichert); (2) Rad "Pro Seite | Gesamt | Reps" bei
-  Langhantel und den Scheiben-Maschinen chest press, incline chest press,
-  shoulder press (Merker `proSeite`, Haken im Katalog). Gesamt = Scheiben
-  ohne Stange (Gabriels Entscheidung). (3) user1 hatte immer pro Seite
-  notiert: 20 Saetze in der Cloud verdoppelt, 3 Maschinen markiert
-  (`gewicht-pro-seite-umrechnen.mjs`, Sicherung
-  `privat\cloud-sicherung-pro-seite-2026-10-17T17-46-12-256Z.json`, zweiter
-  Lauf: "Alles schon erledigt"). Ausgenommen: Bankdruecken 40 kg vom 08.04.
-  (`mnugry3zavcbnmc`) — laut Gabriel ein falscher Wert, nie gedrueckt;
-  danach auf sein Wort geloescht (siehe Nachtrag oben).
-- **Geprueft:** Gate gruen (17 Befehle, neu `gewicht-pro-seite-test.mjs`).
-  Headless-Chrome gegen den Produktions-Build, frische `*.localhost`, 360 px,
-  Testdaten per Backup-Import: 37 Pruefungen gruen (Raeder gekoppelt,
-  29,375 exakt, Rueckgaengig fuer neuen und ueberschriebenen Satz samt
-  Tombstone, Leiste ueber der Navigation, Katalog-Haken, keine
-  Konsolenfehler). Nicht geprueft: echtes Handy, Sync zwischen zwei Handys.
-  Testskript `pro-seite-test.mjs` lag im Scratchpad dieser Sitzung.
-- **Vorige Sitzung (08./09.10.): v2.13.0, live** (Actions-Lauf 37887792158
-  gruen, Live-Seite liefert 2.13.0 und die drei neuen Bilder, Tag
-  `v2.13.0` auf `e6e555d`). Auftrag von Gabriel: neue Uebung "Bizeps
-  Machine" (Scheiben-Maschine, zwei Fotos von ihm), Bild per ChatGPT im
-  gleichen Stil. Standardliste (Arme, `machine_weight`), Manifest-Key
-  `biceps-curl-machine` (Bizeps primaer, Unterarme sekundaer, Aliasse wie
-  "Bizeps Maschine"), Quellbild `neu-16.webp`, Vorschau in der Endhaltung.
-  Bild-Vertrag zuerst auf 37 erweitert. Die Cloud kannte die Uebung vorher
-  nicht (`uebungen-cloud.mjs`, nur lesend).
-- **Bild:** ChatGPT in Gabriels Chrome, Chat "Create Fitness Illustration".
-  Drei Auftraege: zweimal hing die Scheibe in START und ENDE an
-  verschiedenen Teilen; "END unveraendert, START angleichen" half. Gabriel
-  hat das Bild freigegeben. Bekannte Schwaeche: der Fuss der Maschine ist
-  im ENDE etwas laenger und erscheint in der Ueberblendung kurz doppelt.
-- **Geprueft:** Gate gruen (16 Befehle). Headless-Chrome gegen den
-  Produktions-Build, frische `*.localhost`-Adresse, 360 px, Testdaten per
-  Backup-Import: 17 Pruefungen gruen (Zuordnen, Katalog, Detail mit
-  Ueberblendung, Muskelgrafik, "+ Neu"-Auswahl, keine Konsolenfehler).
-  Nicht geprueft: "Standard-Uebungen laden" gegen die echte Cloud, Handy.
-- **Rueckkehrpunkte:** `e6e555d` (v2.13.0), `1799e4f` (vor dieser Sitzung,
-  v2.12.0), `8eaa3de` (v2.11.0), `6deda0f` (v2.10.0), `e9c2a67` (v2.9.2),
-  `01031c1` (v2.6.0). Datenbank-Schema seit v2.x unveraendert (Dexie v4).
-  Cloud-Sicherungen der Uebungs- und Log-Korrekturen liegen in `privat\`.
-  impeccable auf 4.3.1 (Claude-Skills-Commit `d45f982`, nicht gepusht);
-  `PRODUCT.md` steht noch im Schema von 3.5.0.
-- **Worktrees:** der dieser Sitzung (`add-bizeps-machine-exercise-8f0f28`,
-  sauber, auf master gemergt) und ein LEERER Ordner
+- **Diese Sitzung (12.11., Unterwegs-Modus): v2.15.0** — Auftrag Gabriel:
+  (1) Saetze auslassen, je Uebung und Person (user1 macht manchmal 2 statt
+  3), sichtbar in der History; (2) Auswertung mehrerer Uebungen (Alle /
+  Push / Pull / Legs / Eigene, freier Zeitraum, Gewicht und 1RM).
+  Umsetzung: Satznummern am workoutLog (`ausgelasseneSaetze`), Knopf
+  "Satz n auslassen" neben "Speichern", History "Tabelle | Auswertung"
+  mit Rangliste und kleinen Diagrammen je Uebung. Regeln in der CLAUDE.md.
+- **Live:** Actions-Lauf 43177859623 gruen (erster Lauf auf Ubuntu 26.04,
+  ohne Aenderung am Workflow), Live-Seite liefert 2.15.0 aus, master
+  `d6e4f4f` = origin.
+- **Geprueft:** Gate gruen (18 Befehle, neu `auswertung-test.mjs`,
+  erweitert `saetze-test`, `verlauf-test`). Headless-Chrome gegen den
+  Produktions-Build, frische `*.localhost`, 360 px, Testdaten direkt in
+  IndexedDB: 58 Pruefungen gruen (Auslassen, Rueckgaengig, Wieder oeffnen,
+  doch speichern, Tabelle "2/3 Sätze", Tages-Detail, Einzelverlauf,
+  Auswertung samt Frei/Eigene/1RM/Ablesen, Neuladen, alle Reiter, keine
+  Konsolenfehler). Nicht geprueft: echtes Handy, Sperrbildschirm-Quick-Log,
+  Sync zwischen zwei Handys.
+- **Rueckkehrpunkte:** `460ba37` (vor dieser Sitzung, v2.14.1), `d725233`
+  (v2.14.0), `e6e555d` (v2.13.0), `1799e4f` (v2.12.0), `8eaa3de`
+  (v2.11.0), `6deda0f` (v2.10.0), `e9c2a67` (v2.9.2), `01031c1` (v2.6.0).
+  Datenbank-Schema seit v2.x unveraendert (Dexie v4); v2.15.0 fuegt nur ein
+  optionales Feld am workoutLog hinzu. Cloud-Sicherungen in `privat\`.
+- **Worktrees:** `add-bizeps-machine-exercise-8f0f28` (sauber, gemergt,
+  Befehl zum Entfernen im save-state-Bericht) und ein LEERER Ordner
   `.claude\worktrees\exercise-images-crop-e10a06` (gitignoriert, harmlos).
 
 ## Stolperfallen (aktuell)
-- **ChatGPT-Konto steht auf dem Gratis-Tarif** (09.10., vorher Plus): drei
-  Bilder am Stueck gingen durch, danach Werbung fuer Plus. Bei mehr
-  Auftraegen kann ein Tageslimit kommen.
+- **Browser-Test mit zwei Personen:** Beim App-Start ohne eigenes Training
+  setzt `resetActiveUsers` die Besetzung auf den Standard-Nutzer zurueck —
+  localStorage vorab setzen reicht nicht. Im Test die zweite Person per
+  Farbkreis (`.start-nutzer-kreis`, title = Name) dazunehmen. Testskripte
+  dieser Sitzung: `v215-test.mjs` + `cdp.mjs` im Scratchpad
+  `%LOCALAPPDATA%\Temp\claude\35558db4b6e9ecbe\26d48c74-4f99-4ca9-92bf-b3bb0ba06fef\scratchpad\`
+  (Testdaten direkt per IndexedDB, kein Backup-Import noetig).
 - **Headless-Chrome aus Claude heraus:** Profilordner NICHT unter AppData
-  (die App-Kapsel virtualisiert ihn, IndexedDB scheitert mit "backing store"),
-  ohne `--incognito`. Erprobt: `C:\Users\chime\fittrack-testprofil-<zeit>`,
-  danach loeschen. Testdaten per `DOM.setFileInputFiles` auf das Backup-Feld
-  in Settings; Navigation per `__vue_app__...$router.push`. Testskripte liegen
-  im Scratchpad der Sitzungen (nicht im Repo), zuletzt `bizeps-test.mjs`
-  unter `%LOCALAPPDATA%\Temp\claude\C--Projekte-Fitness-Tracker--claude-worktrees-add-bizeps-machine-exercise-8f0f28\171ff0a4-...\scratchpad\`.
-  Jedes "Fenster zu" als Pruefung werten — ein still offenes Blatt verdeckte
-  sonst zwei Fehler.
+  (die App-Kapsel virtualisiert ihn, IndexedDB scheitert mit "backing
+  store"). Erprobt: `C:\Users\chime\fittrack-testprofil-<zeit>`, danach
+  loeschen. Navigation per `__vue_app__...$router.push`. Jedes "Fenster zu"
+  als Pruefung werten — ein still offenes Blatt verdeckte sonst zwei Fehler.
+- **ChatGPT-Konto steht auf dem Gratis-Tarif** (09.10., vorher Plus): drei
+  Bilder am Stueck gingen durch, danach Werbung fuer Plus.
 - **Derselbe Trainingstag am selben Tag erneut gestartet** uebernimmt den Stand
   seines Logs (gewollt) — Starttests brauchen einen Tag ohne heutigen Log.
 - **Ein Handy, das offline ein altes Geraet haelt,** koennte es beim
@@ -87,6 +60,14 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
+000. **Meldet Gabriel Probleme aus v2.15.0** (Checkliste
+   `docs/tests/v2.15.0-handy.md`): Regeln zuerst in `scripts/saetze-test.mjs`
+   (`auslassenAb`, `wirksamAusgelassen`, `satzStand`) bzw.
+   `scripts/auswertung-test.mjs`; Oberflaeche in `TrackingView.vue`
+   (`lasseAus`, `oeffneWieder`, `.picker-aktionen`),
+   `components/history/AuswertungsAnsicht.vue`, `VerlaufMini.vue`.
+   Moegliche Wuensche danach: ein gemeinsames Prozent-Diagramm fuer
+   hoechstens 8 Uebungen, Auslassen auch fuer Personen mit einem Satz.
 00. **Meldet Gabriel Probleme aus v2.14.0** (Checkliste
    `docs/tests/v2.14.0-handy.md`): Regeln zuerst in
    `scripts/gewicht-pro-seite-test.mjs` bzw. `saetze-test.mjs`
@@ -139,14 +120,15 @@
   — das Konto bekommt nur Laeufe nach dem Verbinden (Stand 10.09.). Seit
   v2.12 auch: ein spontaner Lauf, den die Uhr dem geplanten zuordnet, laesst
   sich per "Anders gelaufen" umhaengen (nur im Test mit Testdaten belegt).
-- **Erster Deploy nach dem 19.10.2026** laeuft auf Ubuntu 26
-  (`ubuntu-latest`, Actions warnt schon): Lauf dann ansehen; bricht er,
-  `runs-on` in `.github/workflows/deploy.yml` voruebergehend auf
-  `ubuntu-24.04` setzen.
 - Zurueckgestellt, nur auf Zuruf: **V8**, **I1**, **I5**, **I8**,
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.15.0 auf BEIDE Handys holen und testen** (seit 2026-11-12)
+  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.15.0.
+  Dann `docs/tests/v2.15.0-handy.md` abhaken (Auslassen mit der Person mit
+  3 Saetzen, History -> Auswertung). Ein Handy auf alter Version zeigt
+  ausgelassene Saetze nur als offen — nichts geht verloren.
 - [ ] **v2.14.1 auf BEIDE Handys holen, vor dem naechsten Training von user1** (seit 2026-10-17)
   Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.14.1.
   Eine alte Version zeigt die Werte von user1 schon verdoppelt, aber ohne
