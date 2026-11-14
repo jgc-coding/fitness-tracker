@@ -33,7 +33,7 @@ onMounted(async () => {
   // utils/trainingGeraet.js), gilt dessen Besetzung. Ein offenes Training des
   // anderen Handys zaehlt nicht (v2.8.1).
   // Ohne offenes Training von heute geht auch eine alte Sperrbildschirm-
-  // Meldung weg (V16, v2.16.0): ein nie beendetes Training liess sie stehen,
+  // Meldung weg (V17, v2.16.0): ein nie beendetes Training liess sie stehen,
   // und ihr Quick-Log-Knopf haette Saetze beim alten Datum eingetragen.
   try {
     const heute = getToday()

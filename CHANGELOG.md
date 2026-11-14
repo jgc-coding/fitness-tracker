@@ -22,7 +22,7 @@ Format: Datum + Stichpunkte je Version (SemVer).
   Nachtragen startet dort.
 
 ### Behoben
-- **Alte Sperrbildschirm-Meldung** (V16): Wurde ein Training nicht beendet,
+- **Alte Sperrbildschirm-Meldung** (V17): Wurde ein Training nicht beendet,
   blieb seine Meldung stehen, und ihr Schnell-Speichern-Knopf haette beim
   naechsten Training beim alten Datum eingetragen. Die App entfernt sie
   jetzt beim Start, und der Knopf nimmt nur noch Saetze fuer heute an.

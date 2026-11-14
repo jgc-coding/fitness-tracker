@@ -4,8 +4,9 @@
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
   "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
-  Trainings nie beendet, ihre Saetze alle da. Fund dabei: V16 (alte
-  Sperrbildschirm-Meldung), gleich mit erledigt.
+  Trainings nie beendet, ihre Saetze alle da. Fund dabei: V17 (alte
+  Sperrbildschirm-Meldung), gleich mit erledigt. In den Commits 5e1159b
+  und 719fb82 heisst er noch V16 — die Nummer war seit v2.11.0 vergeben.
   (2) Zyklus von user1 staerker einbauen. Gabriels Wahl: Zyklustag ganz
   oben im Training, beim Start errechnet eingetragen, "nichts tun =
   Bestaetigung", Tipp korrigiert, neu "Tag 1 — neuer Zyklus"; History
@@ -23,7 +24,7 @@
   Punkt nur bei Notiz, Tages-Detail, Rad startet beim errechneten Tag,
   Verlauf samt Ablesezeile, andere Person ohne Zyklus, Version 2.16.0).
   Dazu der v2.15-Test (58 Pruefungen) als Regression gruen. Nicht
-  geprueft: echtes Handy, Sperrbildschirm (V16 nur am Geraet testbar),
+  geprueft: echtes Handy, Sperrbildschirm (V17 nur am Geraet testbar),
   Sync zwischen zwei Handys.
 - **Rueckkehrpunkte:** `c125c34` (vor dieser Sitzung, v2.15.0), `460ba37`
   (v2.14.1), `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f`
@@ -79,7 +80,7 @@
    `stores/workout.js`; Oberflaeche `TrackingView.vue` (`.zyklus-zeile`,
    `zyklusErrechnet`, `saveNeuerZyklus`), `HistoryView.vue`
    (`zyklusZeile`, `logCycleErrechnet`), `UebungsVerlauf.vue`
-   (`ladeZyklus`); V16 in `public/sw-custom.js` (`istVeraltet`) und
+   (`ladeZyklus`); V17 in `public/sw-custom.js` (`istVeraltet`) und
    `App.vue`. Bewusst NICHT gebaut (moegliche Wuensche): Zyklusphasen als
    Farbflaechen im Diagramm, Auswertung nach Zyklustag, Zyklustag auf der
    Trainingskarte, Bestaetigen ausserhalb eines Trainings.
