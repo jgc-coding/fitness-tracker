@@ -139,6 +139,9 @@ npm run preview   # Build lokal testen (Port 4173)
 - **Quick-Log aus der Notification:** je Nutzer eine Warteschlange fertiger
   setLogs in `notification.data` (buildNotificationQuickLog); der Service Worker
   schreibt sie per Knopf direkt in IndexedDB + syncQueue, auch ohne offene App.
+  Nur fuer ein Training von heute (oder eines, das vor < 6 h begann,
+  `istVeraltet`); ein App-Start ohne offenes Training von heute entfernt die
+  Meldung (App.vue, V16) — viele Trainings werden nie beendet.
 - **Nur ZWEI Notification-Knoepfe (Android):** Platz 1 Quick-Log des Standard-
   Nutzers (leer -> naechster rueckt nach), Platz 2 "Workout beenden"
   (`data.workoutLogId`, danach `workout-finished` an offene Fenster). Die Regel
@@ -206,9 +209,17 @@ npm run preview   # Build lokal testen (Port 4173)
   (01.10.2026). Logs ohne `deviceId` gelten als fremd.
 - **Notiz und Zyklustag haengen am workoutLog** (`note`, `cycleDays` `{ userId:
   Zahl }`, beide optional — immer mit Fallback lesen; am Lauf: Laufplaner).
-  Das Rad startet beim ERRECHNETEN Tag (`useZyklusTag`), gespeichert wird erst
-  mit "Speichern". Zyklustag-Knopf nur, wenn
-  ein aktiver Nutzer `zyklus: true` traegt (constants.js, nur ein Nutzer). `cycleDays` IMMER als flache
+  **Zyklustag-Stempel (Gabriel 14.11.2026, v2.16.0):** kommt die Person mit
+  `zyklus: true` (constants.js, nur ein Nutzer) NEU ins Training (Anlegen oder
+  Einstieg ueber die Besetzung), traegt der Store den errechneten Tag sofort
+  ein (`zyklusPatch` -> `brauchtZyklusStempel`/`zyklusStempel`) — nichts tun
+  gilt als Bestaetigung. Wer schon drin ist, wird nie neu gestempelt (sonst
+  kaeme ein entfernter Tag zurueck). Der Tag steht ganz oben im Training
+  (`.zyklus-zeile`, Tipp = Rad mit "Tag 1 — neuer Zyklus"), nicht mehr in der
+  Werkzeugzeile. Anzeige in History-Tabelle (eigene Zeile, nur bei der
+  Person), Tages-Detail und Uebungsverlauf ueber `zyklusTageFuerDaten`:
+  gespeichert dunkel, errechnet blass mit "≈" — errechnete Werte nur
+  zeigen, nie nachtraeglich speichern. `cycleDays` IMMER als flache
   Kopie mergen, nie ersetzen. Aktives Workout: Store-Funktionen; nachtraeglich in
   der History: eigener Weg `patchLog`.
 - **Notizen je Nutzer je Uebung (`exerciseNotes`)** schreibt NUR

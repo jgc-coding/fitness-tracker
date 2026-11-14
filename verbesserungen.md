@@ -55,6 +55,14 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 (noch nichts — V8/I1/I5 sind zurueckgestellt, nicht abgelehnt)
 
 ## Erledigt
+- **V16** (C) Alte Sperrbildschirm-Meldung nach nie beendetem Training —
+  erledigt in v2.16.0 (14.11.2026, Freigabe Gabriel). Gefunden beim Pruefen
+  "wird ohne Beenden gespeichert?" (ja: 43 von 131 Trainings nie beendet,
+  alle Saetze da). Die Meldung blieb aber stehen, und ihr Quick-Log haette
+  beim naechsten Mal beim alten Datum eingetragen. Jetzt: App-Start ohne
+  offenes Training von heute entfernt sie (App.vue), und der Service Worker
+  nimmt nur Saetze fuer heute an (oder ein Training, das vor < 6 h begann);
+  sonst sagt die Meldung "Training vom TT.MM. - bitte die App oeffnen".
 - **I7** (Erweiterung) Ungeplanten Lauf von Hand eintragen — erledigt in
   v2.12.0 (07.10.2026, Wunsch Gabriel): "Anders gelaufen ..." im Lauf-Blatt
   und "+ Lauf eintragen" in der Woche, dazu Bearbeiten/Loeschen und der
