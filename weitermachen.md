@@ -1,46 +1,58 @@
-# Weitermachen — Stand 2026-11-12 (v2.15.0)
+# Weitermachen — Stand 2026-11-14 (v2.16.0)
 
 ## Stand
-- **Diese Sitzung (12.11., Unterwegs-Modus): v2.15.0** — Auftrag Gabriel:
-  (1) Saetze auslassen, je Uebung und Person (user1 macht manchmal 2 statt
-  3), sichtbar in der History; (2) Auswertung mehrerer Uebungen (Alle /
-  Push / Pull / Legs / Eigene, freier Zeitraum, Gewicht und 1RM).
-  Umsetzung: Satznummern am workoutLog (`ausgelasseneSaetze`), Knopf
-  "Satz n auslassen" neben "Speichern", History "Tabelle | Auswertung"
-  mit Rangliste und kleinen Diagrammen je Uebung. Regeln in der CLAUDE.md.
-- **Live:** Actions-Lauf 43177859623 gruen (erster Lauf auf Ubuntu 26.04,
-  ohne Aenderung am Workflow), Live-Seite liefert 2.15.0 aus, master
-  `d6e4f4f` = origin.
-- **Geprueft:** Gate gruen (18 Befehle, neu `auswertung-test.mjs`,
-  erweitert `saetze-test`, `verlauf-test`). Headless-Chrome gegen den
-  Produktions-Build, frische `*.localhost`, 360 px, Testdaten direkt in
-  IndexedDB: 58 Pruefungen gruen (Auslassen, Rueckgaengig, Wieder oeffnen,
-  doch speichern, Tabelle "2/3 Sätze", Tages-Detail, Einzelverlauf,
-  Auswertung samt Frei/Eigene/1RM/Ablesen, Neuladen, alle Reiter, keine
-  Konsolenfehler). Nicht geprueft: echtes Handy, Sperrbildschirm-Quick-Log,
+- **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
+  (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
+  "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
+  Trainings nie beendet, ihre Saetze alle da. Fund dabei: V16 (alte
+  Sperrbildschirm-Meldung), gleich mit erledigt.
+  (2) Zyklus von user1 staerker einbauen. Gabriels Wahl: Zyklustag ganz
+  oben im Training, beim Start errechnet eingetragen, "nichts tun =
+  Bestaetigung", Tipp korrigiert, neu "Tag 1 — neuer Zyklus"; History
+  Variante X (eigene Zeile "Zyklustag"), dazu Uebungsverlauf und
+  Tages-Detail. Errechnete Werte blass mit "≈", nie nachtraeglich
+  gespeichert. Regeln in der CLAUDE.md.
+  Echte Daten: user1 hatte in 9 von 41 Trainings einen Zyklustag, zuletzt
+  02.11. Tag 9 (14.11. = Tag 21).
+- **Live:** Actions-Lauf 43636595300 gruen, Live-Seite liefert 2.16.0 aus
+  (SettingsView-Chunk geprueft), master `719fb82` = origin, Tag `v2.16.0`.
+- **Geprueft:** Gate gruen (18 Befehle, `zyklustag-test` jetzt 50 Faelle).
+  Headless-Chrome gegen den Produktions-Build, frische `*.localhost`,
+  360 px: 29 neue Pruefungen gruen (Stempel 21, Tag 1, Entfernen -> blass,
+  Bestaetigen, Neuladen, Einstieg mittendrin, History-Zeile 9/≈13/≈17,
+  Punkt nur bei Notiz, Tages-Detail, Rad startet beim errechneten Tag,
+  Verlauf samt Ablesezeile, andere Person ohne Zyklus, Version 2.16.0).
+  Dazu der v2.15-Test (58 Pruefungen) als Regression gruen. Nicht
+  geprueft: echtes Handy, Sperrbildschirm (V16 nur am Geraet testbar),
   Sync zwischen zwei Handys.
-- **Rueckkehrpunkte:** `460ba37` (vor dieser Sitzung, v2.14.1), `d725233`
-  (v2.14.0), `e6e555d` (v2.13.0), `1799e4f` (v2.12.0), `8eaa3de`
-  (v2.11.0), `6deda0f` (v2.10.0), `e9c2a67` (v2.9.2), `01031c1` (v2.6.0).
-  Datenbank-Schema seit v2.x unveraendert (Dexie v4); v2.15.0 fuegt nur ein
-  optionales Feld am workoutLog hinzu. Cloud-Sicherungen in `privat\`.
-- **Worktrees:** `add-bizeps-machine-exercise-8f0f28` (sauber, gemergt,
-  Befehl zum Entfernen im save-state-Bericht) und ein LEERER Ordner
-  `.claude\worktrees\exercise-images-crop-e10a06` (gitignoriert, harmlos).
+- **Rueckkehrpunkte:** `c125c34` (vor dieser Sitzung, v2.15.0), `460ba37`
+  (v2.14.1), `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f`
+  (v2.12.0), `8eaa3de` (v2.11.0), `6deda0f` (v2.10.0), `01031c1` (v2.6.0).
+  Datenbank-Schema seit v2.x unveraendert (Dexie v4); v2.16.0 nutzt nur das
+  bestehende Feld `cycleDays`. Cloud-Sicherungen in `privat\`.
+- **Worktrees:** `add-bizeps-machine-exercise-8f0f28` (sauber, gemergt),
+  `fittrack-workout-save-cycle-3a5977` (diese Sitzung, gemergt) und ein
+  LEERER Ordner `.claude\worktrees\exercise-images-crop-e10a06`
+  (gitignoriert, harmlos). Befehle zum Entfernen im save-state-Bericht.
 
 ## Stolperfallen (aktuell)
+- **Testskripte dieser Sitzung** im Scratchpad
+  `%LOCALAPPDATA%\Temp\claude\1ddd39689e7a6ade\0bbf9704-e5c8-49fc-ab23-ed82d29a3963\scratchpad\`:
+  `v216-test.mjs` (Zyklus), `v215-regress.mjs` (v2.15-Test auf Port 4199),
+  `cdp.mjs`, `zyklus-stand.mjs` (nur lesend: offene Trainings und
+  Zyklustage in der Cloud zaehlen, Aufruf aus dem Hauptbaum).
+- **Vue entfernt den Leerraum zwischen Spans:** `textContent` der
+  Zyklus-Zeile liest "Zyklustag 21ändern". Im Test die Kinder einzeln lesen.
 - **Browser-Test mit zwei Personen:** Beim App-Start ohne eigenes Training
   setzt `resetActiveUsers` die Besetzung auf den Standard-Nutzer zurueck —
   localStorage vorab setzen reicht nicht. Im Test die zweite Person per
-  Farbkreis (`.start-nutzer-kreis`, title = Name) dazunehmen. Testskripte
-  dieser Sitzung: `v215-test.mjs` + `cdp.mjs` im Scratchpad
-  `%LOCALAPPDATA%\Temp\claude\35558db4b6e9ecbe\26d48c74-4f99-4ca9-92bf-b3bb0ba06fef\scratchpad\`
-  (Testdaten direkt per IndexedDB, kein Backup-Import noetig).
+  Farbkreis (`.start-nutzer-kreis`, title = Name) dazunehmen.
 - **Headless-Chrome aus Claude heraus:** Profilordner NICHT unter AppData
   (die App-Kapsel virtualisiert ihn, IndexedDB scheitert mit "backing
   store"). Erprobt: `C:\Users\chime\fittrack-testprofil-<zeit>`, danach
   loeschen. Navigation per `__vue_app__...$router.push`. Jedes "Fenster zu"
   als Pruefung werten — ein still offenes Blatt verdeckte sonst zwei Fehler.
+  Testserver: launch.json "Vite Preview (eigener Port 4199)".
 - **ChatGPT-Konto steht auf dem Gratis-Tarif** (09.10., vorher Plus): drei
   Bilder am Stueck gingen durch, danach Werbung fuer Plus.
 - **Derselbe Trainingstag am selben Tag erneut gestartet** uebernimmt den Stand
@@ -60,7 +72,18 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
-000. **Meldet Gabriel Probleme aus v2.15.0** (Checkliste
+1. **Meldet Gabriel Probleme aus v2.16.0** (Checkliste
+   `docs/tests/v2.16.0-handy.md`): Regeln zuerst in
+   `scripts/zyklustag-test.mjs` (`zyklusTageFuerDaten`,
+   `brauchtZyklusStempel`, `zyklusStempel`); Store `zyklusPatch` in
+   `stores/workout.js`; Oberflaeche `TrackingView.vue` (`.zyklus-zeile`,
+   `zyklusErrechnet`, `saveNeuerZyklus`), `HistoryView.vue`
+   (`zyklusZeile`, `logCycleErrechnet`), `UebungsVerlauf.vue`
+   (`ladeZyklus`); V16 in `public/sw-custom.js` (`istVeraltet`) und
+   `App.vue`. Bewusst NICHT gebaut (moegliche Wuensche): Zyklusphasen als
+   Farbflaechen im Diagramm, Auswertung nach Zyklustag, Zyklustag auf der
+   Trainingskarte, Bestaetigen ausserhalb eines Trainings.
+2. **Meldet Gabriel Probleme aus v2.15.0** (Checkliste
    `docs/tests/v2.15.0-handy.md`): Regeln zuerst in `scripts/saetze-test.mjs`
    (`auslassenAb`, `wirksamAusgelassen`, `satzStand`) bzw.
    `scripts/auswertung-test.mjs`; Oberflaeche in `TrackingView.vue`
@@ -68,7 +91,7 @@
    `components/history/AuswertungsAnsicht.vue`, `VerlaufMini.vue`.
    Moegliche Wuensche danach: ein gemeinsames Prozent-Diagramm fuer
    hoechstens 8 Uebungen, Auslassen auch fuer Personen mit einem Satz.
-00. **Meldet Gabriel Probleme aus v2.14.0** (Checkliste
+3. **Meldet Gabriel Probleme aus v2.14.0** (Checkliste
    `docs/tests/v2.14.0-handy.md`): Regeln zuerst in
    `scripts/gewicht-pro-seite-test.mjs` bzw. `saetze-test.mjs`
    (`rueckgaengigSchritt`), Oberflaeche in `TrackingView.vue`
@@ -76,41 +99,41 @@
    Hat user1 nach dem 16.10. noch auf einer alten Version pro Seite
    eingetragen: nur diese Saetze mit `--bis` UND `--ohne` gezielt umrechnen,
    nie blind erneut. Rueckweg: `--zurueck --jetzt`.
-0. **Meldet Gabriel Probleme aus v2.13.0** (Checkliste
+4. **Meldet Gabriel Probleme aus v2.13.0** (Checkliste
    `docs/tests/v2.13.0-handy.md`): Fehlt die Uebung, mit `uebungen-cloud.mjs`
    den Cloud-Bestand lesen (doppelt? fehlt?). Stoert der doppelte Fuss: ein
    vierter Auftrag im Chat "Create Fitness Illustration" ("keep START, make
    the base frame in END identical"), neu messen, `neu-17`, Vertrag zuerst.
-1. **Meldet Gabriel Probleme aus v2.12.0** (Checkliste
+5. **Meldet Gabriel Probleme aus v2.12.0** (Checkliste
    `docs/tests/v2.12.0-handy.md`): Regeln zuerst in
    `scripts/laufeintrag-test.mjs` bzw. `zyklustag-test.mjs`, Oberflaeche in
    `RunSpontanForm.vue`, `ZyklusTagFeld.vue`, `RunSessionSheet.vue`.
-2. **Meldet Gabriel Probleme aus v2.11.0** (Checkliste
+6. **Meldet Gabriel Probleme aus v2.11.0** (Checkliste
    `docs/tests/v2.11.0-handy.md`): Ziehen in `onTagZiehStart`/`onTagBewegung`
    (`PlanningView.vue`), Regeln zuerst im Vertrag
    `scripts/planreihenfolge-test.mjs`.
-3. **Meldet Gabriel Probleme aus v2.10.0** (Checkliste
+7. **Meldet Gabriel Probleme aus v2.10.0** (Checkliste
    `docs/tests/v2.10.0-handy.md`): Wechsel in `wechsleKarte`/`onCardTouchEnd`
    (`TrackingView.vue`), Regeln zuerst im Ring-Vertrag. Zeigt ein Handy
    "Person 1": Sync angemeldet? `meta/userName_*` per REST pruefen.
-4. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
+8. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
    `verbesserungen.md`.
-5. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
+9. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
    `utils/trainingGeraet.js`; v2.8 `UebungsVerlauf.vue`; v2.7
    `StartNutzerwahl.vue`, `resetActiveUsers`; v2.4 Tastatur `Modal.vue`,
    Saetze `scripts/saetze-test.mjs`; Quick-Log `buildNotificationQuickLog`,
    `public/sw-custom.js`; v2.5 `PlanningView.vue`; v2.6 Bilder nach
    `docs/uebungsbilder-chatgpt.md`. Neue Uebungen: zuerst `uebungen-cloud.mjs`.
-6. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
-   Schraegbank-Kurzhantel-Druecken); Herunterladen nur mit Gabriels Ja.
-7. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
-   `docs/laufplan-vorgaben.md` Abschnitt 5; Garmin-Abgleich zuerst in
-   `scripts/runmatch-test.mjs`.
-8. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
-   Regeln in `docs/laufplan-format.md` Abschnitt 5) — seit v2.12 mit
-   Zyklustag (`feedback.cycleDay`) und ungeplanten Laeufen ("Stattdessen: ...").
-9. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
-10. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
+10. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
+    Schraegbank-Kurzhantel-Druecken); Herunterladen nur mit Gabriels Ja.
+11. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
+    `docs/laufplan-vorgaben.md` Abschnitt 5; Garmin-Abgleich zuerst in
+    `scripts/runmatch-test.mjs`.
+12. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
+    Regeln in `docs/laufplan-format.md` Abschnitt 5) — seit v2.12 mit
+    Zyklustag (`feedback.cycleDay`) und ungeplanten Laeufen ("Stattdessen: ...").
+13. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
+14. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
     ausdruecklicher Freigabe.
 
 ## Offen
@@ -124,6 +147,11 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **v2.16.0 auf BEIDE Handys holen und testen** (seit 2026-11-14)
+  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.16.0.
+  Dann `docs/tests/v2.16.0-handy.md` abhaken (Zyklustag oben im Training,
+  Zeile "Zyklustag" in der History, alte Sperrbildschirm-Meldung). Mit
+  2.16.0 sind auch alle frueheren Versionen auf dem Handy.
 - [ ] **v2.15.0 auf BEIDE Handys holen und testen** (seit 2026-11-12)
   Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.15.0.
   Dann `docs/tests/v2.15.0-handy.md` abhaken (Auslassen mit der Person mit
