@@ -69,6 +69,25 @@
               </tr>
             </thead>
             <tbody>
+              <!-- Zyklustag je Datum (v2.16.0, Variante X: eigene Zeile, nur
+                   bei der Zyklus-Person). Gespeichert dunkel, errechnet blass
+                   mit "≈"; Tipp oeffnet das Tages-Detail. -->
+              <tr v-if="zyklusZeile" class="zyklus-row">
+                <td class="col-exercise sticky-col zyklus-label">Zyklustag</td>
+                <td class="col-max sticky-max"></td>
+                <td
+                  v-for="date in spreadsheet.dates"
+                  :key="date"
+                  class="col-date zyklus-zelle"
+                  @click="openDayModal(date)"
+                >
+                  <span
+                    v-if="zyklusZeile.get(date)"
+                    :class="{ 'zyklus-errechnet': zyklusZeile.get(date).errechnet }"
+                    :title="zyklusZeile.get(date).errechnet ? 'errechnet' : 'eingetragen'"
+                  >{{ zyklusZeile.get(date).errechnet ? '≈' : '' }}{{ zyklusZeile.get(date).tag }}</span>
+                </td>
+              </tr>
               <template v-for="group in spreadsheet.muscleGroups" :key="group.id">
                 <!-- Muscle group header -->
                 <tr class="group-row">
@@ -127,6 +146,10 @@
               Zyklustag {{ entry.day }} ({{ entry.name }})
             </span>
           </div>
+          <!-- Ohne Eintrag, aber errechenbar (v2.16.0): blass mit "≈" -->
+          <div v-else-if="logCycleErrechnet(log)" class="day-log-cycle zyklus-errechnet">
+            Zyklustag ≈ {{ logCycleErrechnet(log) }} ({{ zyklusUser.name }}, errechnet)
+          </div>
           <!-- Ausgelassene Saetze (v2.15.0) dieses Trainings -->
           <ul v-if="ausgelasseneFuer(log).length > 0" class="day-log-ausgelassen">
             <li v-for="e in ausgelasseneFuer(log)" :key="e.exerciseId + e.userId">
@@ -157,6 +180,7 @@
     </Modal>
 
     <!-- Zyklustag nachtraeglich (Baustein wie P11): WheelPicker 1-45,
+         "Tag 1 — neuer Zyklus" speichert direkt (v2.16.0, wie im Training),
          Entfernen loescht nur den Schluessel des Zyklus-Nutzers -->
     <Modal v-model="showLogCycle" :title="zyklusUser ? `Zyklustag — ${zyklusUser.name}` : 'Zyklustag'">
       <div class="cycle-wheel">
@@ -172,6 +196,13 @@
       <button
         class="btn btn-secondary btn-block"
         style="margin-top: var(--space-sm)"
+        @click="writeLogCycle(1)"
+      >
+        Tag 1 — neuer Zyklus
+      </button>
+      <button
+        class="btn btn-ghost btn-block"
+        style="margin-top: var(--space-xs)"
         @click="removeLogCycle"
       >
         Entfernen
@@ -209,6 +240,7 @@ import { exportToCSV, exportToJSON } from '../utils/exportData.js'
 import { toTitleCase } from '../utils/formatters.js'
 import { formatDate } from '../utils/dateHelpers.js'
 import { ausgelasseneEintraege, satzListeText } from '../utils/saetze.js'
+import { sammleZyklusEintraege, zyklusTageFuerDaten, errechneZyklustag } from '../utils/zyklusTag.js'
 import AuswertungsAnsicht from '../components/history/AuswertungsAnsicht.vue'
 
 const authStore = useAuthStore()
@@ -309,16 +341,40 @@ const cycleValues = computed(() => {
   return vals
 })
 
-// Daten mit vorhandener Notiz oder Zyklustag -> Punkt an der Kopfzelle
+// Daten mit vorhandener Notiz -> Punkt an der Kopfzelle. Seit v2.16.0 nur
+// noch die Notiz: der Zyklustag steht in seiner eigenen Zeile, und weil jedes
+// Training der Zyklus-Person ihn traegt, staende sonst ueberall ein Punkt.
 const metaDates = computed(() => {
   const s = new Set()
   for (const log of workoutLogsAll.value) {
-    if ((log.note || '') !== '' || Object.keys(log.cycleDays || {}).length > 0) {
-      s.add(log.date)
-    }
+    if ((log.note || '') !== '') s.add(log.date)
   }
   return s
 })
+
+// --- Zyklustag je Datum (v2.16.0), Regeln in utils/zyklusTag.js ---
+// Laeufe der Zyklus-Person zaehlen als Grundlage mit (feedback.cycleDay).
+const zyklusLaeufe = ref([])
+const zyklusEintraege = computed(() => {
+  const uid = zyklusUser.value?.id
+  return uid ? sammleZyklusEintraege(uid, workoutLogsAll.value, zyklusLaeufe.value) : []
+})
+
+// Nur in der Tabelle der Zyklus-Person; Map Datum -> { tag, errechnet }
+const zyklusZeile = computed(() => {
+  const uid = zyklusUser.value?.id
+  if (!uid || selectedUser.value !== uid) return null
+  return zyklusTageFuerDaten(zyklusEintraege.value, spreadsheet.dates)
+})
+
+// Tages-Detail: errechneter Tag fuer ein Training ohne Eintrag, nur wenn
+// die Zyklus-Person dabei war (oder der Log keine Besetzung kennt)
+function logCycleErrechnet(log) {
+  const uid = zyklusUser.value?.id
+  if (!uid || logCycleDay(log) != null) return null
+  if (Array.isArray(log.userIds) && log.userIds.length > 0 && !log.userIds.includes(uid)) return null
+  return errechneZyklustag(zyklusEintraege.value, log.date)?.tag ?? null
+}
 
 const dayLogs = computed(() => {
   if (!dayModalDate.value) return []
@@ -339,6 +395,14 @@ async function loadLogs() {
   trainingDayTitles.value = titles
   // Ausgelassene Saetze aller Trainings; doch gespeicherte zaehlen nicht
   ausgelasseneAlle.value = ausgelasseneEintraege(workoutLogsAll.value, await db.setLogs.toArray())
+  // Laeufe nur fuer den Zyklustag; fehlen sie, rechnet die Zeile ohne sie
+  const uid = zyklusUser.value?.id
+  try {
+    zyklusLaeufe.value = uid ? await db.runSessions.where('userId').equals(uid).toArray() : []
+  } catch (e) {
+    console.warn('[FitTrack] [WARN] Laeufe fuer den Zyklustag nicht lesbar:', e?.message || e)
+    zyklusLaeufe.value = []
+  }
 }
 
 // Ausgelassene Saetze (v2.15.0) je Training fuer das Tages-Detail
@@ -410,7 +474,8 @@ async function saveLogNote() {
 
 function openLogCycle(log) {
   editLogId.value = log.id
-  logCycleDraft.value = logCycleDay(log) ?? 1
+  // Ohne Eintrag startet das Rad beim errechneten Tag (wie im Training)
+  logCycleDraft.value = logCycleDay(log) ?? logCycleErrechnet(log) ?? 1
   showLogCycle.value = true
 }
 
@@ -641,6 +706,30 @@ th.sticky-max {
   padding: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-light);
+}
+
+/* Zyklustag-Zeile (v2.16.0): erste Zeile unter dem Kopf, Beschriftung in
+   der Akzentfarbe, gespeicherte Tage dunkel, errechnete blass mit "≈".
+   Statische Farben, kein color-mix (alte Android-WebViews). */
+.zyklus-row td {
+  background: var(--color-accent-soft);
+}
+
+.zyklus-row .zyklus-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent);
+}
+
+.zyklus-zelle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.zyklus-errechnet {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
 }
 
 /* Tages-Detail (P12) */

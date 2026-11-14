@@ -13,7 +13,10 @@ import {
   errechneZyklustag,
   sammleZyklusEintraege,
   leseZyklusEingabe,
-  istZyklustag
+  istZyklustag,
+  zyklusTageFuerDaten,
+  brauchtZyklusStempel,
+  zyklusStempel
 } from '../src/utils/zyklusTag.js'
 
 let passed = 0
@@ -131,6 +134,51 @@ equal('Z13 Kommazahl', leseZyklusEingabe('3,5'), { ok: false, wert: null })
 equal('Z13 Text', leseZyklusEingabe('abc'), { ok: false, wert: null })
 check('Z13 istZyklustag 45', istZyklustag(45))
 check('Z13 istZyklustag nicht 1.5', !istZyklustag(1.5))
+
+// Z14: Anzeige je Datum (v2.16.0) — gespeichert gewinnt, sonst errechnet,
+// ohne beides fehlt das Datum. Echter Verlauf: Tag 9 am 02.11., danach
+// Trainings ohne Eintrag.
+{
+  const liste = [
+    eintrag('2030-11-02', 9, 'training', '2030-11-02T10:00:00.000Z'),
+    eintrag('2030-10-25', 1, 'training', '2030-10-25T10:00:00.000Z')
+  ]
+  const karte = zyklusTageFuerDaten(liste, ['2030-10-24', '2030-11-02', '2030-11-06', '2030-11-14', '2031-03-01'])
+  equal('Z14 gespeichert', karte.get('2030-11-02'), { tag: 9, errechnet: false })
+  equal('Z14 errechnet vorwaerts', karte.get('2030-11-06'), { tag: 13, errechnet: true })
+  equal('Z14 errechnet zwoelf Tage spaeter', karte.get('2030-11-14'), { tag: 21, errechnet: true })
+  // Tag vor dem Zyklusbeginn: rueckwaerts waere 0, der alte Zyklus fehlt -> nichts
+  equal('Z14 vor Tag 1 ohne Grundlage', karte.has('2030-10-24'), false)
+  equal('Z14 zu weit weg', karte.has('2031-03-01'), false)
+  // Zwei Eintraege am selben Datum: der zuletzt geaenderte
+  const doppelt = zyklusTageFuerDaten([
+    eintrag('2030-11-02', 9, 'training', '2030-11-02T08:00:00.000Z'),
+    eintrag('2030-11-02', 10, 'lauf', '2030-11-02T19:00:00.000Z')
+  ], ['2030-11-02'])
+  equal('Z14 juengster am selben Tag', doppelt.get('2030-11-02'), { tag: 10, errechnet: false })
+  equal('Z14 ohne Daten leer', zyklusTageFuerDaten(liste, undefined).size, 0)
+}
+
+// Z15: Wann wird gestempelt? Nur wenn die Person neu ins Training kommt.
+check('Z15 neues Training mit ihr', brauchtZyklusStempel({ neu: true, nachherIds: ['user1', 'user2'], userId: 'user1' }))
+check('Z15 neues Training ohne sie', !brauchtZyklusStempel({ neu: true, nachherIds: ['user2'], userId: 'user1' }))
+check('Z15 steigt dazu', brauchtZyklusStempel({ vorherIds: ['user2'], nachherIds: ['user2', 'user1'], userId: 'user1' }))
+check('Z15 war schon drin', !brauchtZyklusStempel({ vorherIds: ['user1'], nachherIds: ['user1'], userId: 'user1' }))
+check('Z15 alter Log ohne userIds', brauchtZyklusStempel({ vorherIds: undefined, nachherIds: ['user1'], userId: 'user1' }))
+check('Z15 ohne Zyklus-Person', !brauchtZyklusStempel({ neu: true, nachherIds: ['user1'], userId: null }))
+
+// Z16: Der Stempel — Korrektur gewinnt, andere Personen bleiben, flache Kopie.
+{
+  const vorher = { user3: 4 }
+  const neu = zyklusStempel(vorher, 'user1', { tag: 21 })
+  equal('Z16 errechneter Tag kommt hinein', neu, { user3: 4, user1: 21 })
+  check('Z16 Original unangetastet', vorher.user1 === undefined && neu !== vorher)
+  equal('Z16 gespeicherter Tag bleibt', zyklusStempel({ user1: 3 }, 'user1', { tag: 21 }), null)
+  equal('Z16 ohne errechneten Tag', zyklusStempel({}, 'user1', null), null)
+  equal('Z16 kaputter alter Wert wird ersetzt', zyklusStempel({ user1: 0 }, 'user1', { tag: 5 }), { user1: 5 })
+  equal('Z16 ohne cycleDays', zyklusStempel(undefined, 'user1', { tag: 7 }), { user1: 7 })
+  equal('Z16 ohne Person', zyklusStempel({}, null, { tag: 7 }), null)
+}
 
 if (failures.length > 0) {
   console.error(`\n[zyklustag-test] ${failures.length} von ${failures.length + passed} Faellen rot:\n`)

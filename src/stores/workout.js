@@ -6,12 +6,27 @@ import { pushRecord, pushDelete } from '../services/syncService.js'
 import { useAuthStore } from './auth.js'
 import { offenesTrainingDiesesGeraets, logFuerTagDiesesGeraets } from '../utils/trainingGeraet.js'
 import { rueckgaengigSchritt, ausgelasseneAusLog, mitAusgelassenen } from '../utils/saetze.js'
+import { brauchtZyklusStempel, zyklusStempel } from '../utils/zyklusTag.js'
+import { errechneZyklustagFuer } from '../composables/useZyklusTag.js'
 
 export const useWorkoutStore = defineStore('workout', () => {
   const authStore = useAuthStore()
   const activeWorkout = ref(null)
   const currentSets = ref([])
   const isWorkoutActive = computed(() => activeWorkout.value !== null)
+
+  // Zyklustag-Stempel (v2.16.0, Regeln in utils/zyklusTag.js): kommt die
+  // Zyklus-Person neu ins Training und traegt es noch keinen Tag, kommt der
+  // errechnete hinein. Er steht oben im Training und ist dort korrigierbar —
+  // nichts tun gilt als Bestaetigung (Gabriel 14.11.2026).
+  // Gibt den Patch { cycleDays } zurueck oder null.
+  async function zyklusPatch(log, vorherIds, nachherIds, neu) {
+    const userId = authStore.users.find(u => u.zyklus)?.id || null
+    if (!brauchtZyklusStempel({ neu, vorherIds, nachherIds, userId })) return null
+    const errechnet = await errechneZyklustagFuer(userId, log.date)
+    const cycleDays = zyklusStempel(log.cycleDays, userId, errechnet)
+    return cycleDays ? { cycleDays } : null
+  }
 
   async function startWorkout(trainingDay, planId) {
     const today = getToday()
@@ -38,6 +53,8 @@ export const useWorkoutStore = defineStore('workout', () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
+      const zyklus = await zyklusPatch(existing, [], existing.userIds, true)
+      if (zyklus) Object.assign(existing, zyklus)
       await db.workoutLogs.add(existing)
       pushRecord('workoutLogs', existing.id, existing)
     } else {
@@ -47,6 +64,8 @@ export const useWorkoutStore = defineStore('workout', () => {
       const updatedAt = new Date().toISOString()
       const patch = { userIds: [...authStore.activeUserIds], updatedAt }
       if (existing.completedAt) patch.completedAt = null
+      const zyklus = await zyklusPatch(existing, existing.userIds, patch.userIds, false)
+      if (zyklus) Object.assign(patch, zyklus)
       await db.workoutLogs.update(existing.id, patch)
       existing = { ...existing, ...patch }
       pushRecord('workoutLogs', existing.id, existing)
@@ -75,6 +94,8 @@ export const useWorkoutStore = defineStore('workout', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
+    const zyklus = await zyklusPatch(log, [], log.userIds, true)
+    if (zyklus) Object.assign(log, zyklus)
     await db.workoutLogs.add(log)
     pushRecord('workoutLogs', log.id, log)
     activeWorkout.value = log
@@ -104,11 +125,14 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   // Besetzung waehrend eines laufenden Workouts aendern (Farbkreise im Kopf
   // des Trackings). Nur userIds wird geschrieben — bereits gespeicherte Saetze
-  // bleiben unangetastet.
+  // bleiben unangetastet. Steigt die Zyklus-Person neu ein, bekommt das
+  // Training ihren errechneten Tag (zyklusPatch).
   async function updateWorkoutUsers(userIds) {
     if (!activeWorkout.value) return
     const updatedAt = new Date().toISOString()
     const patch = { userIds: [...userIds], updatedAt }
+    const zyklus = await zyklusPatch(activeWorkout.value, activeWorkout.value.userIds, patch.userIds, false)
+    if (zyklus) Object.assign(patch, zyklus)
     await db.workoutLogs.update(activeWorkout.value.id, patch)
     activeWorkout.value = { ...activeWorkout.value, ...patch }
     const full = await db.workoutLogs.get(activeWorkout.value.id)

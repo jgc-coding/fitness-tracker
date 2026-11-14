@@ -81,6 +81,26 @@
           </button>
         </div>
 
+        <!-- Zyklustag ganz oben (v2.16.0, Gabriel 14.11.2026; vorher ein
+             Knopf in der Werkzeugzeile): Beim Start steht der errechnete Tag
+             schon drin (Stempel im Store) — nichts tun gilt als Bestaetigung,
+             ein Tipp korrigiert. Blass mit "≈" nur, wenn das Training keinen
+             Tag traegt (alter Stand, bewusst entfernt). Nur wenn die
+             Zyklus-Person mittrainiert. -->
+        <button
+          v-if="zyklusUser"
+          type="button"
+          class="zyklus-zeile"
+          :style="{ '--user-color': zyklusUser.color }"
+          @click="openCycleModal"
+        >
+          <span class="zyklus-punkt" aria-hidden="true"></span>
+          <span v-if="currentCycleDay != null" class="zyklus-wert">Zyklustag {{ currentCycleDay }}</span>
+          <span v-else-if="zyklusErrechnet" class="zyklus-wert zyklus-errechnet">Zyklustag ≈ {{ zyklusErrechnet.tag }}</span>
+          <span v-else class="zyklus-wert zyklus-errechnet">Zyklustag eintragen</span>
+          <span class="zyklus-aktion">{{ currentCycleDay != null ? 'ändern' : (zyklusErrechnet ? 'bestätigen' : '') }}</span>
+        </button>
+
         <!-- Uebungsliste, kompakt (Variante A aus zwei Skizzen, Gabriel
              26.09.2026): Kopf mit kleinem Vorschaubild, darunter je Person
              ein Bereich. Die Werte je Person rechnet `kartenZeilen` vor.
@@ -230,13 +250,10 @@
         </div>
 
         <!-- Werkzeugzeile unter der Uebungsliste (Variante C, Gabriel
-             24.09.2026): Uebung hinzufuegen, Workout-Notiz und Zyklustag (P11)
-             als gleich hohe Knoepfe in einer Reihe, darunter "Workout
-             beenden". Vorhandene Werte sind am Knopf erkennbar (getoente
-             Flaeche, "Notiz ✓" / "Zyklus 17"; "Zyklus" statt "Zyklustag",
-             damit alle drei auf 360 px in eine Reihe passen). Der
-             Zyklus-Knopf erscheint nur, wenn ein aktiver Nutzer zyklus: true
-             traegt. -->
+             24.09.2026): Uebung hinzufuegen und Workout-Notiz (P11) als
+             gleich hohe Knoepfe in einer Reihe, darunter "Workout beenden".
+             Eine vorhandene Notiz ist am Knopf erkennbar (getoente Flaeche,
+             "Notiz ✓"). Der Zyklustag steht seit v2.16.0 ganz oben. -->
         <div class="workout-werkzeuge">
           <button
             class="btn btn-secondary werkzeug-btn werkzeug-haupt"
@@ -253,15 +270,6 @@
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
             Notiz{{ workoutNote ? ' ✓' : '' }}
-          </button>
-          <button
-            v-if="zyklusUser"
-            class="btn btn-secondary werkzeug-btn"
-            :class="{ 'hat-wert': currentCycleDay != null }"
-            @click="openCycleModal"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-            Zyklus{{ currentCycleDay != null ? ' ' + currentCycleDay : '' }}
           </button>
         </div>
 
@@ -443,7 +451,8 @@
     </Modal>
 
     <!-- Zyklustag (P11): WheelPicker 1-45 fuer den Zyklus-Nutzer;
-         Entfernen loescht nur dessen Schluessel in cycleDays -->
+         "Tag 1 — neuer Zyklus" speichert direkt (v2.16.0), Entfernen
+         loescht nur dessen Schluessel in cycleDays -->
     <Modal v-model="showCycleModal" :title="zyklusUser ? `Zyklustag — ${zyklusUser.name}` : 'Zyklustag'">
       <div class="cycle-wheel">
         <WheelPicker
@@ -461,6 +470,13 @@
       <button
         class="btn btn-secondary btn-block"
         style="margin-top: var(--space-sm)"
+        @click="saveNeuerZyklus"
+      >
+        Tag 1 — neuer Zyklus
+      </button>
+      <button
+        class="btn btn-ghost btn-block"
+        style="margin-top: var(--space-xs)"
         @click="removeCycleDay"
       >
         Entfernen
@@ -562,7 +578,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import TopBar from '../components/layout/TopBar.vue'
 import Modal from '../components/shared/Modal.vue'
@@ -1089,6 +1105,32 @@ async function saveCycleDay() {
   await workoutStore.setCycleDay(zyklusUser.value.id, cycleDraft.value)
   showCycleModal.value = false
 }
+
+// Periode hat begonnen: ein Tipp statt das Rad bis 1 zu drehen (v2.16.0)
+async function saveNeuerZyklus() {
+  if (!zyklusUser.value) return
+  await workoutStore.setCycleDay(zyklusUser.value.id, 1)
+  showCycleModal.value = false
+}
+
+// Oben im Training (v2.16.0): traegt das Training keinen Tag, zeigt die
+// Zeile blass den errechneten. Spaete Antworten (Training gewechselt, Tag
+// inzwischen gespeichert) werden verworfen.
+const zyklusErrechnet = ref(null)
+watch(
+  () => [workoutStore.activeWorkout?.id, workoutStore.activeWorkout?.date, zyklusUser.value?.id, currentCycleDay.value],
+  async ([logId, datum, userId, gespeichert]) => {
+    if (!logId || !userId || gespeichert != null) {
+      zyklusErrechnet.value = null
+      return
+    }
+    const errechnet = await errechneZyklustagFuer(userId, datum)
+    if (workoutStore.activeWorkout?.id === logId && currentCycleDay.value == null) {
+      zyklusErrechnet.value = errechnet
+    }
+  },
+  { immediate: true }
+)
 
 async function removeCycleDay() {
   if (!zyklusUser.value) return
@@ -1930,10 +1972,9 @@ onUnmounted(() => {
 }
 
 /* Werkzeugzeile unter der Liste: gleich hohe Knoepfe, Breite nach Inhalt
-   ("+ Uebung" bekommt den groessten Anteil). Knappe Innenabstaende: mit
-   Zyklus-Knopf brauchen alle drei rund 300 px, auf 360-px-Handys bleiben
-   so gut 30 px Luft. Erst unter ~340 px rutscht der letzte Knopf in eine
-   zweite Zeile, statt abgeschnitten zu werden. */
+   ("+ Uebung" bekommt den groessten Anteil). Knappe Innenabstaende; auf
+   sehr schmalen Bildschirmen rutscht der letzte Knopf in eine zweite
+   Zeile, statt abgeschnitten zu werden. */
 .workout-werkzeuge {
   display: flex;
   flex-wrap: wrap;
@@ -1956,7 +1997,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* Wert vorhanden (Notiz gespeichert, Zyklustag gesetzt): leicht getoent in
+/* Wert vorhanden (Notiz gespeichert): leicht getoent in
    der Akzentfarbe, wie der aktive Reiter unten. Statische Farben, kein
    color-mix (alte Android-WebViews). */
 .werkzeug-btn.hat-wert {
@@ -2004,6 +2045,50 @@ onUnmounted(() => {
 .workout-date {
   color: var(--color-text-light);
   font-size: var(--font-size-sm);
+}
+
+/* Zyklustag ganz oben (v2.16.0): dezente Zeile ohne Kartenrahmen, Punkt in
+   der Farbe der Person, "ändern" rechts in der Akzentfarbe. 40 px hoch,
+   damit sie sich gut antippen laesst. */
+.zyklus-zeile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  min-height: 40px;
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-sm);
+  padding: 0 var(--space-xs);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.zyklus-punkt {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--user-color);
+}
+
+.zyklus-wert {
+  flex: 1;
+  font-weight: var(--font-weight-semibold);
+}
+
+.zyklus-errechnet {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.zyklus-aktion {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
 }
 
 /* Kompakte Karte (Variante A, Gabriel 26.09.2026): weniger Rand, kleines
