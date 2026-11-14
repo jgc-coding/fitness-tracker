@@ -15,7 +15,7 @@
  *
  * Quick-Log nimmt nur Saetze fuer ein Training von heute an (oder eines, das
  * vor weniger als 6 Stunden begann): die Meldung eines nie beendeten
- * Trainings bleibt sonst bis zum naechsten Mal stehen (V16, v2.16.0).
+ * Trainings bleibt sonst bis zum naechsten Mal stehen (V17, v2.16.0).
  *
  * Android zeigt nur ZWEI Knoepfe: Platz 1 das Quick-Log (Standard-Nutzer
  * zuerst, siehe data.userOrder), Platz 2 fest "Workout beenden".
@@ -104,7 +104,7 @@ async function handleQuickLog(userId, data) {
   const queue = (data.queues && data.queues[userId]) || []
   const item = queue[0]
 
-  // V16 (v2.16.0): Meldung eines nie beendeten Trainings von einem anderen
+  // V17 (v2.16.0): Meldung eines nie beendeten Trainings von einem anderen
   // Tag — nicht eintragen, sonst landet der Satz beim alten Datum. Die
   // Meldung sagt es und behaelt nur "Workout beenden" und "Oeffnen".
   if (item && await istVeraltet(data.dbName, item.set)) {

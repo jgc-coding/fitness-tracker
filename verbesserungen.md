@@ -55,7 +55,7 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 (noch nichts — V8/I1/I5 sind zurueckgestellt, nicht abgelehnt)
 
 ## Erledigt
-- **V16** (C) Alte Sperrbildschirm-Meldung nach nie beendetem Training —
+- **V17** (C) Alte Sperrbildschirm-Meldung nach nie beendetem Training —
   erledigt in v2.16.0 (14.11.2026, Freigabe Gabriel). Gefunden beim Pruefen
   "wird ohne Beenden gespeichert?" (ja: 43 von 131 Trainings nie beendet,
   alle Saetze da). Die Meldung blieb aber stehen, und ihr Quick-Log haette

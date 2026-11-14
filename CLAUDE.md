@@ -141,7 +141,7 @@ npm run preview   # Build lokal testen (Port 4173)
   schreibt sie per Knopf direkt in IndexedDB + syncQueue, auch ohne offene App.
   Nur fuer ein Training von heute (oder eines, das vor < 6 h begann,
   `istVeraltet`); ein App-Start ohne offenes Training von heute entfernt die
-  Meldung (App.vue, V16) — viele Trainings werden nie beendet.
+  Meldung (App.vue, V17) — viele Trainings werden nie beendet.
 - **Nur ZWEI Notification-Knoepfe (Android):** Platz 1 Quick-Log des Standard-
   Nutzers (leer -> naechster rueckt nach), Platz 2 "Workout beenden"
   (`data.workoutLogId`, danach `workout-finished` an offene Fenster). Die Regel
