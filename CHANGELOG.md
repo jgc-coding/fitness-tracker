@@ -3,6 +3,41 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.16.0] — 2026-11-14
+
+### Features
+- **Zyklustag ganz oben im Training** (Wunsch Gabriel): Trainiert die
+  Person mit Zyklus-Erfassung mit, steht ueber der ersten Uebung dezent
+  "Zyklustag 21 · ändern". Die App rechnet den Tag aus dem letzten Eintrag
+  weiter und traegt ihn beim Start gleich ein — nichts tun gilt als
+  Bestaetigung. Ein Tipp oeffnet das Rad zum Korrigieren, dazu neu
+  "Tag 1 — neuer Zyklus" fuer den Beginn der Periode. Steigt die Person
+  mitten im Training ein, bekommt sie ihren Tag genauso. Der Zyklus-Knopf
+  in der Werkzeugzeile entfaellt dafuer.
+- **Zyklustag in der History:** In der Tabelle der Person eine eigene Zeile
+  "Zyklustag" ueber den Uebungen, im Verlauf jeder Uebung unter jedem
+  Eintrag und in der Ablesezeile ueber dem Diagramm. Eingetragene Tage
+  stehen dunkel, errechnete blass mit "≈" (aeltere Trainings ohne Eintrag).
+  Das Tages-Detail zeigt den errechneten Tag ebenfalls, und das Rad zum
+  Nachtragen startet dort.
+
+### Behoben
+- **Alte Sperrbildschirm-Meldung** (V16): Wurde ein Training nicht beendet,
+  blieb seine Meldung stehen, und ihr Schnell-Speichern-Knopf haette beim
+  naechsten Training beim alten Datum eingetragen. Die App entfernt sie
+  jetzt beim Start, und der Knopf nimmt nur noch Saetze fuer heute an.
+  Wichtig: Ohne "Workout beenden" geht nichts verloren — jeder Satz ist ab
+  "Speichern" gesichert.
+
+### Geaendert
+- Der Punkt an einem Datum in der History-Tabelle markiert nur noch eine
+  Notiz; der Zyklustag hat seine eigene Zeile.
+
+### Daten
+- Keine Schema-Aenderung. Der Stempel nutzt das bestehende Feld
+  `cycleDays` am Trainings-Eintrag. Aeltere App-Versionen zeigen den Wert
+  wie einen von Hand eingetragenen.
+
 ## [2.15.0] — 2026-11-12
 
 ### Features

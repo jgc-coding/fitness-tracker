@@ -19,6 +19,7 @@ import { db } from './db/dexie.js'
 import { getToday } from './utils/dateHelpers.js'
 import { useAuthStore } from './stores/auth.js'
 import { offenesTrainingDiesesGeraets } from './utils/trainingGeraet.js'
+import { dismissWorkoutNotification } from './utils/notifications.js'
 
 const authStore = useAuthStore()
 
@@ -31,11 +32,15 @@ onMounted(async () => {
   // Workout DIESES Geraets in der DB (gleiche Regel wie resumeTodaysWorkout,
   // utils/trainingGeraet.js), gilt dessen Besetzung. Ein offenes Training des
   // anderen Handys zaehlt nicht (v2.8.1).
+  // Ohne offenes Training von heute geht auch eine alte Sperrbildschirm-
+  // Meldung weg (V16, v2.16.0): ein nie beendetes Training liess sie stehen,
+  // und ihr Quick-Log-Knopf haette Saetze beim alten Datum eingetragen.
   try {
     const heute = getToday()
     const logs = await db.workoutLogs.where({ date: heute }).toArray()
     if (!offenesTrainingDiesesGeraets(logs, heute, authStore.deviceId)) {
       authStore.resetActiveUsers()
+      dismissWorkoutNotification()
     }
   } catch (e) {
     // DB nicht lesbar: trotzdem zuruecksetzen — die Kreise zeigen es sichtbar an

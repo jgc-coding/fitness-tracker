@@ -13,6 +13,10 @@
  * 3) Knopf "Workout beenden": setzt completedAt am Workout-Log und schliesst
  *    die Notification — ebenfalls ohne offene App.
  *
+ * Quick-Log nimmt nur Saetze fuer ein Training von heute an (oder eines, das
+ * vor weniger als 6 Stunden begann): die Meldung eines nie beendeten
+ * Trainings bleibt sonst bis zum naechsten Mal stehen (V16, v2.16.0).
+ *
  * Android zeigt nur ZWEI Knoepfe: Platz 1 das Quick-Log (Standard-Nutzer
  * zuerst, siehe data.userOrder), Platz 2 fest "Workout beenden".
  */
@@ -73,9 +77,45 @@ async function focusOrOpenApp() {
 
 // --- Quick-Log: Satz aus der Notification heraus eintragen -----------------
 
+// Heutiges Datum LOKAL als YYYY-MM-DD — gleiche Regel wie getToday() in
+// src/utils/dateHelpers.js (nicht UTC, sonst kippt der Tag nach Mitternacht).
+function heuteLokal() {
+  const d = new Date()
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+}
+
+// Gehoert der vorbereitete Satz zu einem Training von einem anderen Tag?
+// Heute ist immer in Ordnung. Ein anderer Tag nur, wenn das Training vor
+// weniger als 6 Stunden begann (Training ueber Mitternacht). Laesst sich das
+// nicht pruefen, gilt es als veraltet — die Meldung bittet dann sichtbar,
+// die App zu oeffnen, statt still beim falschen Datum einzutragen.
+async function istVeraltet(dbName, set) {
+  if (!set || !set.date || set.date === heuteLokal()) return false
+  try {
+    const log = await leseWorkoutLog(dbName, set.workoutLogId)
+    const start = log && Date.parse(log.startedAt)
+    return !(start && Date.now() - start < 6 * 60 * 60 * 1000)
+  } catch (err) {
+    return true
+  }
+}
+
 async function handleQuickLog(userId, data) {
   const queue = (data.queues && data.queues[userId]) || []
   const item = queue[0]
+
+  // V16 (v2.16.0): Meldung eines nie beendeten Trainings von einem anderen
+  // Tag — nicht eintragen, sonst landet der Satz beim alten Datum. Die
+  // Meldung sagt es und behaelt nur "Workout beenden" und "Oeffnen".
+  if (item && await istVeraltet(data.dbName, item.set)) {
+    const [, mm, dd] = String(item.set.date).split('-')
+    data.error = 'Training vom ' + dd + '.' + mm + '. - bitte die App oeffnen.'
+    data.queues = {}
+    data.userOrder = []
+    await showCompactNotification(data)
+    return
+  }
+
   if (item) {
     try {
       await writeSetLog(data.dbName, item.set)
@@ -187,6 +227,17 @@ function txDone(tx) {
     tx.onerror = () => reject(tx.error)
     tx.onabort = () => reject(tx.error || new Error('Transaktion abgebrochen'))
   })
+}
+
+async function leseWorkoutLog(dbName, workoutLogId) {
+  if (!workoutLogId) return null
+  const conn = await openDb(dbName)
+  try {
+    const tx = conn.transaction(['workoutLogs'], 'readonly')
+    return (await reqAsPromise(tx.objectStore('workoutLogs').get(workoutLogId))) || null
+  } finally {
+    conn.close()
+  }
 }
 
 async function markWorkoutFinished(dbName, workoutLogId) {

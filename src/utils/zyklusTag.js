@@ -94,3 +94,54 @@ export function errechneZyklustag(eintraege, datum) {
   }
   return null
 }
+
+/**
+ * Zyklustag je Datum fuer die Anzeige (History-Tabelle, Uebungsverlauf;
+ * v2.16.0). Ein gespeicherter Tag gewinnt (am selben Tag zwei: der zuletzt
+ * geaenderte), sonst der errechnete — der wird als `errechnet: true`
+ * markiert und blass mit "≈" gezeigt, nie gespeichert. Daten ohne beides
+ * fehlen in der Map.
+ * @returns {Map<string, { tag: number, errechnet: boolean }>}
+ */
+export function zyklusTageFuerDaten(eintraege, daten) {
+  const liste = eintraege || []
+  const out = new Map()
+  for (const datum of daten || []) {
+    const amTag = liste
+      .filter(e => e.date === datum)
+      .sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')))
+    if (amTag.length > 0) {
+      out.set(datum, { tag: amTag[0].day, errechnet: false })
+      continue
+    }
+    const r = errechneZyklustag(liste, datum)
+    if (r) out.set(datum, { tag: r.tag, errechnet: true })
+  }
+  return out
+}
+
+/**
+ * Bekommt das Training jetzt einen Zyklustag-Stempel? (v2.16.0, Gabriel
+ * 14.11.2026: der Tag steht oben im Training, "wenn sie nichts macht, ist
+ * das die Bestaetigung".) Gestempelt wird nur, wenn die Person NEU dazukommt:
+ * beim Anlegen des Trainings oder wenn sie in ein laufendes bzw. wieder
+ * geoeffnetes einsteigt. Wer schon drin ist, bekommt keinen neuen Stempel —
+ * sonst kaeme ein bewusst entfernter Tag beim naechsten Oeffnen zurueck.
+ */
+export function brauchtZyklusStempel({ neu = false, vorherIds = [], nachherIds = [], userId }) {
+  if (!userId || !(nachherIds || []).includes(userId)) return false
+  return neu || !(vorherIds || []).includes(userId)
+}
+
+/**
+ * Der Stempel selbst: errechneter Tag in eine flache Kopie von `cycleDays`.
+ * Ein schon gespeicherter Tag bleibt (eine Korrektur gewinnt immer), ohne
+ * errechneten Tag gibt es nichts zu stempeln.
+ * @returns {object|null} neue cycleDays oder null = nichts zu tun
+ */
+export function zyklusStempel(cycleDays, userId, errechnet) {
+  if (!userId) return null
+  if (istZyklustag(cycleDays?.[userId])) return null
+  if (!istZyklustag(errechnet?.tag)) return null
+  return { ...(cycleDays || {}), [userId]: errechnet.tag }
+}

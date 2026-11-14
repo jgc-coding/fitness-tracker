@@ -53,7 +53,11 @@
     <template v-else>
       <!-- Ablesezeile: der angetippte Punkt, sonst der juengste -->
       <div class="verlauf-ablesen" aria-live="polite">
-        <span class="verlauf-ablesen-datum">{{ datumLang(aktiverPunkt.date) }}</span>
+        <span class="verlauf-ablesen-datum">{{ datumLang(aktiverPunkt.date) }}<span
+          v-if="zyklusAm(aktiverPunkt.date)"
+          class="verlauf-zyklus"
+          :class="{ 'is-errechnet': zyklusAm(aktiverPunkt.date).errechnet }"
+        >{{ zyklusText(aktiverPunkt.date) }}</span></span>
         <span class="verlauf-ablesen-wert">{{ wertText(aktiverPunkt) }}<span
           v-if="zeigtEinRM && aktiverPunkt.e1rm !== null"
           class="verlauf-ablesen-1rm"
@@ -158,6 +162,12 @@
               class="verlauf-zeile-1rm"
             >≈ {{ einRMText(p) }}</span>{{ wertText(p) }}</span>
           </div>
+          <!-- Zyklustag dieses Trainings (v2.16.0), nur bei der Zyklus-Person -->
+          <div
+            v-if="zyklusAm(p.date)"
+            class="verlauf-zyklus"
+            :class="{ 'is-errechnet': zyklusAm(p.date).errechnet }"
+          >{{ zyklusText(p.date) }}</div>
           <div v-if="p.saetze.length > 1 || ausgelassenAm(p.date).length" class="verlauf-zeile-saetze">
             {{ p.saetze.length }} {{ p.saetze.length === 1 ? 'Satz' : 'Saetze' }}: {{ p.saetze.map(satzText).join(' · ') }}<template
               v-if="ausgelassenAm(p.date).length"
@@ -179,6 +189,7 @@ import {
   mitEinRM
 } from '../../utils/verlauf.js'
 import { ausgelasseneEintraege, satzListeText } from '../../utils/saetze.js'
+import { sammleZyklusEintraege, zyklusTageFuerDaten } from '../../utils/zyklusTag.js'
 
 const props = defineProps({
   exerciseId: { type: String, required: true },
@@ -223,11 +234,41 @@ async function lade() {
     ausgelassen.value = new Map()
     ladeFehler.value = true
   }
+  await ladeZyklus()
   geladen.value = true
 }
 
 function ausgelassenAm(date) {
   return ausgelassen.value.get(date) || []
+}
+
+// Zyklustag je Trainingstag (v2.16.0, Regeln in utils/zyklusTag.js) — nur
+// fuer die Zyklus-Person. Grundlage sind ALLE Trainings und Laeufe, nicht
+// nur die mit dieser Uebung. Fehlt etwas, bleibt die Zeile einfach weg.
+const zyklus = ref(new Map())
+
+async function ladeZyklus() {
+  zyklus.value = new Map()
+  if (!nutzer.value?.zyklus || saetze.value.length === 0) return
+  try {
+    const [logs, laeufe] = await Promise.all([
+      db.workoutLogs.toArray(),
+      db.runSessions.where('userId').equals(userId.value).toArray()
+    ])
+    const daten = verlaufPunkte(saetze.value).map(p => p.date)
+    zyklus.value = zyklusTageFuerDaten(sammleZyklusEintraege(userId.value, logs, laeufe), daten)
+  } catch (e) {
+    console.warn('[FitTrack] [WARN] Zyklustag im Verlauf nicht errechenbar:', e?.message || e)
+  }
+}
+
+function zyklusAm(date) {
+  return zyklus.value.get(date) || null
+}
+
+function zyklusText(date) {
+  const z = zyklusAm(date)
+  return z ? `Zyklustag ${z.errechnet ? '≈ ' : ''}${z.tag}` : ''
 }
 
 watch([() => props.exerciseId, userId], lade, { immediate: true })
@@ -640,5 +681,19 @@ const diagrammBeschreibung = computed(() => {
   margin-top: 2px;
   font-size: var(--font-size-xs);
   color: var(--color-text-light);
+}
+
+/* Zyklustag (v2.16.0): eigene kleine Zeile in der Liste und unter dem Datum
+   der Ablesezeile; gespeichert in der Akzentfarbe, errechnet blass mit "≈" */
+.verlauf-zyklus {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent);
+}
+
+.verlauf-zyklus.is-errechnet {
+  color: var(--color-text-muted);
 }
 </style>
