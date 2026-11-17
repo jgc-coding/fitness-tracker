@@ -1,40 +1,85 @@
 # Plan: Die App erinnert ans Steigern (v2.17.0)
 
-Erstellt 2026-11-17 nach Gabriels Wunsch (Sprachnachricht). Umsetzung erst
-nach Gabriels Antworten auf die offenen Fragen (geplant ab 2026-11-18).
+Erstellt 2026-11-17 nach Gabriels Wunsch (Sprachnachricht), Entscheidungen
+von Gabriel am selben Tag. Umsetzung ab 2026-11-18, nicht vorher.
 Symbol-Entwuerfe: `docs/entwuerfe/steigern-symbol-varianten.html`
 (auch als private Seite: https://claude.ai/artifact/KjWMjCAevp5EemwvF2quEH).
 
 ## Ziel
 
 Der Steigern-Knopf auf der Uebungskarte (das Logo rechts neben dem Wert)
-bekommt einen dritten Zustand: **Erinnerung von der App**. Er erscheint je
-Person und Uebung, wenn
+bekommt einen dritten Zustand: **Erinnerung von der App**, dargestellt als
+**pulsierender Ring** in der Personenfarbe (Variante 1). Er erscheint je
+Person, wenn
 
-1. **Stillstand:** die Person sich in dieser Uebung laenger nicht gesteigert
-   hat (Zaehlung siehe Frage 2), oder
-2. **Oben im Bereich:** die Person beim letzten Mal am oberen Ende ihres
-   Wiederholungsbereichs fuer diese Uebung war (z.B. 12 bei 8-12).
+1. **Stillstand:** die Person in dieser Uebungsgruppe dreimal nacheinander
+   ohne Steigerung war — dann beim vierten Mal, oder
+2. **Oben im Bereich:** die Person beim letzten Mal in dieser Uebung in
+   allen Saetzen am oberen Ende ihres Wiederholungsbereichs war (z.B. 12
+   bei 8-12).
 
-Der Bereich gilt je Uebung (und evtl. je Person, Frage 4). Startwerte kommen
-aus der Analyse des letzten halben Jahres; ohne Eintrag gilt 8-12.
 Jede Person schaltet die Erinnerung in den Einstellungen an oder aus,
-Standard ist **an**.
+Standard ist **an**. Ein Tipp auf die Erinnerung nimmt sie an: derselbe Weg
+wie heute beim Selbst-Markieren. Der Vorschlag springt sofort um einen
+Schritt hoch (1,25 kg bzw. 1 kg), der Knopf zeigt "selbst markiert".
 
-Ein Tipp auf die Erinnerung nimmt sie an: Das ist derselbe Weg wie heute beim
-Selbst-Markieren. Der Vorschlag springt um einen Schritt hoch (1,25 kg bzw.
-1 kg), und der Knopf zeigt "selbst markiert".
+## Entscheidungen (Gabriel, 2026-11-17)
 
-## Offene Fragen an Gabriel (vor dem Start klaeren)
+1. **Steigerung** = mehr Gewicht ODER gleiches Gewicht mit mehr Wdh.
+2. **Zaehlweise:** Nach drei Einheiten ohne Steigerung erinnert die App beim
+   vierten Mal. Beispiel: 60x10, 60x10, 60x10 -> beim 4. Training die
+   Erinnerung. Es zaehlt nur ein Training, in dem wirklich etwas
+   eingetragen wurde (egal ob gesteigert oder nicht). Ein Training, das nur
+   gestartet und wieder beendet wurde (zum Nachschauen), zaehlt nie.
+3. **Gezaehlt wird je Uebungsgruppe:** die Uebung eines Plan-Platzes samt
+   ihren Alternativen (z.B. Schraegbank Kurzhantel / Langhantel / Maschine),
+   also der Ring der Karte `[basisExerciseId, ...alternativen]`. Ohne
+   Alternativen ist die Gruppe die Uebung allein.
+4. **Wdh-Bereich je Person**, falls die Analyse Unterschiede zeigt; sonst
+   ein Wert fuer alle.
+5. **Mehrere Saetze (user1: 3):** "oben im Bereich" erst, wenn ALLE Saetze
+   der letzten Einheit oben angekommen sind.
+6. **Symbol:** Variante 1, pulsierender Ring.
 
-| Nr | Frage | Empfehlung |
-|----|-------|------------|
-| 1 | Zaehlt "gleiches Gewicht, mehr Wdh" als Steigerung? | **Ja.** Sonst meldet sich die Erinnerung, obwohl du im Bereich planmaessig Wdh aufbaust (60x8, 60x9, 60x10 ...). Das Gewicht-Signal kommt dann ueber "oben im Bereich". |
-| 2 | Ab wann gilt "laenger als 3 Mal nicht gesteigert"? Beispiel: 4 Trainings nacheinander 60x10. | **Erinnerung beim 5. Training** (die letzten 3 Male brachten nichts Neues). Die Zahl 3 wird eine Konstante, leicht aenderbar. |
-| 3 | Zaehlt die App je Uebung oder je Uebungsgruppe (Plan-Platz mit Alternativen, z.B. Schraegbank KH/LH/Maschine)? | **Je Uebung.** Die Gewichte der drei Varianten sind nicht vergleichbar. Nachteil: Wer oft wechselt, wird seltener erinnert. |
-| 4 | Gilt der Wdh-Bereich fuer alle drei Personen gleich oder je Person? | **Je Person**, falls die Analyse Unterschiede zeigt; sonst ein Wert fuer alle. |
-| 5 | Wer mehrere Saetze erfasst (user1: 3): Reicht Satz 1 am oberen Ende, oder muessen es alle Saetze sein? | **Alle Saetze.** Erst wenn auch der letzte Satz oben ankommt, traegt das hoehere Gewicht. |
-| 6 | Welches Symbol (1-10, oder eine Mischung)? | **Variante 2** (gestrichelter Ring): gestrichelt = Vorschlag, durchgezogen = angenommen. |
+## Noch zu bestaetigen (Frage 7)
+
+Laesst die Person die Gruppe in einem Training aus, macht aber andere
+Uebungen: Zaehlt dieses Training fuer die Gruppe mit? **Annahme bis zur
+Antwort: nein.** Es zaehlt nur, wenn in der Gruppe selbst ein Satz
+gespeichert wurde, denn nur dann gibt es Gewicht x Wdh zum Vergleichen.
+
+## Regeln im Detail (Vertrag zuerst)
+
+- **Einheit** = Kalendertag, an dem die Person mindestens einen Satz in
+  einer Uebung der Gruppe gespeichert hat (wie `getLastSets`). Die Zaehlung
+  liest nur gespeicherte Saetze — leere Trainings sind darum von selbst
+  ausgeschlossen, ohne Sonderregel.
+- **Wert einer Einheit** = bester Satz der dort gemachten Uebung: schwerstes
+  Gewicht, bei Gleichstand die meisten Wdh. Saetze ohne Wdh zaehlen nur mit
+  dem Gewicht.
+- **Vergleich je Uebung**, nie quer: Kurzhantel wird nur mit Kurzhantel
+  verglichen. Je Uebung gibt es einen laufenden Bestwert.
+  - besser als der Bestwert (mehr Gewicht, oder gleiches Gewicht und mehr
+    Wdh) = **Steigerung**, Zaehler der Gruppe beginnt neu.
+  - weniger Gewicht als der Bestwert = **Neuanfang** (bewusst
+    zurueckgegangen), Zaehler beginnt ebenfalls neu, der neue Wert ist der
+    Bestwert.
+  - erstes Mal in dieser Uebung = Neuanfang.
+  - sonst (gleich, oder gleiches Gewicht mit weniger Wdh) = **keine
+    Steigerung**. 60x10, 60x9, 60x10 sind also drei Einheiten ohne
+    Steigerung.
+- **Zaehler der Gruppe** = Anzahl der juengsten Einheiten seit (und
+  einschliesslich) der letzten Steigerung bzw. dem letzten Neuanfang.
+  Erinnerung ab Zaehler 3 (Konstante `STILLSTAND_EINHEITEN = 3`).
+- **Oben im Bereich:** letzte Einheit der Uebung auf der Karte, alle dort
+  gespeicherten Saetze mit Wdh >= Obergrenze.
+- **Heute zaehlt mit**, sobald heute ein Satz gespeichert ist. Vor dem
+  ersten Satz gilt die Erinnerung fuer heute; danach fuer das naechste Mal
+  (wie der bestehende Knopf). Wer heute 12 schafft oder zum dritten Mal
+  gleich bleibt, sieht die Erinnerung direkt nach dem Speichern.
+- **Keine Erinnerung**, wenn die Person die Uebung schon markiert hat oder
+  die Erinnerung in den Einstellungen aus ist.
+- **Ohne gespeicherten Bereich** gilt 8-12.
 
 ## Fund im bestehenden Steigern-Knopf (wird mit repariert)
 
@@ -57,40 +102,39 @@ kommt kuenftig aus den Daten (Merker an den Saetzen), nie aus der Ansicht.
 1. **Analyse (nur lesen):** neues Skript `scripts/wdh-bereiche.mjs` liest die
    setLogs der letzten 6 Monate aus der Cloud (Zugang wie
    `uebungen-cloud.mjs`) und schlaegt je Uebung und Person einen Bereich vor.
-   Regel: Satz-Wdh ohne `null`; liegen fast alle Werte in 8-12, bleibt 8-12;
-   sonst unteres und oberes typisches Ende (z.B. 10.- und 90.-Perzentil,
-   gerundet). Ausgabe als Tabelle fuer Gabriel. **Gabriel bestaetigt oder
-   korrigiert die Tabelle**, erst dann Schritt 4.
+   Liegen fast alle Wdh in 8-12, bleibt 8-12; sonst unteres und oberes
+   typisches Ende (z.B. 10.- und 90.-Perzentil, gerundet). Ausgabe als
+   Tabelle fuer Gabriel. **Gabriel bestaetigt oder korrigiert die Tabelle**,
+   erst dann Schritt 4.
 2. **Regeln + Vertrag zuerst:** `src/utils/steigerung.js` mit
-   `scripts/steigerung-test.mjs` (in `.claude/pruefen.txt`):
-   - `einheiten(saetze)`: je Datum der beste Satz (schwerstes Gewicht, bei
-     Gleichstand die meisten Wdh).
-   - `istSteigerung(vorher, nachher)` nach Frage 1.
-   - `stillstandZaehler(einheiten)` nach Frage 2.
-   - `obenImBereich(letzteEinheit, bereich)` nach Frage 5.
-   - `erinnerung({ saetze, bereich, aktiv, markiert })` liefert
-     `{ faellig, grund: 'oben' | 'stillstand', zaehler }`.
-   - Faelle: Wechsel zwischen Alternativen, Rueckschritt (Deload), Wdh `null`,
-     0 kg (Koerpergewicht), mehrere Saetze am selben Tag, heute mitgezaehlt
-     bzw. nicht, schon markiert = keine Erinnerung, Einstellung aus = keine,
-     kein Bereich = 8-12, Kommawerte (61,25).
+   `scripts/steigerung-test.mjs` (in `.claude/pruefen.txt`), Regeln wie
+   oben: `einheitenDerGruppe`, `istSteigerung`, `stillstandZaehler`,
+   `obenImBereich`, `erinnerung({ ... })` liefert
+   `{ faellig, grund: 'oben' | 'stillstand', zaehler }`.
+   Faelle mindestens: Gabriels Beispiel (3x 60x10 -> 4. Mal), Wechsel
+   zwischen den Uebungen einer Gruppe, 60x10/60x9/60x10, Neuanfang mit
+   weniger Gewicht, erstes Mal, Wdh `null`, 0 kg, mehrere Saetze am selben
+   Tag, alle Saetze vs. nur Satz 1 oben, heute mit/ohne Satz, schon
+   markiert, Einstellung aus, kein Bereich = 8-12, Kommawerte (61,25),
+   Uebung ohne Alternativen.
 3. **Speicherorte (gesynct, keine Schema-Aenderung):**
    - Einstellung: `db.meta` `steigernErinnerung_<userId>`; fehlt = an. Im
      auth store wie `satzZahl` (`stores/auth.js`).
    - Bereich: `db.meta` `wdhBereich_<userId>_<exerciseId>` = `{ min, max }`
      (ein Eintrag je Paar, damit zwei Handys sich nicht gegenseitig
-     ueberschreiben). Bei "fuer alle gleich" (Frage 4) je Person derselbe
-     Wert.
+     ueberschreiben). Bei "fuer alle gleich" je Person derselbe Wert.
 4. **Startwerte schreiben:** `scripts/wdh-bereiche.mjs --jetzt` schreibt die
    bestaetigte Tabelle in die Cloud. Ohne `--jetzt` Trockenlauf, vorher
    Sicherung nach `privat\`.
 5. **Karte (`TrackingView.vue`):** je Person und Uebung drei Zustaende
    `aus | erinnern | markiert`, berechnet in `ladeVorschlag` (laeuft schon je
-   Uebung und Person). Nach jedem gespeicherten Satz neu rechnen: Wer heute
-   12 schafft, sieht die Erinnerung sofort fuer das naechste Mal. Ein Tipp
-   ruft wie bisher `toggleIncreaseNextTime`, danach `ladeVorschlag`.
-   `increaseToggles` entfaellt. Knopf-Text fuer Vorleseprogramme nennt den
-   Grund ("12 Wdh erreicht" / "3 Mal gleich").
+   Uebung und Person, auch fuer die Ring-Uebungen). Gruppe = `ringFuer(ex)`.
+   Nach jedem gespeicherten Satz und nach "Rueckgaengig" neu rechnen. Ein
+   Tipp ruft wie bisher `toggleIncreaseNextTime`, danach `ladeVorschlag`.
+   `increaseToggles` entfaellt. Pulsring als `::after` mit `transform` und
+   `opacity` (wie im Entwurf), bei `prefers-reduced-motion` ein ruhender
+   Ring; Farben ohne `color-mix`. Knopf-Text fuer Vorleseprogramme nennt
+   den Grund ("12 Wdh erreicht" / "3 Mal ohne Steigerung").
 6. **Einstellungen (`SettingsView.vue`):** Abschnitt "Steigern-Erinnerung"
    unter "Saetze je Uebung", je Person An/Aus, gleiche Knopf-Optik.
 7. **Bereich ansehen und aendern (`ExerciseDetail.vue`):** Zeile
@@ -117,15 +161,17 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
 - **Datenverlust:** keiner absehbar. Nur neue `meta`-Eintraege, Dexie-Schema
   bleibt v4, alte Saetze werden nur gelesen. Ein Handy auf alter Version
   ignoriert die neuen Eintraege.
-- **Wechsel zwischen Alternativen** macht die Stillstand-Erinnerung selten
-  (Frage 3). Die Regel "oben im Bereich" greift trotzdem bei jeder Einheit.
+- **Mehrere pulsierende Karten** koennen unruhig wirken. Gabriels Wahl; faellt
+  es im Studio auf, ist "nur die ersten Sekunden pulsieren" eine kleine
+  Aenderung.
+- **Gruppe auf zwei Trainingstagen mit unterschiedlichen Alternativen:** Die
+  Gruppe ist immer der Ring der gerade gezeigten Karte. Zwei leicht
+  verschiedene Ringe koennen so leicht verschieden zaehlen.
 - **Uebungen ohne Historie** starten mit 8-12. Liegt eine solche Uebung
   bewusst hoeher, erinnert die App zu frueh, bis der Bereich angepasst ist.
 - **Koerpergewicht-Uebungen (0 kg):** "steigern" heisst dort +1 kg wie heute.
   Falls das stoert: Erinnerung dort nur fuer "oben im Bereich".
-- **Die Wdh-Luecke** (Saetze ohne Wdh) zaehlt nicht fuer "oben im Bereich".
-- Annahme: Die Erinnerung bezieht sich immer auf die naechste Einheit, wie
-  der bestehende Knopf (vor dem ersten Satz = heute, danach = naechstes Mal).
+- Annahme Frage 7 (ausgelassene Gruppe zaehlt nicht), bis Gabriel antwortet.
 
 ## Nicht enthalten
 
@@ -139,14 +185,17 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
 
 - [ ] Vertrag `steigerung-test.mjs` gruen, im Gate eingetragen.
 - [ ] Analyse-Tabelle von Gabriel bestaetigt, Startwerte in der Cloud.
-- [ ] Nach 3 Einheiten ohne Steigerung (Zaehlung nach Frage 2) zeigt die
-      Karte die Erinnerung, nur bei der betroffenen Person.
-- [ ] Wer beim letzten Mal am oberen Ende war, sieht die Erinnerung.
-- [ ] Wer heute oben ankommt, sieht sie direkt nach dem Speichern.
+- [ ] 3x 60x10 in einer Gruppe (auch verteilt auf deren Uebungen) -> beim 4.
+      Training pulsiert der Ring, nur bei der betroffenen Person.
+- [ ] Ein gestartetes und ohne Satz beendetes Training aendert den Zaehler
+      nicht.
+- [ ] Wer beim letzten Mal in allen Saetzen am oberen Ende war, sieht die
+      Erinnerung; wer heute dort ankommt, sieht sie direkt nach dem Speichern.
 - [ ] Ein Tipp nimmt an: Vorschlag +1 Schritt sofort, Knopf "markiert",
       auch nach Neustart der App noch "markiert".
 - [ ] Einstellung "aus" blendet die Erinnerung fuer diese Person auf allen
       Geraeten aus; neue Installation = an.
 - [ ] Wdh-Bereich in der Detailansicht sichtbar und aenderbar.
-- [ ] Bei 360 px mit zwei Personen kein Umbruch durch das neue Symbol.
+- [ ] Bei 360 px mit zwei Personen kein Umbruch durch das neue Symbol;
+      bei reduzierter Bewegung ruhender Ring.
 - [ ] v2.16-Regression gruen, Version 2.17.0 in den Einstellungen.
