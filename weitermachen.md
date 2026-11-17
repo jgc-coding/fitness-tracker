@@ -23,9 +23,8 @@
   Bestaetigen, Neuladen, Einstieg mittendrin, History-Zeile 9/≈13/≈17,
   Punkt nur bei Notiz, Tages-Detail, Rad startet beim errechneten Tag,
   Verlauf samt Ablesezeile, andere Person ohne Zyklus, Version 2.16.0).
-  Dazu der v2.15-Test (58 Pruefungen) als Regression gruen. Nicht
-  geprueft: echtes Handy, Sperrbildschirm (V17 nur am Geraet testbar),
-  Sync zwischen zwei Handys.
+  Dazu der v2.15-Test (58 Pruefungen) als Regression gruen. Am Handy hat
+  Gabriel alle Versionen bis 2.16.0 getestet, alles laeuft (17.11.2026).
 - **Rueckkehrpunkte:** `c125c34` (vor dieser Sitzung, v2.15.0), `460ba37`
   (v2.14.1), `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f`
   (v2.12.0), `8eaa3de` (v2.11.0), `6deda0f` (v2.10.0), `01031c1` (v2.6.0).
@@ -74,73 +73,35 @@
 
 ## Naechste Schritte (Claude)
 0. **Bestellt 17.11.2026, Umsetzung ab 18.11.: Steigern-Erinnerung (v2.17.0).**
-   Plan `docs/plan-steigern-erinnerung.md`, Symbol-Entwuerfe
-   `docs/entwuerfe/steigern-symbol-varianten.html`. NICHT starten, bevor
-   Gabriel die sechs offenen Fragen im Plan beantwortet hat (Symbol-Wahl,
-   Zaehlweise, je Uebung oder Gruppe, Bereich je Person, mehrere Saetze).
-   Noch nichts umgesetzt, nichts an der Cloud gelesen.
-1. **Meldet Gabriel Probleme aus v2.16.0** (Checkliste
-   `docs/tests/v2.16.0-handy.md`): Regeln zuerst in
-   `scripts/zyklustag-test.mjs` (`zyklusTageFuerDaten`,
-   `brauchtZyklusStempel`, `zyklusStempel`); Store `zyklusPatch` in
-   `stores/workout.js`; Oberflaeche `TrackingView.vue` (`.zyklus-zeile`,
-   `zyklusErrechnet`, `saveNeuerZyklus`), `HistoryView.vue`
-   (`zyklusZeile`, `logCycleErrechnet`), `UebungsVerlauf.vue`
-   (`ladeZyklus`); V17 in `public/sw-custom.js` (`istVeraltet`) und
-   `App.vue`. Bewusst NICHT gebaut (moegliche Wuensche): Zyklusphasen als
-   Farbflaechen im Diagramm, Auswertung nach Zyklustag, Zyklustag auf der
-   Trainingskarte, Bestaetigen ausserhalb eines Trainings.
-2. **Meldet Gabriel Probleme aus v2.15.0** (Checkliste
-   `docs/tests/v2.15.0-handy.md`): Regeln zuerst in `scripts/saetze-test.mjs`
-   (`auslassenAb`, `wirksamAusgelassen`, `satzStand`) bzw.
-   `scripts/auswertung-test.mjs`; Oberflaeche in `TrackingView.vue`
-   (`lasseAus`, `oeffneWieder`, `.picker-aktionen`),
-   `components/history/AuswertungsAnsicht.vue`, `VerlaufMini.vue`.
-   Moegliche Wuensche danach: ein gemeinsames Prozent-Diagramm fuer
-   hoechstens 8 Uebungen, Auslassen auch fuer Personen mit einem Satz.
-3. **Meldet Gabriel Probleme aus v2.14.0** (Checkliste
-   `docs/tests/v2.14.0-handy.md`): Regeln zuerst in
-   `scripts/gewicht-pro-seite-test.mjs` bzw. `saetze-test.mjs`
-   (`rueckgaengigSchritt`), Oberflaeche in `TrackingView.vue`
-   (`zeigeRueckgaengig`, `macheRueckgaengig`, Raeder in `.wheels-row`).
-   Hat user1 nach dem 16.10. noch auf einer alten Version pro Seite
-   eingetragen: nur diese Saetze mit `--bis` UND `--ohne` gezielt umrechnen,
-   nie blind erneut. Rueckweg: `--zurueck --jetzt`.
-4. **Meldet Gabriel Probleme aus v2.13.0** (Checkliste
-   `docs/tests/v2.13.0-handy.md`): Fehlt die Uebung, mit `uebungen-cloud.mjs`
-   den Cloud-Bestand lesen (doppelt? fehlt?). Stoert der doppelte Fuss: ein
-   vierter Auftrag im Chat "Create Fitness Illustration" ("keep START, make
-   the base frame in END identical"), neu messen, `neu-17`, Vertrag zuerst.
-5. **Meldet Gabriel Probleme aus v2.12.0** (Checkliste
-   `docs/tests/v2.12.0-handy.md`): Regeln zuerst in
-   `scripts/laufeintrag-test.mjs` bzw. `zyklustag-test.mjs`, Oberflaeche in
-   `RunSpontanForm.vue`, `ZyklusTagFeld.vue`, `RunSessionSheet.vue`.
-6. **Meldet Gabriel Probleme aus v2.11.0** (Checkliste
-   `docs/tests/v2.11.0-handy.md`): Ziehen in `onTagZiehStart`/`onTagBewegung`
-   (`PlanningView.vue`), Regeln zuerst im Vertrag
-   `scripts/planreihenfolge-test.mjs`.
-7. **Meldet Gabriel Probleme aus v2.10.0** (Checkliste
-   `docs/tests/v2.10.0-handy.md`): Wechsel in `wechsleKarte`/`onCardTouchEnd`
-   (`TrackingView.vue`), Regeln zuerst im Ring-Vertrag. Zeigt ein Handy
-   "Person 1": Sync angemeldet? `meta/userName_*` per REST pruefen.
-8. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
+   Plan `docs/plan-steigern-erinnerung.md` (Gabriels Entscheidungen stehen
+   drin, Symbol = Variante 1 pulsierender Ring), Symbol-Entwuerfe
+   `docs/entwuerfe/steigern-symbol-varianten.html`. Offen nur Frage 7
+   (zaehlt ein Training mit ausgelassener Gruppe mit? Annahme: nein) —
+   zu Beginn kurz bestaetigen lassen. Erster Schritt ist die Analyse der
+   Wdh-Bereiche, deren Tabelle Gabriel freigibt. Noch nichts umgesetzt,
+   nichts an der Cloud gelesen.
+1. **Handy-Tests v2.10.0 bis v2.16.0 bestanden** (Gabriel 17.11.2026: "alle
+   alten Versionen getestet, alles funktioniert"). Kommt doch noch etwas:
+   Regeln stehen in der CLAUDE.md, Aenderungen je Version im CHANGELOG,
+   Checklisten unter `docs/tests/`.
+2. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
    `verbesserungen.md`.
-9. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
+3. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
    `utils/trainingGeraet.js`; v2.8 `UebungsVerlauf.vue`; v2.7
    `StartNutzerwahl.vue`, `resetActiveUsers`; v2.4 Tastatur `Modal.vue`,
    Saetze `scripts/saetze-test.mjs`; Quick-Log `buildNotificationQuickLog`,
    `public/sw-custom.js`; v2.5 `PlanningView.vue`; v2.6 Bilder nach
    `docs/uebungsbilder-chatgpt.md`. Neue Uebungen: zuerst `uebungen-cloud.mjs`.
-10. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
+4. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
     Schraegbank-Kurzhantel-Druecken); Herunterladen nur mit Gabriels Ja.
-11. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
+5. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
     `docs/laufplan-vorgaben.md` Abschnitt 5; Garmin-Abgleich zuerst in
     `scripts/runmatch-test.mjs`.
-12. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
+6. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
     Regeln in `docs/laufplan-format.md` Abschnitt 5) — seit v2.12 mit
     Zyklustag (`feedback.cycleDay`) und ungeplanten Laeufen ("Stattdessen: ...").
-13. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
-14. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
+7. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
+8. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
     ausdruecklicher Freigabe.
 
 ## Offen
@@ -154,31 +115,8 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **v2.16.0 auf BEIDE Handys holen und testen** (seit 2026-11-14)
-  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.16.0.
-  Dann `docs/tests/v2.16.0-handy.md` abhaken (Zyklustag oben im Training,
-  Zeile "Zyklustag" in der History, alte Sperrbildschirm-Meldung). Mit
-  2.16.0 sind auch alle frueheren Versionen auf dem Handy.
-- [ ] **v2.15.0 auf BEIDE Handys holen und testen** (seit 2026-11-12)
-  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.15.0.
-  Dann `docs/tests/v2.15.0-handy.md` abhaken (Auslassen mit der Person mit
-  3 Saetzen, History -> Auswertung). Ein Handy auf alter Version zeigt
-  ausgelassene Saetze nur als offen — nichts geht verloren.
-- [ ] **v2.14.1 auf BEIDE Handys holen, vor dem naechsten Training von user1** (seit 2026-10-17)
-  Beide Handys ganz schliessen und neu oeffnen, unter Settings steht 2.14.1.
-  Eine alte Version zeigt die Werte von user1 schon verdoppelt, aber ohne
-  "Pro Seite" — dort wuerde wieder pro Seite eingetragen. Danach
-  `docs/tests/v2.14.0-handy.md` abhaken.
-- [ ] **v2.13.0 aufs Handy holen und testen** (seit 2026-10-09)
-  Beide Handys ganz schliessen und neu oeffnen. An EINEM Handy (angemeldet,
-  online): Einstellungen -> "Standard-Uebungen laden", dann "Bilder
-  automatisch zuordnen". Danach `docs/tests/v2.13.0-handy.md` abhaken.
-- [ ] **v2.12.0 am Handy testen** (seit 2026-10-07)
-  Beide Handys ganz schliessen und neu oeffnen, dann
-  `docs/tests/v2.12.0-handy.md` abhaken. Erst wenn beide 2.12.0 zeigen,
-  Rueckmeldungen mit Zyklustag aendern.
-- [ ] **v2.10.0 und v2.11.0 am Handy testen** (seit 2026-10-04)
-  Beide Handys ganz schliessen und neu oeffnen, dann die Checklisten
-  `docs/tests/v2.10.0-handy.md` und `docs/tests/v2.11.0-handy.md` abhaken.
+- [ ] **Frage 7 zur Steigern-Erinnerung beantworten** (seit 2026-11-17)
+  Zaehlt ein Training, in dem die Gruppe ausgelassen wurde, fuer diese
+  Gruppe mit? Steht in `docs/plan-steigern-erinnerung.md`.
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
