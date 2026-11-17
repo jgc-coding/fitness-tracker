@@ -75,9 +75,9 @@
 0. **Bestellt 17.11.2026, Umsetzung ab 18.11.: Steigern-Erinnerung (v2.17.0).**
    Plan `docs/plan-steigern-erinnerung.md` (Gabriels Entscheidungen stehen
    drin, Symbol = Variante 1 pulsierender Ring), Symbol-Entwuerfe
-   `docs/entwuerfe/steigern-symbol-varianten.html`. Offen nur Frage 7
-   (zaehlt ein Training mit ausgelassener Gruppe mit? Annahme: nein) —
-   zu Beginn kurz bestaetigen lassen. Erster Schritt ist die Analyse der
+   `docs/entwuerfe/steigern-symbol-varianten.html`. Alle Fragen sind
+   beantwortet (auch Frage 7: ausgelassene Gruppe zaehlt nicht), der Plan
+   kann starten. Erster Schritt ist die Analyse der
    Wdh-Bereiche, deren Tabelle Gabriel freigibt. Noch nichts umgesetzt,
    nichts an der Cloud gelesen.
 1. **Handy-Tests v2.10.0 bis v2.16.0 bestanden** (Gabriel 17.11.2026: "alle
@@ -115,8 +115,5 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **Frage 7 zur Steigern-Erinnerung beantworten** (seit 2026-11-17)
-  Zaehlt ein Training, in dem die Gruppe ausgelassen wurde, fuer diese
-  Gruppe mit? Steht in `docs/plan-steigern-erinnerung.md`.
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.

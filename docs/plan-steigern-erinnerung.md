@@ -40,13 +40,10 @@ Schritt hoch (1,25 kg bzw. 1 kg), der Knopf zeigt "selbst markiert".
 5. **Mehrere Saetze (user1: 3):** "oben im Bereich" erst, wenn ALLE Saetze
    der letzten Einheit oben angekommen sind.
 6. **Symbol:** Variante 1, pulsierender Ring.
-
-## Noch zu bestaetigen (Frage 7)
-
-Laesst die Person die Gruppe in einem Training aus, macht aber andere
-Uebungen: Zaehlt dieses Training fuer die Gruppe mit? **Annahme bis zur
-Antwort: nein.** Es zaehlt nur, wenn in der Gruppe selbst ein Satz
-gespeichert wurde, denn nur dann gibt es Gewicht x Wdh zum Vergleichen.
+7. **Ausgelassene Gruppe zaehlt nicht:** Laesst die Person die Gruppe in
+   einem Training aus und macht andere Uebungen, aendert das den Zaehler
+   dieser Gruppe nicht. Es zaehlt nur, wenn in der Gruppe selbst ein Satz
+   gespeichert wurde, denn nur dann gibt es Gewicht x Wdh zum Vergleichen.
 
 ## Regeln im Detail (Vertrag zuerst)
 
@@ -171,7 +168,6 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
   bewusst hoeher, erinnert die App zu frueh, bis der Bereich angepasst ist.
 - **Koerpergewicht-Uebungen (0 kg):** "steigern" heisst dort +1 kg wie heute.
   Falls das stoert: Erinnerung dort nur fuer "oben im Bereich".
-- Annahme Frage 7 (ausgelassene Gruppe zaehlt nicht), bis Gabriel antwortet.
 
 ## Nicht enthalten
 
@@ -188,7 +184,7 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
 - [ ] 3x 60x10 in einer Gruppe (auch verteilt auf deren Uebungen) -> beim 4.
       Training pulsiert der Ring, nur bei der betroffenen Person.
 - [ ] Ein gestartetes und ohne Satz beendetes Training aendert den Zaehler
-      nicht.
+      nicht, ein Training mit ausgelassener Gruppe ebenso wenig.
 - [ ] Wer beim letzten Mal in allen Saetzen am oberen Ende war, sieht die
       Erinnerung; wer heute dort ankommt, sieht sie direkt nach dem Speichern.
 - [ ] Ein Tipp nimmt an: Vorschlag +1 Schritt sofort, Knopf "markiert",
