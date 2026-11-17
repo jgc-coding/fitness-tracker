@@ -73,6 +73,12 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
+0. **Bestellt 17.11.2026, Umsetzung ab 18.11.: Steigern-Erinnerung (v2.17.0).**
+   Plan `docs/plan-steigern-erinnerung.md`, Symbol-Entwuerfe
+   `docs/entwuerfe/steigern-symbol-varianten.html`. NICHT starten, bevor
+   Gabriel die sechs offenen Fragen im Plan beantwortet hat (Symbol-Wahl,
+   Zaehlweise, je Uebung oder Gruppe, Bereich je Person, mehrere Saetze).
+   Noch nichts umgesetzt, nichts an der Cloud gelesen.
 1. **Meldet Gabriel Probleme aus v2.16.0** (Checkliste
    `docs/tests/v2.16.0-handy.md`): Regeln zuerst in
    `scripts/zyklustag-test.mjs` (`zyklusTageFuerDaten`,
