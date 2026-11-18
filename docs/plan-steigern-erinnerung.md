@@ -214,7 +214,7 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
   Regression (P5). Deploy macht der Abschluss nach der Abnahme.
 
 ## Pakete
-- [ ] P1: Regeln der Steigern-Erinnerung stehen als Vertrag
+- [x] P1: Regeln der Steigern-Erinnerung stehen als Vertrag
   - Wie: Schritt 2 und "Regeln im Detail". Zuerst `scripts/steigerung-test.mjs` im Stil von `scripts/zyklustag-test.mjs`, dann `src/utils/steigerung.js` als reine Funktionen (`einheitenDerGruppe`, `istSteigerung`, `stillstandZaehler`, `obenImBereich`, `erinnerung` mit Rueckgabe `{ faellig, grund, zaehler }`, Konstante `STILLSTAND_EINHEITEN = 3`, Standardbereich 8-12). Eingaben sind setLogs in der Form, die `src/composables/useHistory.js` schon liest; Gewichte als Zahl mit Komma-Werten wie 61.25 ohne Rundung.
   - Kriterium: `node ./scripts/steigerung-test.mjs` gruen und je mindestens ein Fall fuer jede Aufzaehlung aus Schritt 2 des Plans
   - Kriterium: Ein Fall belegt Entscheidung 7: Ein Tag mit Saetzen nur in Uebungen ausserhalb der Gruppe aendert deren Zaehler nicht
