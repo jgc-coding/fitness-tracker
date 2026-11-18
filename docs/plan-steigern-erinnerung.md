@@ -195,3 +195,52 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
 - [ ] Bei 360 px mit zwei Personen kein Umbruch durch das neue Symbol;
       bei reduzierter Bewegung ruhender Ring.
 - [ ] v2.16-Regression gruen, Version 2.17.0 in den Einstellungen.
+
+## Ablauf mit dem Autopiloten (2026-11-18)
+
+- **Schritt 1 und 4 laufen NICHT im Autopiloten**, sondern in der
+  Begleitsitzung: Die Tabelle braucht Gabriels Freigabe, und das Schreiben
+  in die Cloud geschieht nur danach. Das Skript `scripts/wdh-bereiche.mjs`
+  liegt darum schon fertig im Repo.
+- **Kein Paket-Lauf liest oder schreibt die echte Cloud.** Nie
+  `scripts/wdh-bereiche.mjs`, `uebungen-*.mjs` oder `lauf-cloud.mjs`
+  ausfuehren; Browser-Tests nur auf einer frischen `*.localhost`-Subdomain
+  ohne Anmeldung (CLAUDE.md, "Deploy und Umgebung").
+- **Version und CHANGELOG** setzt allein P5: Das Projekt hat keine Datei
+  VERSION, die Version steht in `package.json`. P1 bis P4 aendern beides nicht.
+- Paketfolge: Regeln (P1) -> Speicherorte und Ansichten fuer Einstellung und
+  Bereich (P2) -> Karte (P3) -> Browser-Test (P4) -> Release-Doku und
+  Regression (P5). Deploy macht der Abschluss nach der Abnahme.
+
+## Pakete
+- [ ] P1: Regeln der Steigern-Erinnerung stehen als Vertrag
+  - Wie: Schritt 2 und "Regeln im Detail". Zuerst `scripts/steigerung-test.mjs` im Stil von `scripts/zyklustag-test.mjs`, dann `src/utils/steigerung.js` als reine Funktionen (`einheitenDerGruppe`, `istSteigerung`, `stillstandZaehler`, `obenImBereich`, `erinnerung` mit Rueckgabe `{ faellig, grund, zaehler }`, Konstante `STILLSTAND_EINHEITEN = 3`, Standardbereich 8-12). Eingaben sind setLogs in der Form, die `src/composables/useHistory.js` schon liest; Gewichte als Zahl mit Komma-Werten wie 61.25 ohne Rundung.
+  - Kriterium: `node ./scripts/steigerung-test.mjs` gruen und je mindestens ein Fall fuer jede Aufzaehlung aus Schritt 2 des Plans
+  - Kriterium: Ein Fall belegt Entscheidung 7: Ein Tag mit Saetzen nur in Uebungen ausserhalb der Gruppe aendert deren Zaehler nicht
+  - Kriterium: pruefen.txt gruen (die Zeile fuer `steigerung-test.mjs` steht schon darin)
+- [ ] P2: Erinnerung und Wdh-Bereich sind je Person einstellbar
+  - Wie: Schritt 3, 6 und 7. Einstellung `steigernErinnerung_<userId>` in `db.meta` ueber `src/stores/auth.js` wie `satzZahl` (fehlt = an). Bereich `wdhBereich_<userId>_<exerciseId>` als `{ min, max }` (fehlt = 8-12), Lesen und Schreiben an genau einer Stelle, die P3 wiederverwendet. Einstellungen: Abschnitt "Steigern-Erinnerung" unter "Saetze je Uebung", je Person An/Aus in derselben Knopf-Optik. `ExerciseDetail.vue`: Zeile "Wdh-Bereich 8-12" je Person, Tipp oeffnet zwei kleine Zahlen-Raeder als Unteransicht (nie ein zweites Modal, CLAUDE.md), min kleiner als max.
+  - Kriterium: Dexie-Schema bleibt v4 ohne neue Tabelle; die neuen Werte sind reine `db.meta`-Eintraege und laufen ueber den bestehenden Sync
+  - Kriterium: Die Einstellungen zeigen "Steigern-Erinnerung" je Person, Standard an, Umschalten schreibt `steigernErinnerung_<userId>`
+  - Kriterium: Die Detailansicht zeigt je Person den gespeicherten Bereich oder 8-12 und speichert eine Aenderung als `wdhBereich_<userId>_<exerciseId>`
+  - Kriterium: pruefen.txt gruen
+- [ ] P3: Der Steigern-Knopf erinnert mit pulsierendem Ring und merkt sich "markiert"
+  - Wie: Schritt 5 und "Fund im bestehenden Steigern-Knopf". Je Person und Uebung `aus | erinnern | markiert`, berechnet in `ladeVorschlag` mit `erinnerung` aus P1, Gruppe = `ringFuer(ex)`, Einstellung und Bereich ueber die Stelle aus P2. `increaseToggles` entfaellt, "markiert" kommt aus dem Merker, den `toggleIncreaseNextTime` in `src/stores/workout.js` setzt. Nach jedem gespeicherten Satz, nach "Rueckgaengig" (`undoSet`) und nach jedem Tipp auf den Knopf `ladeVorschlag` erneut. Ring als `::after` mit `transform` und `opacity` wie Variante 1 in `docs/entwuerfe/steigern-symbol-varianten.html`, Personenfarbe ohne `color-mix`, bei `prefers-reduced-motion: reduce` ruhend. `aria-label` nennt den Grund ("12 Wdh erreicht" bzw. "3 Mal ohne Steigerung").
+  - Kriterium: `increaseToggles` kommt in `src/` nicht mehr vor, und `.increase-icon-btn` samt Ring nutzt kein `color-mix`
+  - Kriterium: Ein Tipp vor dem ersten Satz von heute laedt den Vorschlag sofort um einen Schritt hoeher (1,25 kg bei Barbell und Machine-Weight, sonst 1 kg)
+  - Kriterium: "markiert" wird aus den gespeicherten Daten gelesen und ueberlebt so einen Neustart der App
+  - Kriterium: Der Ring erscheint nur bei der Person, fuer die `erinnerung` faellig ist, und nie bei ausgeschalteter Einstellung oder schon markierter Uebung
+  - Kriterium: pruefen.txt gruen
+- [ ] P4: Ein Browser-Test bei 360 px belegt die Erinnerung
+  - Wie: Headless-Chrome per DevTools-Protokoll gegen den Produktions-Build (`npm run build`, Vorschau-Server mit eigenem Port und `--strictPort`), frische `*.localhost`-Subdomain ohne Anmeldung, Testdaten per Backup-Import. Vorlagen aus der Sitzung vom 14.11.: `privat/browsertests/cdp.mjs`, `privat/browsertests/v216-test.mjs`. Den Chrome-Profilordner legt das Testskript selbst an und raeumt ihn selbst per `fs.rmSync` auf, genau wie die Vorlagen (nie unter AppData, CLAUDE.md-Stolperfalle "Headless-Chrome"). Neuer Test `privat/browsertests/v217-test.mjs`. Findet er Fehler in P1 bis P3, dort beheben und den Vertrag aus P1 um den Fall ergaenzen. Bericht `docs/tests/v2.17.0-browsertest.md` mit Ergebnis je Pruefung, nur user1-3, keine Namen, keine Benutzerpfade.
+  - Kriterium: `node privat/browsertests/v217-test.mjs` gruen mit je einer Pruefung fuer: 3x 60x10 in einer Gruppe, auch verteilt auf deren Uebungen, ergibt beim 4. Training den Ring nur bei der betroffenen Person; ein Training ohne Satz und eines mit ausgelassener Gruppe aendern nichts; oben im Bereich beim letzten Mal; oben im Bereich heute direkt nach dem Speichern; Tipp nimmt an (Vorschlag sofort einen Schritt hoeher, "markiert", nach Neuladen weiter "markiert"); Einstellung aus blendet den Ring aus; Wdh-Bereich in der Detailansicht sichtbar und aenderbar
+  - Kriterium: Derselbe Test belegt bei 360 px mit zwei Personen keinen Zeilenumbruch durch das Symbol und bei emuliertem `prefers-reduced-motion` einen ruhenden Ring
+  - Kriterium: pruefen.txt gruen
+- [ ] P5: Version 2.17.0 mit Doku, Handy-Checkliste und gruener Regression
+  - Wie: Rest von Schritt 8 ohne Deploy. `package.json` auf 2.17.0; CHANGELOG-Eintrag 2.17.0 vom 2026-11-18 im Format des Eintrags 2.16.0 (der Runner schreibt hier keinen, weil VERSION fehlt). Regel-Abschnitt "Steigern-Erinnerung" in der CLAUDE.md unter "Architektur: Kraft-Training", nur dauerhafte Regeln mit Funktionsnamen, und `steigerung` in die utils-Liste der Dateistruktur. `docs/tests/v2.17.0-handy.md` im Stil von `docs/tests/v2.16.0-handy.md` mit jedem Akzeptanzkriterium, das nur am Handy pruefbar ist (Pulsieren, Tippgefuehl, zwei Handys). Regression: `privat/browsertests/v216-test.mjs` und `privat/browsertests/v215-regress.mjs`, angepasst nur dort, wo 2.17.0 gewollt anders ist (etwa die Versionsnummer), mit Begruendung im Bericht aus P4.
+  - Kriterium: `package.json` steht auf 2.17.0, und `node privat/browsertests/v217-test.mjs` findet 2.17.0 in den Einstellungen
+  - Kriterium: CHANGELOG hat genau einen Eintrag 2.17.0, der die Erinnerung, die Einstellung, den Wdh-Bereich und die drei Reparaturen am Steigern-Knopf nennt
+  - Kriterium: Die CLAUDE.md enthaelt den Regel-Abschnitt und bleibt unter 30.000 Zeichen
+  - Kriterium: `docs/tests/v2.17.0-handy.md` existiert und nennt jedes Akzeptanzkriterium des Plans, das nur am Handy pruefbar ist
+  - Kriterium: `node privat/browsertests/v216-test.mjs` und `node privat/browsertests/v215-regress.mjs` gruen
+  - Kriterium: pruefen.txt gruen
