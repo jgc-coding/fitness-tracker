@@ -2,7 +2,7 @@
 
 ## Stand
 
-- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09)
+- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09) · P4 (18.11. 07:16)
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
   "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
@@ -125,22 +125,20 @@
 
 ## Autopilot-Protokoll
 
-Plan plan-steigern-erinnerung.md P3 (Der Steigern-Knopf erinnert mit pulsierendem Ring und merkt sich "markiert") — abgeschlossen 18.11.2026 07:09 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
+Plan plan-steigern-erinnerung.md P4 (Ein Browser-Test bei 360 px belegt die Erinnerung) — abgeschlossen 18.11.2026 07:16 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
 
 Funktioniert (mit Beleg):
-- node ./scripts/steigerung-test.mjs: alle 112 Faelle gruen (neu S24 markiert aus Daten, S25 Ring nie bei aus/markiert, S26 Texte)
-- Gesamtes Gate .claude/pruefen.txt einzeln ausgefuehrt: alle Tests gruen, npm run build gruen
-- Grep "increaseToggles" in src/: 0 Treffer
-- dist TrackingView-*.css: .increase-icon-btn-Regeln ohne color-mix, Keyframes und reduced-motion-Regel vorhanden
+- node privat/browsertests/v217-test.mjs -> "45 von 45 Pruefungen gruen", "alles gruen" (nach npm run build)
+- Alle Befehle aus .claude/pruefen.txt einzeln gruen (steigerung-test 114 Faelle, npm run build ok)
+- Foto 01-ring-360px.png angesehen: Ring bei user2 (KH, Kniebeuge) und user1 (Curl), nichts bricht um
 Fehlversuche (mit exaktem Grund):
-- keine
+- Erster Lauf: Animationsname am ::after heisst "steigern-puls-<hash>" (Vue scoped) -> Pruefung auf startsWith umgestellt
+- Erster Lauf: "Curl user1 ohne Ring nach Schliessen der Detailansicht" rot -> echter Fund, in TrackingView behoben (watch auf showExerciseDetail)
+- Einstellungs-Warten auf aria-label "... fuer Zwei" vor dem Import scheiterte (Namen noch "Person n") -> auf Anzahl der Gruppen umgestellt
 Noch nicht probiert:
-- Browser-Test (gehoert zu P4): Tipp vor dem ersten Satz -> Vorschlag +1 Schritt sofort; Ring nur bei faelliger Person; markiert nach Reload. Der Weg ist per Code belegt: toggleIncreaseNextTime setzt den Merker an der letzten Einheit, danach ladeVorschlag -> getLastSets -> shouldInc -> + getWeightStep.
-- Im Test die Knopf-Klassen .aus/.erinnern/.markiert und aria-label lesen; Gruppe einer Karte = ringFuer(entry), nach freiem Tausch ausserhalb des Rings die Uebung allein (gruppeFuer).
-- Fund ausserhalb: .user-tab.active (TrackingView) nutzt noch color-mix - nicht Teil dieses Pakets, nicht angefasst.
-- Geraetezeilen (P3) in docs/tests/geraetetest-plan-steigern-erinnerung.md
+- v2.16-Regression (gehoert zu P5); Vorlage privat/browsertests/v216-test.mjs erwartet Port 4199 mit separat gestartetem Server und prueft Version 2.16.0
+- Bereichsaenderung von einem ZWEITEN Handy per Sync waehrend eines laufenden Trainings: Karte rechnet erst beim naechsten Satz/Neustart neu (nur per Geraet pruefbar, nicht umgebaut)
+- Wheel im Test per synthetischen Maus-Events gedreht (mousedown/mousemove/mouseup, langsam) - Fingerbedienung nur am Handy
 Geschwister geprueft:
-- Fund "markiert vergisst sich": alle Wege in den Knopf-Zustand laufen ueber steigernStand aus ladeVorschlag (loadRecommendations bei Start/Resume/Besetzung, savePickerValues, macheRueckgaengig, toggleIncrease); Regel istMarkiert per S24 getestet (heute vs. letzte Einheit, Altbestand ohne Merker).
-- Fund "Vorschlag springt erst nach Neustart": toggleIncrease ruft steigernNeuRechnen -> ladeVorschlag + updateNotification (Sperrbildschirm liest dieselben recommendations).
-- Fund color-mix: zweite Suche "color-mix(" in src/: TrackingView .user-tab.active und HistoryView:651 - andere Bauteile, nicht der Steigern-Knopf; bleiben.
-- Zweite Suche "increaseNextTime|shouldIncrease" in src/: useHistory.shouldIncreaseWeight (unbenutzt fuer den Knopf), workout.js saveSet setzt false an neuen Saetzen - passt zu istMarkiert (Merker von heute gilt fuers naechste Mal).
+- Fund "Karte rechnet nach Bereichsaenderung nicht neu": einziger Schreibweg fuer den Bereich ist speichereWdhBereich (composables/useWdhBereich.js), aufgerufen nur aus ExerciseDetail; ExerciseDetail ist in TrackingView nur ueber openExerciseDetail erreichbar -> watch deckt "Zurueck"-Knopf, Schliessen-Knopf und Android-Zurueck (alle setzen showExerciseDetail false). Beleg: Browser-Test "Nach dem Schliessen: Curl Eins ohne Ring (12 < 13)" gruen, "Nach Neuladen ... weiter ohne Ring" gruen; Regel per Vertrag S15 (8-13).
+- Zweite Suche "speichereWdhBereich|wdhBereich_" in src/: nur useWdhBereich.js, ExerciseDetail.vue, steigerung.js (Schluessel) - kein weiterer Schreibweg in der Oberflaeche.
