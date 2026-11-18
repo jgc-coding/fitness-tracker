@@ -2,7 +2,7 @@
 
 ## Stand
 
-- Letzte Abnahme (Autopilot): 18.11.2026, 07:23 Uhr · `docs/plan-steigern-erinnerung.md` · Abnahme: 1 Mangel (V18) · Tests: pruefen.txt 18 Vertragstests grün (steigerung-test 114 Fälle) · npm run build grün · v217-test 45/45 grün · v216-test 28/28 grün · v215-regress 57/57 grün
+- Letzte Abnahme (Autopilot): 18.11.2026, 07:31 Uhr · `docs/plan-steigern-erinnerung.md` · Nachabnahme sauber · Tests: pruefen.txt 18 Vertragstests grün (steigerung-test 114 Fälle) · npm run build grün · v217-test 50/50 grün · v216-test 28/28 grün · v215-regress 57/57 grün
 - Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09) · P4 (18.11. 07:16) · P5 (18.11. 07:19)
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
