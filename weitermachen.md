@@ -1,49 +1,37 @@
-# Weitermachen — Stand 2026-11-14 (v2.16.0)
+# Weitermachen — Stand 2026-11-18 (v2.17.0)
 
 ## Stand
 
 - Letzte Abnahme (Autopilot): 18.11.2026, 07:31 Uhr · `docs/plan-steigern-erinnerung.md` · Nachabnahme sauber · Tests: pruefen.txt 18 Vertragstests grün (steigerung-test 114 Fälle) · npm run build grün · v217-test 50/50 grün · v216-test 28/28 grün · v215-regress 57/57 grün
-- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09) · P4 (18.11. 07:16) · P5 (18.11. 07:19)
-- **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
-  (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
-  "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
-  Trainings nie beendet, ihre Saetze alle da. Fund dabei: V17 (alte
-  Sperrbildschirm-Meldung), gleich mit erledigt. In den Commits 5e1159b
-  und 719fb82 heisst er noch V16 — die Nummer war seit v2.11.0 vergeben.
-  (2) Zyklus von user1 staerker einbauen. Gabriels Wahl: Zyklustag ganz
-  oben im Training, beim Start errechnet eingetragen, "nichts tun =
-  Bestaetigung", Tipp korrigiert, neu "Tag 1 — neuer Zyklus"; History
-  Variante X (eigene Zeile "Zyklustag"), dazu Uebungsverlauf und
-  Tages-Detail. Errechnete Werte blass mit "≈", nie nachtraeglich
-  gespeichert. Regeln in der CLAUDE.md.
-  Echte Daten: user1 hatte in 9 von 41 Trainings einen Zyklustag, zuletzt
-  02.11. Tag 9 (14.11. = Tag 21).
-- **Live:** Actions-Lauf 43636595300 gruen, Live-Seite liefert 2.16.0 aus
-  (SettingsView-Chunk geprueft), master `719fb82` = origin, Tag `v2.16.0`.
-- **Geprueft:** Gate gruen (18 Befehle, `zyklustag-test` jetzt 50 Faelle).
-  Headless-Chrome gegen den Produktions-Build, frische `*.localhost`,
-  360 px: 29 neue Pruefungen gruen (Stempel 21, Tag 1, Entfernen -> blass,
-  Bestaetigen, Neuladen, Einstieg mittendrin, History-Zeile 9/≈13/≈17,
-  Punkt nur bei Notiz, Tages-Detail, Rad startet beim errechneten Tag,
-  Verlauf samt Ablesezeile, andere Person ohne Zyklus, Version 2.16.0).
-  Dazu der v2.15-Test (58 Pruefungen) als Regression gruen. Am Handy hat
-  Gabriel alle Versionen bis 2.16.0 getestet, alles laeuft (17.11.2026).
-- **Rueckkehrpunkte:** `c125c34` (vor dieser Sitzung, v2.15.0), `460ba37`
-  (v2.14.1), `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f`
-  (v2.12.0), `8eaa3de` (v2.11.0), `6deda0f` (v2.10.0), `01031c1` (v2.6.0).
-  Datenbank-Schema seit v2.x unveraendert (Dexie v4); v2.16.0 nutzt nur das
-  bestehende Feld `cycleDays`. Cloud-Sicherungen in `privat\`.
-- **Worktrees:** `add-bizeps-machine-exercise-8f0f28` (sauber, gemergt),
-  `fittrack-workout-save-cycle-3a5977` (diese Sitzung, gemergt) und ein
+- **v2.17.0 Steigern-Erinnerung** per Autopilot gebaut (P1-P5 am 18.11.
+  07:01-07:19, Abnahme fand V18, Reparatur R1, Nachabnahme sauber). Regeln
+  in der CLAUDE.md ("Steigern-Erinnerung"), Aenderungen im CHANGELOG.
+- **Live (save-state clean, 18.11.):** Gate erneut gruen (19 Befehle),
+  master `d258e58` = origin, Actions-Lauf 44251992031 gruen, Live-Seite
+  liefert 2.17.0 aus (SettingsView-Chunk geprueft). Git-Tag `v2.17.0`
+  fehlt noch (clean setzt keine Tags).
+- **Rueckkehrpunkte:** `d258e58` (v2.17.0, vor dem clean-Lauf; nichts
+  gemergt), `719fb82` (v2.16.0), `c125c34` (v2.15.0), `460ba37` (v2.14.1),
+  `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f` (v2.12.0), `8eaa3de`
+  (v2.11.0), `6deda0f` (v2.10.0), `01031c1` (v2.6.0). Datenbank-Schema seit
+  v2.x unveraendert (Dexie v4); v2.17.0 nutzt nur neue `db.meta`-Schluessel
+  (`steigernErinnerung_<userId>`, `wdhBereich_<userId>_<exerciseId>`).
+  Cloud-Sicherungen in `privat\`.
+- **Worktrees:** `add-bizeps-machine-exercise-8f0f28` und
+  `fittrack-workout-save-cycle-3a5977` (beide sauber, gemergt) und ein
   LEERER Ordner `.claude\worktrees\exercise-images-crop-e10a06`
   (gitignoriert, harmlos). Befehle zum Entfernen im save-state-Bericht.
 
 ## Stolperfallen (aktuell)
-- **Testskripte dieser Sitzung** im Scratchpad
-  `%LOCALAPPDATA%\Temp\claude\1ddd39689e7a6ade\0bbf9704-e5c8-49fc-ab23-ed82d29a3963\scratchpad\`:
-  `v216-test.mjs` (Zyklus), `v215-regress.mjs` (v2.15-Test auf Port 4199),
-  `cdp.mjs`, `zyklus-stand.mjs` (nur lesend: offene Trainings und
-  Zyklustage in der Cloud zaehlen, Aufruf aus dem Hauptbaum).
+- **Browser-Tests liegen in `privat\browsertests\`** (gitignoriert, nur im
+  Hauptbaum): `v217-test.mjs` (Steigern-Erinnerung), `v216-test.mjs`
+  (Zyklus), `v215-regress.mjs`. `v217-test` brach zweimal bei
+  "[Einstellung] Zeitueberschreitung: Aus aktiv" ab, der naechste Lauf war
+  gruen — vermutlich Wettlauf zwischen Tipp und Laden der Einstellungen;
+  einfach erneut laufen lassen.
+- **Quick-Log vom Sperrbildschirm** ist im Browser nur nachgestellt
+  (IndexedDB-Schreiben plus MessageEvent); der echte Service Worker laeuft
+  nur am Handy (Geraetetest-Liste).
 - **Vue entfernt den Leerraum zwischen Spans:** `textContent` der
   Zyklus-Zeile liest "Zyklustag 21ändern". Im Test die Kinder einzeln lesen.
 - **Browser-Test mit zwei Personen:** Beim App-Start ohne eigenes Training
@@ -75,13 +63,8 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
-0. **Steigern-Erinnerung (v2.17.0) laeuft seit 18.11.2026 per Autopilot.**
-   Plan `docs/plan-steigern-erinnerung.md`, fuenf Pakete P1-P5, Stand per
-   `/autopilot status`. Schritt 1 ausserhalb der Kette erledigt:
-   `scripts/wdh-bereiche.mjs`, Tabelle in `privat\wdh-bereiche-vorschlag.md`
-   (unveraendert uebernommen, 14 Abweichungen von 8-12). OFFEN: das
-   Schreiben der Startwerte (`--jetzt`), siehe "Was Gabriel selbst tun
-   muss". Alte Browser-Tests liegen jetzt in `privat\browsertests\`.
+0. **Git-Tag `v2.17.0` auf `d258e58` setzen und pushen** (Release-Regel;
+   der clean-Lauf setzt keine Tags).
 1. **Handy-Tests v2.10.0 bis v2.16.0 bestanden** (Gabriel 17.11.2026: "alle
    alten Versionen getestet, alles funktioniert"). Kommt doch noch etwas:
    Regeln stehen in der CLAUDE.md, Aenderungen je Version im CHANGELOG,
@@ -105,9 +88,11 @@
 7. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
 8. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
     ausdruecklicher Freigabe.
-- Mängel der Abnahme vom 18.11.2026 (plan-steigern-erinnerung.md): V18 beheben, dann /autopilot erneut (Nachabnahme) - Einträge in verbesserungen.md
 
 ## Offen
+- **Wdh-Bereich-Startwerte:** `scripts/wdh-bereiche.mjs` und die Tabelle
+  `privat\wdh-bereiche-vorschlag.md` (14 Abweichungen von 8-12) liegen
+  bereit; das Schreiben (`--jetzt`) steht bei Gabriel.
 - **Im intervals.icu-Konto von user2 liegt noch keine Aktivitaet** (seit
   19.07.); erster echter Garmin-Test mit einem Plan-Lauf.
 - **Der erste Lauf von user1 ist der eigentliche Test der Garmin-Anbindung**
@@ -121,26 +106,6 @@
 - [ ] **Startwerte der Wdh-Bereiche in die Cloud schreiben** (seit 2026-11-18):
   `node .\scripts\wdh-bereiche.mjs --jetzt` im Projektordner. Claude durfte
   das nicht selbst (Sicherheitspruefung). Ohne die Werte gilt ueberall 8-12.
+- [ ] Gerätetest v2.17.0: docs/tests/geraetetest-plan-steigern-erinnerung.md durchklicken (seit 2026-11-18)
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
-- [ ] Gerätetest: docs/tests/geraetetest-plan-steigern-erinnerung.md durchklicken (seit 2026-11-18)
-
-## Autopilot-Protokoll
-
-Plan plan-steigern-erinnerung.md R1 (Mängel der Abnahme beheben (V18)) — abgeschlossen 18.11.2026 07:27 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
-
-Funktioniert (mit Beleg):
-- node privat/browsertests/v217-test.mjs -> 50 von 50 gruen (neu: Ring nach Quick-Log 20x12, "markiert" verschwindet nach Quick-Log ohne Merker, andere Person unberuehrt, gleicher Stand nach Neuladen)
-- Gegenprobe: Aufruf auskommentiert, Build, Test -> 48/50, genau die zwei V18-Pruefungen rot; danach Reparatur zurueck, Build identisch (TrackingView-E4UheeBK.js)
-- Alle 19 Befehle aus .claude/pruefen.txt gruen (steigerung-test 114 Faelle, npm run build gruen)
-Fehlversuche (mit exaktem Grund):
-- Zwei Laeufe von v217-test brachen bei "[Einstellung] Zeitueberschreitung: Aus aktiv" ab (1x mit, 1x ohne Reparatur), der jeweils naechste Lauf war gruen. Die Stelle (Tipp auf "Aus" direkt nach dem Oeffnen der Einstellungen) hat mit V18 nichts zu tun und wurde nicht angefasst; vermutlich ein Wettlauf zwischen Tipp und dem Laden der Einstellungen. Fuer die Nachabnahme: bei diesem Abbruch erneut laufen lassen.
-Noch nicht probiert:
-- Echter Service Worker am Handy (Headless registriert auf *.localhost keinen SW; nachgestellt per IndexedDB-Schreiben wie writeSetLog plus MessageEvent an navigator.serviceWorker). Steht in docs/tests/geraetetest-plan-steigern-erinnerung.md.
-- Der Browser-Test liegt in privat/ (gitignoriert) und wird darum nicht mitcommittet; er bleibt im Hauptbaum.
-Geschwister geprueft:
-- Alle Speicherwege der Ansicht (Grep saveSet|undoSet|toggleIncreaseNextTime|setzeAusgelassen in src/views): Rad-Speichern 1413, Auslassen 1608-Weg, Rueckgaengig 1571 und Tipp 1608 rechnen bereits neu; "Wieder oeffnen" aendert keine setLogs, die Regeln lesen nur gespeicherte Saetze -> nichts zu tun.
-- Zweite Suche mit anderen Begriffen (visibilitychange, setLogs.put/add/update, increaseNextTime in src): Schreibwege in workout.js laufen alle ueber die genannten Ansichts-Funktionen; SettingsView (Backup-Import) schreibt ausserhalb des Trainings, beim Zurueckkehren rechnet onMounted ohnehin neu (v217-test "zurueck im Training").
-- App geschlossen beim Quick-Log: App-Start rechnet alles neu (Test "Nach Neuladen derselbe Stand" gruen).
-- Satz vom anderen Handy per Cloud-Sync waehrend offener Ansicht: TrackingView hoert generell nicht auf Sync (auch Vorschlaege nicht), ein Training gehoert seinem Handy; nicht Teil von V18, nicht geaendert.
-- Geraetetest-Liste: alte Zeile "zur Zeit nicht erwartet, siehe V18" ersetzt durch zwei Handlungen (Ring nach Quick-Log, "markiert" nach Quick-Log).
