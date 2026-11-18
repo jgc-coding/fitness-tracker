@@ -18,3 +18,4 @@ Was der Autopilot nicht selbst pruefen kann. Je Zeile eine Handlung am Handy.
 - Am Handy "Animationen entfernen" einschalten (Bedienungshilfen): der Ring steht still statt zu pulsieren (P3)
 - Mit TalkBack auf den Knopf tippen: angesagt wird der Grund, z.B. "Steigern, 12 Wdh erreicht" bzw. "Steigern, 3 Mal ohne Steigerung" (P3)
 - Bei einer Uebung mit Ring (12 Wdh) im Training aufs Vorschaubild tippen, den Bereich auf 8-13 aendern und die Detailansicht schliessen: der Ring ist sofort weg, ohne Neustart (P4)
+- Nach dem Deploy beide Handys ganz schliessen und neu oeffnen, unter Einstellungen 2.17.0 pruefen und `docs/tests/v2.17.0-handy.md` am Handy abhaken (P5)

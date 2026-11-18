@@ -2,7 +2,7 @@
 
 ## Stand
 
-- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09) · P4 (18.11. 07:16)
+- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09) · P4 (18.11. 07:16) · P5 (18.11. 07:19)
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
   "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
@@ -125,20 +125,17 @@
 
 ## Autopilot-Protokoll
 
-Plan plan-steigern-erinnerung.md P4 (Ein Browser-Test bei 360 px belegt die Erinnerung) — abgeschlossen 18.11.2026 07:16 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
+Plan plan-steigern-erinnerung.md P5 (Version 2.17.0 mit Doku, Handy-Checkliste und gruener Regression) — abgeschlossen 18.11.2026 07:19 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
 
 Funktioniert (mit Beleg):
-- node privat/browsertests/v217-test.mjs -> "45 von 45 Pruefungen gruen", "alles gruen" (nach npm run build)
-- Alle Befehle aus .claude/pruefen.txt einzeln gruen (steigerung-test 114 Faelle, npm run build ok)
-- Foto 01-ring-360px.png angesehen: Ring bei user2 (KH, Kniebeuge) und user1 (Curl), nichts bricht um
+- Gate .claude/pruefen.txt: alle 18 Testbefehle gruen (u.a. steigerung-test 114 Faelle), npm run build gruen (fitness-tracker@2.17.0)
+- node privat/browsertests/v217-test.mjs: 45 von 45 gruen, "Einstellungen zeigen Version 2.17.0 (richtiger Build)"
+- node privat/browsertests/v216-test.mjs: alles gruen (inkl. "Settings zeigt Version 2.17.0")
+- node privat/browsertests/v215-regress.mjs: alles gruen (inkl. "Settings zeigt Version 2.17.0")
+- Server fuer v215/v216: vite preview --port 4199 --strictPort im Hintergrund gestartet, danach beendet
+- wc -c CLAUDE.md = 28995 (< 30.000)
 Fehlversuche (mit exaktem Grund):
-- Erster Lauf: Animationsname am ::after heisst "steigern-puls-<hash>" (Vue scoped) -> Pruefung auf startsWith umgestellt
-- Erster Lauf: "Curl user1 ohne Ring nach Schliessen der Detailansicht" rot -> echter Fund, in TrackingView behoben (watch auf showExerciseDetail)
-- Einstellungs-Warten auf aria-label "... fuer Zwei" vor dem Import scheiterte (Namen noch "Person n") -> auf Anzahl der Gruppen umgestellt
+- keine
 Noch nicht probiert:
-- v2.16-Regression (gehoert zu P5); Vorlage privat/browsertests/v216-test.mjs erwartet Port 4199 mit separat gestartetem Server und prueft Version 2.16.0
-- Bereichsaenderung von einem ZWEITEN Handy per Sync waehrend eines laufenden Trainings: Karte rechnet erst beim naechsten Satz/Neustart neu (nur per Geraet pruefbar, nicht umgebaut)
-- Wheel im Test per synthetischen Maus-Events gedreht (mousedown/mousemove/mouseup, langsam) - Fingerbedienung nur am Handy
-Geschwister geprueft:
-- Fund "Karte rechnet nach Bereichsaenderung nicht neu": einziger Schreibweg fuer den Bereich ist speichereWdhBereich (composables/useWdhBereich.js), aufgerufen nur aus ExerciseDetail; ExerciseDetail ist in TrackingView nur ueber openExerciseDetail erreichbar -> watch deckt "Zurueck"-Knopf, Schliessen-Knopf und Android-Zurueck (alle setzen showExerciseDetail false). Beleg: Browser-Test "Nach dem Schliessen: Curl Eins ohne Ring (12 < 13)" gruen, "Nach Neuladen ... weiter ohne Ring" gruen; Regel per Vertrag S15 (8-13).
-- Zweite Suche "speichereWdhBereich|wdhBereich_" in src/: nur useWdhBereich.js, ExerciseDetail.vue, steigerung.js (Schluessel) - kein weiterer Schreibweg in der Oberflaeche.
+- Deploy (macht der Abschluss); Handy-Liste docs/tests/v2.17.0-handy.md abhaken (Gabriel)
+- Startwerte der Wdh-Bereiche in die Cloud (Schritt 4, Begleitsitzung nach Gabriels Freigabe)
