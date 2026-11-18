@@ -127,17 +127,20 @@
 
 ## Autopilot-Protokoll
 
-Plan plan-steigern-erinnerung.md P5 (Version 2.17.0 mit Doku, Handy-Checkliste und gruener Regression) — abgeschlossen 18.11.2026 07:19 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
+Plan plan-steigern-erinnerung.md R1 (Mängel der Abnahme beheben (V18)) — abgeschlossen 18.11.2026 07:27 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
 
 Funktioniert (mit Beleg):
-- Gate .claude/pruefen.txt: alle 18 Testbefehle gruen (u.a. steigerung-test 114 Faelle), npm run build gruen (fitness-tracker@2.17.0)
-- node privat/browsertests/v217-test.mjs: 45 von 45 gruen, "Einstellungen zeigen Version 2.17.0 (richtiger Build)"
-- node privat/browsertests/v216-test.mjs: alles gruen (inkl. "Settings zeigt Version 2.17.0")
-- node privat/browsertests/v215-regress.mjs: alles gruen (inkl. "Settings zeigt Version 2.17.0")
-- Server fuer v215/v216: vite preview --port 4199 --strictPort im Hintergrund gestartet, danach beendet
-- wc -c CLAUDE.md = 28995 (< 30.000)
+- node privat/browsertests/v217-test.mjs -> 50 von 50 gruen (neu: Ring nach Quick-Log 20x12, "markiert" verschwindet nach Quick-Log ohne Merker, andere Person unberuehrt, gleicher Stand nach Neuladen)
+- Gegenprobe: Aufruf auskommentiert, Build, Test -> 48/50, genau die zwei V18-Pruefungen rot; danach Reparatur zurueck, Build identisch (TrackingView-E4UheeBK.js)
+- Alle 19 Befehle aus .claude/pruefen.txt gruen (steigerung-test 114 Faelle, npm run build gruen)
 Fehlversuche (mit exaktem Grund):
-- keine
+- Zwei Laeufe von v217-test brachen bei "[Einstellung] Zeitueberschreitung: Aus aktiv" ab (1x mit, 1x ohne Reparatur), der jeweils naechste Lauf war gruen. Die Stelle (Tipp auf "Aus" direkt nach dem Oeffnen der Einstellungen) hat mit V18 nichts zu tun und wurde nicht angefasst; vermutlich ein Wettlauf zwischen Tipp und dem Laden der Einstellungen. Fuer die Nachabnahme: bei diesem Abbruch erneut laufen lassen.
 Noch nicht probiert:
-- Deploy (macht der Abschluss); Handy-Liste docs/tests/v2.17.0-handy.md abhaken (Gabriel)
-- Startwerte der Wdh-Bereiche in die Cloud (Schritt 4, Begleitsitzung nach Gabriels Freigabe)
+- Echter Service Worker am Handy (Headless registriert auf *.localhost keinen SW; nachgestellt per IndexedDB-Schreiben wie writeSetLog plus MessageEvent an navigator.serviceWorker). Steht in docs/tests/geraetetest-plan-steigern-erinnerung.md.
+- Der Browser-Test liegt in privat/ (gitignoriert) und wird darum nicht mitcommittet; er bleibt im Hauptbaum.
+Geschwister geprueft:
+- Alle Speicherwege der Ansicht (Grep saveSet|undoSet|toggleIncreaseNextTime|setzeAusgelassen in src/views): Rad-Speichern 1413, Auslassen 1608-Weg, Rueckgaengig 1571 und Tipp 1608 rechnen bereits neu; "Wieder oeffnen" aendert keine setLogs, die Regeln lesen nur gespeicherte Saetze -> nichts zu tun.
+- Zweite Suche mit anderen Begriffen (visibilitychange, setLogs.put/add/update, increaseNextTime in src): Schreibwege in workout.js laufen alle ueber die genannten Ansichts-Funktionen; SettingsView (Backup-Import) schreibt ausserhalb des Trainings, beim Zurueckkehren rechnet onMounted ohnehin neu (v217-test "zurueck im Training").
+- App geschlossen beim Quick-Log: App-Start rechnet alles neu (Test "Nach Neuladen derselbe Stand" gruen).
+- Satz vom anderen Handy per Cloud-Sync waehrend offener Ansicht: TrackingView hoert generell nicht auf Sync (auch Vorschlaege nicht), ein Training gehoert seinem Handy; nicht Teil von V18, nicht geaendert.
+- Geraetetest-Liste: alte Zeile "zur Zeit nicht erwartet, siehe V18" ersetzt durch zwei Handlungen (Ring nach Quick-Log, "markiert" nach Quick-Log).
