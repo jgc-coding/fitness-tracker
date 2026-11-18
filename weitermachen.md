@@ -1,6 +1,8 @@
 # Weitermachen — Stand 2026-11-14 (v2.16.0)
 
 ## Stand
+
+- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01)
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
   "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
@@ -119,3 +121,17 @@
   das nicht selbst (Sicherheitspruefung). Ohne die Werte gilt ueberall 8-12.
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
+
+## Autopilot-Protokoll
+
+Plan plan-steigern-erinnerung.md P1 (Regeln der Steigern-Erinnerung stehen als Vertrag) — abgeschlossen 18.11.2026 07:01 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
+
+Funktioniert (mit Beleg):
+- node ./scripts/steigerung-test.mjs -> "alle 72 Faelle gruen"
+- Alle 19 Zeilen aus .claude/pruefen.txt einzeln ausgefuehrt: alle gruen, npm run build gruen.
+- Entscheidung 7: Fall S18 (Tag nur mit Kniebeuge, inkl. Gewichtssprung dort, ist keine Einheit der Gruppe; Zaehler bleibt 2 bzw. 3).
+Fehlversuche (mit exaktem Grund):
+- keine
+Noch nicht probiert:
+- Einbau in TrackingView (P3): erinnerung() erwartet alle setLogs der Person fuer die Ring-Uebungen inkl. heute; `markiert` am besten ausdruecklich uebergeben oder den Daten-Merker wirken lassen.
+- Kein Geraetetest noetig (reine Regeln ohne Oberflaeche), darum keine Zeile in docs/tests/geraetetest-plan-steigern-erinnerung.md.
