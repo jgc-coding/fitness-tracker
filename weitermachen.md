@@ -2,7 +2,7 @@
 
 ## Stand
 
-- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01)
+- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04)
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
   "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
@@ -121,17 +121,19 @@
   das nicht selbst (Sicherheitspruefung). Ohne die Werte gilt ueberall 8-12.
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
+- [ ] Gerätetest: docs/tests/geraetetest-plan-steigern-erinnerung.md durchklicken (seit 2026-11-18)
 
 ## Autopilot-Protokoll
 
-Plan plan-steigern-erinnerung.md P1 (Regeln der Steigern-Erinnerung stehen als Vertrag) — abgeschlossen 18.11.2026 07:01 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
+Plan plan-steigern-erinnerung.md P2 (Erinnerung und Wdh-Bereich sind je Person einstellbar) — abgeschlossen 18.11.2026 07:04 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
 
 Funktioniert (mit Beleg):
-- node ./scripts/steigerung-test.mjs -> "alle 72 Faelle gruen"
-- Alle 19 Zeilen aus .claude/pruefen.txt einzeln ausgefuehrt: alle gruen, npm run build gruen.
-- Entscheidung 7: Fall S18 (Tag nur mit Kniebeuge, inkl. Gewichtssprung dort, ist keine Einheit der Gruppe; Zaehler bleibt 2 bzw. 3).
+- Alle Befehle aus .claude/pruefen.txt einzeln ausgefuehrt: alle gruen, steigerung-test 92 Faelle, npm run build ok
+- git status: dexie.js unveraendert (Schema v4, keine neue Tabelle)
 Fehlversuche (mit exaktem Grund):
 - keine
 Noch nicht probiert:
-- Einbau in TrackingView (P3): erinnerung() erwartet alle setLogs der Person fuer die Ring-Uebungen inkl. heute; `markiert` am besten ausdruecklich uebergeben oder den Daten-Merker wirken lassen.
-- Kein Geraetetest noetig (reine Regeln ohne Oberflaeche), darum keine Zeile in docs/tests/geraetetest-plan-steigern-erinnerung.md.
+- Browser-Test der neuen Oberflaeche (Settings-Abschnitt, Bereichs-Raeder bei 360 px) - gehoert zu P4; Geraetezeilen in docs/tests/geraetetest-plan-steigern-erinnerung.md
+- P3: Bereich ueber ladeWdhBereich(userId, exerciseId) aus composables/useWdhBereich.js holen, Einstellung ueber authStore.steigernErinnerung(userId) (wird in TrackingView onMounted schon geladen) und als `aktiv` an erinnerung() geben
+- loadSatzZahlen wird bei Sync-Ereignissen weiterhin NICHT neu geladen (bestehendes Verhalten, nicht angefasst)
+- scripts/wdh-bereiche.mjs hat eigene Grenzen/Schluessel (nicht angefasst, laeuft ausserhalb der Kette); S22 prueft, dass WDH_GRENZEN und Schluesselformat dazu passen

@@ -17,7 +17,12 @@ import {
   istSteigerung,
   stillstandZaehler,
   obenImBereich,
-  erinnerung
+  erinnerung,
+  WDH_GRENZEN,
+  erinnerungSchluessel,
+  wdhBereichSchluessel,
+  erinnerungAn,
+  wdhBereichGueltig
 } from '../src/utils/steigerung.js'
 
 let passed = 0
@@ -302,6 +307,35 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   ]
   // 60 -> 62.5 (Steigerung) -> 60 (Neuanfang) = Zaehler 1.
   equal('S21 unsortiert', erinnere(logs).zaehler, 1)
+}
+
+// S22: Speicherorte und Einstellung (P2). Schluessel wie scripts/wdh-bereiche.mjs.
+{
+  equal('S22 Schluessel Einstellung', erinnerungSchluessel('user2'), 'steigernErinnerung_user2')
+  equal('S22 Schluessel Bereich', wdhBereichSchluessel('user1', 'ex-7'), 'wdhBereich_user1_ex-7')
+  equal('S22 Einstellung fehlt = an', erinnerungAn(undefined), true)
+  equal('S22 Einstellung null = an', erinnerungAn(null), true)
+  equal('S22 Einstellung true = an', erinnerungAn(true), true)
+  equal('S22 nur false = aus', erinnerungAn(false), false)
+  equal('S22 Grenzen wie Skript', WDH_GRENZEN, { min: 1, max: 50 })
+}
+
+// S23: Bereich pruefen. Gueltig = ganze Zahlen, 1 <= min < max <= 50.
+{
+  equal('S23 8-12 gueltig', wdhBereichGueltig({ min: 8, max: 12 }), { min: 8, max: 12 })
+  equal('S23 Grenzen 1-50 gueltig', wdhBereichGueltig({ min: 1, max: 50 }), { min: 1, max: 50 })
+  equal('S23 Zusatzfelder fallen weg', wdhBereichGueltig({ min: 5, max: 6, x: 1 }), { min: 5, max: 6 })
+  equal('S23 fehlt', wdhBereichGueltig(undefined), null)
+  equal('S23 Zahl statt Objekt', wdhBereichGueltig(12), null)
+  equal('S23 min = max', wdhBereichGueltig({ min: 10, max: 10 }), null)
+  equal('S23 min > max', wdhBereichGueltig({ min: 12, max: 8 }), null)
+  equal('S23 Kommazahl', wdhBereichGueltig({ min: 8.5, max: 12 }), null)
+  equal('S23 Text', wdhBereichGueltig({ min: '8', max: '12' }), null)
+  equal('S23 unter 1', wdhBereichGueltig({ min: 0, max: 12 }), null)
+  equal('S23 ueber 50', wdhBereichGueltig({ min: 8, max: 51 }), null)
+  equal('S23 max fehlt', wdhBereichGueltig({ min: 8 }), null)
+  const roh = { min: 6, max: 10 }
+  check('S23 frische Kopie', wdhBereichGueltig(roh) !== roh)
 }
 
 if (failures.length) {

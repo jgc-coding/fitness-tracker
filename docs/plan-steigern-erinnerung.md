@@ -219,7 +219,7 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
   - Kriterium: `node ./scripts/steigerung-test.mjs` gruen und je mindestens ein Fall fuer jede Aufzaehlung aus Schritt 2 des Plans
   - Kriterium: Ein Fall belegt Entscheidung 7: Ein Tag mit Saetzen nur in Uebungen ausserhalb der Gruppe aendert deren Zaehler nicht
   - Kriterium: pruefen.txt gruen (die Zeile fuer `steigerung-test.mjs` steht schon darin)
-- [ ] P2: Erinnerung und Wdh-Bereich sind je Person einstellbar
+- [x] P2: Erinnerung und Wdh-Bereich sind je Person einstellbar
   - Wie: Schritt 3, 6 und 7. Einstellung `steigernErinnerung_<userId>` in `db.meta` ueber `src/stores/auth.js` wie `satzZahl` (fehlt = an). Bereich `wdhBereich_<userId>_<exerciseId>` als `{ min, max }` (fehlt = 8-12), Lesen und Schreiben an genau einer Stelle, die P3 wiederverwendet. Form wie `saetze_<userId>`: `{ key, value: { min, max }, updatedAt }`; die Startwerte (nur Abweichungen von 8-12) schreibt `scripts/wdh-bereiche.mjs` ausserhalb der Kette. Einstellungen: Abschnitt "Steigern-Erinnerung" unter "Saetze je Uebung", je Person An/Aus in derselben Knopf-Optik. `ExerciseDetail.vue`: Zeile "Wdh-Bereich 8-12" je Person, Tipp oeffnet zwei kleine Zahlen-Raeder als Unteransicht (nie ein zweites Modal, CLAUDE.md), min kleiner als max.
   - Kriterium: Dexie-Schema bleibt v4 ohne neue Tabelle; die neuen Werte sind reine `db.meta`-Eintraege und laufen ueber den bestehenden Sync
   - Kriterium: Die Einstellungen zeigen "Steigern-Erinnerung" je Person, Standard an, Umschalten schreibt `steigernErinnerung_<userId>`
