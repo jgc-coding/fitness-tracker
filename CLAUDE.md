@@ -51,7 +51,7 @@ src/
                          uebungsRing, uebungsBilder, uebungsDubletten,
                          planReihenfolge, radWerte (Vorwert ausserhalb des
                          Rasters nie still ersetzen), gewichtProSeite,
-                         verlauf, auswertung, trainingGeraet,
+                         verlauf, auswertung, steigerung, trainingGeraet,
                          runPlanMerge, runMatch, laufEintrag, zyklusTag;
                          dazu runPlanSchema (Format),
                          intervalsApi (Browser + Node), exportData (CSV mit
@@ -169,6 +169,26 @@ npm run preview   # Build lokal testen (Port 4173)
   laufenden Training; das Rad bleibt, wo es ist (meist schon bei der
   naechsten Person). Leiste im Rad unter "Speichern" (fester Fuss, nichts
   springt), bei geschlossenem Rad unten ueber der Navigation.
+- **Steigern-Erinnerung** (Gabriel 17.11.2026, v2.17.0): Der Steigern-Knopf
+  hat je Person drei Zustaende `aus | erinnern | markiert` (`knopfZustand`),
+  "erinnern" = pulsierender Ring in der Personenfarbe. Regeln NUR in
+  `utils/steigerung.js` (Vertrag `scripts/steigerung-test.mjs`): faellig,
+  wenn alle Saetze der letzten Einheit der Uebung am oberen Ende des
+  Wdh-Bereichs liegen (`obenImBereich`, geht vor) oder die Gruppe
+  `STILLSTAND_EINHEITEN` (3) Einheiten ohne Steigerung hat
+  (`stillstandZaehler`). Gruppe = Ring der Karte (`ringFuer`), Einheit =
+  Kalendertag mit gespeichertem Satz in der Gruppe, verglichen nur je Uebung
+  — leere Trainings und ausgelassene Gruppen zaehlen so nie. "Markiert"
+  kommt NUR aus `increaseNextTime` an den Saetzen (`istMarkiert`), nie aus
+  einer Variable der Ansicht (bis v2.16 vergass sich der Zustand beim
+  Neustart). `ladeVorschlag` rechnet `steigernStand` je Uebung und Person;
+  neu nach Speichern, Rueckgaengig, Tipp und Schliessen der Detailansicht
+  (`steigernNeuRechnen`). Einstellung `db.meta` `steigernErinnerung_<userId>`
+  (fehlt = an, nur `false` schaltet aus; auth store), Bereich
+  `wdhBereich_<userId>_<exerciseId>` = `{ min, max }` (ein Eintrag je Paar,
+  ohne = 8-12), gelesen und geschrieben NUR ueber
+  `composables/useWdhBereich.js`. Die App erhoeht nie selbst; bei
+  reduzierter Bewegung steht der Ring still.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
 - **Umsortieren in der Planung:** langer Druck (HALTEN_MS) hebt eine Gruppe samt
   Alternativen an. Touch- und Maus-Events, KEINE Pointer-Events (nur ein

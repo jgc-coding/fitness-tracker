@@ -3,6 +3,52 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.17.0] — 2026-11-18
+
+### Features
+- **Die App erinnert ans Steigern** (Wunsch Gabriel): Ist eine Steigerung
+  faellig, pulsiert um den Steigern-Knopf neben dem Wert ein Ring in der
+  Personenfarbe — nur bei der betroffenen Person. Faellig ist sie, wenn die
+  Person beim letzten Mal in allen Saetzen am oberen Ende ihres
+  Wdh-Bereichs war (z.B. 12 bei 8-12), oder wenn sie in dieser
+  Uebungsgruppe (Uebung samt Alternativen) dreimal nacheinander nicht
+  gesteigert hat — dann beim vierten Mal. Steigerung heisst mehr Gewicht
+  oder gleiches Gewicht mit mehr Wdh. Es zaehlen nur Trainings, in denen
+  in der Gruppe wirklich ein Satz gespeichert wurde. Ein Tipp nimmt die
+  Erinnerung an: der Vorschlag steht sofort einen Schritt hoeher. Die App
+  erhoeht nie von selbst. Vorleseprogramme nennen den Grund, bei
+  reduzierter Bewegung steht der Ring still.
+- **Einstellung "Steigern-Erinnerung"** unter "Saetze je Uebung": je
+  Person an oder aus, Standard an, gilt auf allen Geraeten.
+- **Wdh-Bereich je Person und Uebung:** In der Detailansicht einer Uebung
+  steht je Person "Wdh-Bereich 8-12"; ein Tipp oeffnet zwei Raeder zum
+  Aendern. Ohne Eintrag gilt 8-12. Nach dem Aendern rechnet die Karte die
+  Erinnerung beim Schliessen sofort neu.
+
+### Behoben
+- **"Markiert" vergass sich:** Nach einem Neustart sah ein markierter
+  Steigern-Knopf wieder blass aus, und ein Tipp hob die Markierung auf,
+  statt sie zu setzen. Der Zustand kommt jetzt aus den gespeicherten
+  Saetzen.
+- **Der Vorschlag sprang erst nach einem Neustart:** Wer vor dem ersten
+  Satz von heute markierte, sah den hoeheren Vorschlag erst spaeter. Er
+  springt jetzt sofort.
+- Der markierte Knopf nutzt kein `color-mix` mehr (alte Android-WebViews).
+
+### Daten
+- Keine Schema-Aenderung (Datenbank bleibt Version 4). Einstellung und
+  Bereich sind neue, gesyncte Eintraege in der vorhandenen meta-Tabelle;
+  aeltere App-Versionen ignorieren sie.
+- Startwerte fuer die Wdh-Bereiche aus der Trainingshistorie schreibt
+  Claude erst nach Gabriels Freigabe der Analyse-Tabelle in die Cloud.
+
+### Tests
+- Neuer Vertrag `scripts/steigerung-test.mjs` im Pruef-Gate, Browser-Test
+  bei 360 px (Bericht `docs/tests/v2.17.0-browsertest.md`), Handy-Liste
+  `docs/tests/v2.17.0-handy.md`. Die Regressionstests v2.15 und v2.16
+  erwarten in den Einstellungen jetzt 2.17.0 statt 2.16.0 (gewollt: neue
+  Version).
+
 ## [2.16.0] — 2026-11-14
 
 ### Features
