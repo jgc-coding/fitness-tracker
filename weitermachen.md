@@ -2,6 +2,7 @@
 
 ## Stand
 
+- Letzte Abnahme (Autopilot): 18.11.2026, 07:23 Uhr · `docs/plan-steigern-erinnerung.md` · Abnahme: 1 Mangel (V18) · Tests: pruefen.txt 18 Vertragstests grün (steigerung-test 114 Fälle) · npm run build grün · v217-test 45/45 grün · v216-test 28/28 grün · v215-regress 57/57 grün
 - Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09) · P4 (18.11. 07:16) · P5 (18.11. 07:19)
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
@@ -104,6 +105,7 @@
 7. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
 8. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
     ausdruecklicher Freigabe.
+- Mängel der Abnahme vom 18.11.2026 (plan-steigern-erinnerung.md): V18 beheben, dann /autopilot erneut (Nachabnahme) - Einträge in verbesserungen.md
 
 ## Offen
 - **Im intervals.icu-Konto von user2 liegt noch keine Aktivitaet** (seit
