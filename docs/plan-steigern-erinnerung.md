@@ -180,8 +180,9 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
 ## Akzeptanzkriterien
 
 - [ ] Vertrag `steigerung-test.mjs` gruen, im Gate eingetragen.
-- [ ] Analyse-Tabelle von Gabriel bestaetigt, Startwerte in der Cloud.
-      (Ausserhalb der Kette; Tabelle in `privat\`, Schreiben steht aus.)
+- [x] Analyse-Tabelle von Gabriel bestaetigt, Startwerte in der Cloud.
+      (Ausserhalb der Kette; 14 Bereiche am 18.11.2026 geschrieben,
+      Nachkontrolle bestanden.)
 - [ ] 3x 60x10 in einer Gruppe (auch verteilt auf deren Uebungen) -> beim 4.
       Training pulsiert der Ring, nur bei der betroffenen Person.
 - [ ] Ein gestartetes und ohne Satz beendetes Training aendert den Zaehler
