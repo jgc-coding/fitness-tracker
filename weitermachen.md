@@ -9,7 +9,7 @@
 - **Live (save-state clean, 18.11.):** Gate erneut gruen (19 Befehle),
   master `d258e58` = origin, Actions-Lauf 44251992031 gruen, Live-Seite
   liefert 2.17.0 aus (SettingsView-Chunk geprueft). Git-Tag `v2.17.0`
-  fehlt noch (clean setzt keine Tags).
+  auf `d258e58` gesetzt und gepusht (18.11.).
 - **Rueckkehrpunkte:** `d258e58` (v2.17.0, vor dem clean-Lauf; nichts
   gemergt), `719fb82` (v2.16.0), `c125c34` (v2.15.0), `460ba37` (v2.14.1),
   `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f` (v2.12.0), `8eaa3de`
@@ -17,6 +17,10 @@
   v2.x unveraendert (Dexie v4); v2.17.0 nutzt nur neue `db.meta`-Schluessel
   (`steigernErinnerung_<userId>`, `wdhBereich_<userId>_<exerciseId>`).
   Cloud-Sicherungen in `privat\`.
+- **Wdh-Bereich-Startwerte in der Cloud (18.11., 07:39):** 14 Bereiche per
+  `wdh-bereiche.mjs --jetzt` geschrieben (Gabriels Freigabe), Nachkontrolle
+  bestanden. Sicherung vorher:
+  `privat\cloud-sicherung-meta-2026-11-18T07-39-23-795Z.json`.
 - **Worktrees:** `add-bizeps-machine-exercise-8f0f28` und
   `fittrack-workout-save-cycle-3a5977` (beide sauber, gemergt) und ein
   LEERER Ordner `.claude\worktrees\exercise-images-crop-e10a06`
@@ -63,8 +67,6 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
-0. **Git-Tag `v2.17.0` auf `d258e58` setzen und pushen** (Release-Regel;
-   der clean-Lauf setzt keine Tags).
 1. **Handy-Tests v2.10.0 bis v2.16.0 bestanden** (Gabriel 17.11.2026: "alle
    alten Versionen getestet, alles funktioniert"). Kommt doch noch etwas:
    Regeln stehen in der CLAUDE.md, Aenderungen je Version im CHANGELOG,
@@ -90,9 +92,6 @@
     ausdruecklicher Freigabe.
 
 ## Offen
-- **Wdh-Bereich-Startwerte:** `scripts/wdh-bereiche.mjs` und die Tabelle
-  `privat\wdh-bereiche-vorschlag.md` (14 Abweichungen von 8-12) liegen
-  bereit; das Schreiben (`--jetzt`) steht bei Gabriel.
 - **Im intervals.icu-Konto von user2 liegt noch keine Aktivitaet** (seit
   19.07.); erster echter Garmin-Test mit einem Plan-Lauf.
 - **Der erste Lauf von user1 ist der eigentliche Test der Garmin-Anbindung**
@@ -103,9 +102,6 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
-- [ ] **Startwerte der Wdh-Bereiche in die Cloud schreiben** (seit 2026-11-18):
-  `node .\scripts\wdh-bereiche.mjs --jetzt` im Projektordner. Claude durfte
-  das nicht selbst (Sicherheitspruefung). Ohne die Werte gilt ueberall 8-12.
 - [ ] Gerätetest v2.17.0: docs/tests/geraetetest-plan-steigern-erinnerung.md durchklicken (seit 2026-11-18)
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
