@@ -181,9 +181,7 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
 
 - [ ] Vertrag `steigerung-test.mjs` gruen, im Gate eingetragen.
 - [ ] Analyse-Tabelle von Gabriel bestaetigt, Startwerte in der Cloud.
-      (Begleitsitzung, nicht Autopilot. Stand 18.11.: Tabelle in
-      `privat\wdh-bereiche-vorschlag.md`, unveraendert uebernommen, 14
-      Eintraege; das Schreiben per `--jetzt` steht noch aus.)
+      (Ausserhalb der Kette; Tabelle in `privat\`, Schreiben steht aus.)
 - [ ] 3x 60x10 in einer Gruppe (auch verteilt auf deren Uebungen) -> beim 4.
       Training pulsiert der Ring, nur bei der betroffenen Person.
 - [ ] Ein gestartetes und ohne Satz beendetes Training aendert den Zaehler
