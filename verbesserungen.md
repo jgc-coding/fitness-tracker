@@ -31,7 +31,7 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       Optionen: Historie neu schreiben (Force-Push, alle Kennungen und Tags aendern sich,
       GitHub haelt alte Staende noch eine Weile per Direktlink) oder Repo privat stellen
       (GitHub Pages braucht dann ein bezahltes Konto) oder so lassen.
-- [ ] **V18** (B) Steigern-Knopf nach einem Satz vom Sperrbildschirm neu rechnen — Abnahme plan-steigern-erinnerung (P3)
+- [x] **V18** (B) Steigern-Knopf nach einem Satz vom Sperrbildschirm neu rechnen — Abnahme plan-steigern-erinnerung (P3)
       Gefahr: Wer einen Satz per Quick-Log in der Benachrichtigung speichert, waehrend die
       App im Hintergrund offen ist, sieht danach einen veralteten Knopf: 12 Wdh geschafft,
       aber kein Ring; oder "markiert" steht noch da, obwohl die heutigen Saetze keinen
@@ -43,6 +43,7 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       das Rad (`savePickerValues`) tut es.
       Empfehlung: in `onSwMessage` nach `loadSets` die Steigern-Staende der aktiven Personen
       neu rechnen (z.B. `loadRecommendations()`), Fall im Browser-Test v217 ergaenzen. · Aufwand: S
+      Erledigt am 2026-11-18: behoben in src/views/TrackingView.vue onSwMessage (loadRecommendations nach loadSets); geprueft mit privat/browsertests/v217-test.mjs, Abschnitt "Quick-Log vom Sperrbildschirm", 50/50 gruen; ohne Reparatur 48/50 (die zwei V18-Pruefungen rot)
 
 ## Ideen
 - **I8** (Erweiterung) Alle Saetze eines Tages in der History zeigen — Aufwand: S-M

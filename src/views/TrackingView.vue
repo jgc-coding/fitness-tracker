@@ -1740,6 +1740,14 @@ async function onSwMessage(e) {
   }
   if (e.data?.type !== 'quicklog-saved') return
   await workoutStore.loadSets()
+  // Wie nach dem Speichern im Rad: Vorschlag und Steigern-Knopf neu rechnen
+  // (V18 — sonst fehlt der Ring nach 12 Wdh, oder "markiert" bleibt stehen).
+  // Die Meldung nennt nur die Person, darum alle Karten; Fehler nur ins Log.
+  try {
+    await loadRecommendations()
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Steigern-Stand nach Quick-Log nicht neu gerechnet:', err)
+  }
   updateNotification()
   flushQueue()
 }
