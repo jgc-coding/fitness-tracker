@@ -67,7 +67,9 @@ scripts/                 Aufruf und Flags stehen im Kopf jedes Skripts.
                          und Bilder), uebungen-dubletten, uebungen-korrigieren
                          (umbenennen/tauschen/Geraet; --zurueck nur mit
                          --gruppe), gewicht-pro-seite-umrechnen (--nutzer,
-                         --bis Pflicht, --ohne, --zurueck). Bilder:
+                         --bis Pflicht, --ohne, --zurueck), wdh-bereiche
+                         (Vorschlag je Uebung und Person; --jetzt schreibt
+                         nur neue Eintraege aus privat\). Bilder:
                          uebungsbilder-schneiden (--bogen, --vermessen),
                          uebungsbilder-zuschnitt (Tabelle),
                          uebungsbilder-reihen-messen, uebungsbilder-holen,
