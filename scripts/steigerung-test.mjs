@@ -22,7 +22,10 @@ import {
   erinnerungSchluessel,
   wdhBereichSchluessel,
   erinnerungAn,
-  wdhBereichGueltig
+  wdhBereichGueltig,
+  istMarkiert,
+  knopfZustand,
+  knopfText
 } from '../src/utils/steigerung.js'
 
 let passed = 0
@@ -336,6 +339,50 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   equal('S23 max fehlt', wdhBereichGueltig({ min: 8 }), null)
   const roh = { min: 6, max: 10 }
   check('S23 frische Kopie', wdhBereichGueltig(roh) !== roh)
+}
+
+// S24: "markiert" kommt aus den gespeicherten Saetzen (Ort wie
+// toggleIncreaseNextTime): heute vorhanden -> Merker von heute, sonst Merker
+// der letzten Einheit. Darum ueberlebt er einen Neustart.
+{
+  const alt = [{ setNumber: 1, increaseNextTime: true }, { setNumber: 2, increaseNextTime: true }]
+  const altOhne = [{ setNumber: 1, increaseNextTime: false }]
+  equal('S24 vor dem ersten Satz: Merker der letzten Einheit', istMarkiert([], alt), true)
+  equal('S24 vor dem ersten Satz, nicht markiert', istMarkiert([], altOhne), false)
+  equal('S24 heute gespeichert: alter Merker zaehlt nicht mehr', istMarkiert([{ setNumber: 1, increaseNextTime: false }], alt), false)
+  equal('S24 heute markiert', istMarkiert([{ setNumber: 1, increaseNextTime: true }, { setNumber: 2, increaseNextTime: false }], altOhne), true)
+  equal('S24 nichts da', istMarkiert(undefined, undefined), false)
+  equal('S24 Merker fehlt (Altbestand)', istMarkiert([], [{ setNumber: 1 }]), false)
+}
+
+// S25: Zustand des Knopfs. Ring nur bei faellig UND Einstellung an, nie bei
+// markiert.
+{
+  equal('S25 markiert geht vor', knopfZustand({ markiert: true, faellig: true, aktiv: true }), 'markiert')
+  equal('S25 markiert auch bei Einstellung aus', knopfZustand({ markiert: true, aktiv: false }), 'markiert')
+  equal('S25 faellig und an', knopfZustand({ faellig: true, aktiv: true }), 'erinnern')
+  equal('S25 faellig, Einstellung fehlt = an', knopfZustand({ faellig: true, aktiv: undefined }), 'erinnern')
+  equal('S25 faellig, Einstellung aus', knopfZustand({ faellig: true, aktiv: false }), 'aus')
+  equal('S25 nicht faellig', knopfZustand({ faellig: false }), 'aus')
+  equal('S25 ohne Angaben', knopfZustand(), 'aus')
+
+  // Zusammenspiel mit erinnerung(): schon markierte Uebung ist nie faellig
+  const logs = [1, 2, 3].map(d => ({ exerciseId: 'a', userId: 'u', date: `2026-11-0${d}`, setNumber: 1, weight: 60, reps: 10 }))
+  const r = erinnerung({ setLogs: logs, gruppe: ['a'], exerciseId: 'a', userId: 'u', markiert: istMarkiert([], logs.slice(-1)) })
+  equal('S25 3x 60x10 ohne Merker -> Ring', knopfZustand({ markiert: false, faellig: r.faellig, aktiv: true }), 'erinnern')
+  const markiertLogs = logs.map((s, i) => i === 2 ? { ...s, increaseNextTime: true } : s)
+  const m = istMarkiert([], markiertLogs.slice(-1))
+  const r2 = erinnerung({ setLogs: markiertLogs, gruppe: ['a'], exerciseId: 'a', userId: 'u', markiert: m })
+  equal('S25 3x 60x10 markiert -> kein Ring', knopfZustand({ markiert: m, faellig: r2.faellig, aktiv: true }), 'markiert')
+}
+
+// S26: Text fuer Vorleseprogramme nennt den Grund
+{
+  equal('S26 oben', knopfText({ zustand: 'erinnern', grund: 'oben', max: 12, name: 'Eins' }), 'Eins: Steigern, 12 Wdh erreicht')
+  equal('S26 oben ohne Bereich = 12', knopfText({ zustand: 'erinnern', grund: 'oben' }), 'Steigern, 12 Wdh erreicht')
+  equal('S26 stillstand', knopfText({ zustand: 'erinnern', grund: 'stillstand', zaehler: 3, name: 'Eins' }), 'Eins: Steigern, 3 Mal ohne Steigerung')
+  check('S26 markiert', knopfText({ zustand: 'markiert', name: 'Eins' }).startsWith('Eins: Steigern markiert'))
+  check('S26 aus', knopfText({ zustand: 'aus', name: 'Eins' }).startsWith('Eins: Gewicht beim'))
 }
 
 if (failures.length) {

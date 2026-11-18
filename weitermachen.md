@@ -2,7 +2,7 @@
 
 ## Stand
 
-- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04)
+- Autopilot plan-steigern-erinnerung.md: P1 (18.11. 07:01) · P2 (18.11. 07:04) · P3 (18.11. 07:09)
 - **Diese Sitzung (14.11.): v2.16.0** — Fragen/Auftrag Gabriel:
   (1) Wird ohne "Workout beenden" gespeichert? JA: jeder Satz ist ab
   "Speichern" in IndexedDB und Cloud. Cloud-Stand 14.11.: 43 von 131
@@ -125,15 +125,22 @@
 
 ## Autopilot-Protokoll
 
-Plan plan-steigern-erinnerung.md P2 (Erinnerung und Wdh-Bereich sind je Person einstellbar) — abgeschlossen 18.11.2026 07:04 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
+Plan plan-steigern-erinnerung.md P3 (Der Steigern-Knopf erinnert mit pulsierendem Ring und merkt sich "markiert") — abgeschlossen 18.11.2026 07:09 Uhr. Eingetragen vom Runner (autopilot 1.10.0).
 
 Funktioniert (mit Beleg):
-- Alle Befehle aus .claude/pruefen.txt einzeln ausgefuehrt: alle gruen, steigerung-test 92 Faelle, npm run build ok
-- git status: dexie.js unveraendert (Schema v4, keine neue Tabelle)
+- node ./scripts/steigerung-test.mjs: alle 112 Faelle gruen (neu S24 markiert aus Daten, S25 Ring nie bei aus/markiert, S26 Texte)
+- Gesamtes Gate .claude/pruefen.txt einzeln ausgefuehrt: alle Tests gruen, npm run build gruen
+- Grep "increaseToggles" in src/: 0 Treffer
+- dist TrackingView-*.css: .increase-icon-btn-Regeln ohne color-mix, Keyframes und reduced-motion-Regel vorhanden
 Fehlversuche (mit exaktem Grund):
 - keine
 Noch nicht probiert:
-- Browser-Test der neuen Oberflaeche (Settings-Abschnitt, Bereichs-Raeder bei 360 px) - gehoert zu P4; Geraetezeilen in docs/tests/geraetetest-plan-steigern-erinnerung.md
-- P3: Bereich ueber ladeWdhBereich(userId, exerciseId) aus composables/useWdhBereich.js holen, Einstellung ueber authStore.steigernErinnerung(userId) (wird in TrackingView onMounted schon geladen) und als `aktiv` an erinnerung() geben
-- loadSatzZahlen wird bei Sync-Ereignissen weiterhin NICHT neu geladen (bestehendes Verhalten, nicht angefasst)
-- scripts/wdh-bereiche.mjs hat eigene Grenzen/Schluessel (nicht angefasst, laeuft ausserhalb der Kette); S22 prueft, dass WDH_GRENZEN und Schluesselformat dazu passen
+- Browser-Test (gehoert zu P4): Tipp vor dem ersten Satz -> Vorschlag +1 Schritt sofort; Ring nur bei faelliger Person; markiert nach Reload. Der Weg ist per Code belegt: toggleIncreaseNextTime setzt den Merker an der letzten Einheit, danach ladeVorschlag -> getLastSets -> shouldInc -> + getWeightStep.
+- Im Test die Knopf-Klassen .aus/.erinnern/.markiert und aria-label lesen; Gruppe einer Karte = ringFuer(entry), nach freiem Tausch ausserhalb des Rings die Uebung allein (gruppeFuer).
+- Fund ausserhalb: .user-tab.active (TrackingView) nutzt noch color-mix - nicht Teil dieses Pakets, nicht angefasst.
+- Geraetezeilen (P3) in docs/tests/geraetetest-plan-steigern-erinnerung.md
+Geschwister geprueft:
+- Fund "markiert vergisst sich": alle Wege in den Knopf-Zustand laufen ueber steigernStand aus ladeVorschlag (loadRecommendations bei Start/Resume/Besetzung, savePickerValues, macheRueckgaengig, toggleIncrease); Regel istMarkiert per S24 getestet (heute vs. letzte Einheit, Altbestand ohne Merker).
+- Fund "Vorschlag springt erst nach Neustart": toggleIncrease ruft steigernNeuRechnen -> ladeVorschlag + updateNotification (Sperrbildschirm liest dieselben recommendations).
+- Fund color-mix: zweite Suche "color-mix(" in src/: TrackingView .user-tab.active und HistoryView:651 - andere Bauteile, nicht der Steigern-Knopf; bleiben.
+- Zweite Suche "increaseNextTime|shouldIncrease" in src/: useHistory.shouldIncreaseWeight (unbenutzt fuer den Knopf), workout.js saveSet setzt false an neuen Saetzen - passt zu istMarkiert (Merker von heute gilt fuers naechste Mal).

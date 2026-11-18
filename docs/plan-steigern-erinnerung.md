@@ -225,7 +225,7 @@ Rueckgabewert von `toggleIncreaseNextTime` angepasst werden muss),
   - Kriterium: Die Einstellungen zeigen "Steigern-Erinnerung" je Person, Standard an, Umschalten schreibt `steigernErinnerung_<userId>`
   - Kriterium: Die Detailansicht zeigt je Person den gespeicherten Bereich oder 8-12 und speichert eine Aenderung als `wdhBereich_<userId>_<exerciseId>`
   - Kriterium: pruefen.txt gruen
-- [ ] P3: Der Steigern-Knopf erinnert mit pulsierendem Ring und merkt sich "markiert"
+- [x] P3: Der Steigern-Knopf erinnert mit pulsierendem Ring und merkt sich "markiert"
   - Wie: Schritt 5 und "Fund im bestehenden Steigern-Knopf". Je Person und Uebung `aus | erinnern | markiert`, berechnet in `ladeVorschlag` mit `erinnerung` aus P1, Gruppe = `ringFuer(ex)`, Einstellung und Bereich ueber die Stelle aus P2. `increaseToggles` entfaellt, "markiert" kommt aus dem Merker, den `toggleIncreaseNextTime` in `src/stores/workout.js` setzt. Nach jedem gespeicherten Satz, nach "Rueckgaengig" (`undoSet`) und nach jedem Tipp auf den Knopf `ladeVorschlag` erneut. Ring als `::after` mit `transform` und `opacity` wie Variante 1 in `docs/entwuerfe/steigern-symbol-varianten.html`, Personenfarbe ohne `color-mix`, bei `prefers-reduced-motion: reduce` ruhend. `aria-label` nennt den Grund ("12 Wdh erreicht" bzw. "3 Mal ohne Steigerung").
   - Kriterium: `increaseToggles` kommt in `src/` nicht mehr vor, und `.increase-icon-btn` samt Ring nutzt kein `color-mix`
   - Kriterium: Ein Tipp vor dem ersten Satz von heute laedt den Vorschlag sofort um einen Schritt hoeher (1,25 kg bei Barbell und Machine-Weight, sonst 1 kg)
