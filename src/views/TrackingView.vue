@@ -914,6 +914,16 @@ function openExerciseDetail(exerciseId) {
   showExerciseDetail.value = true
 }
 
+// Die Detailansicht kann den Wdh-Bereich aendern (v2.17.0): beim Schliessen
+// rechnet die Karte den Steigern-Knopf dieser Uebung neu — sonst stuende der
+// Ring bis zum naechsten Satz oder Neustart noch auf dem alten Bereich
+// (Browser-Test P4). Nur Uebungen, fuer die die Karte schon gerechnet hat.
+watch(showExerciseDetail, (offen) => {
+  const exId = detailExercise.value?.id
+  if (offen || !exId || !steigernStand[exId]) return
+  for (const user of authStore.activeUsers) steigernNeuRechnen(exId, user.id)
+})
+
 // Heute gespeicherte Saetze einer Person fuer eine Uebung
 function saetzeHeute(exerciseId, userId) {
   return workoutStore.getSetsForExercise(exerciseId, userId)

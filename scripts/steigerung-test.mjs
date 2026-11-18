@@ -242,6 +242,12 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   equal('S15 kaputter Bereich = 8-12', erinnere(zwoelf, { bereich: { min: 8 } }).grund, 'oben')
   equal('S15 eigener Bereich 10-15', erinnere(zwoelf, { bereich: { min: 10, max: 15 } }).faellig, false)
   equal('S15 eigener Bereich 6-10', erinnere(elf, { bereich: { min: 6, max: 10 } }).grund, 'oben')
+  // Browser-Test v2.17 (P4): Bereich in der Detailansicht von 8-12 auf 8-13
+  // geaendert -> dieselben drei Saetze mit 12 sind nicht mehr oben; die Karte
+  // rechnet beim Schliessen der Detailansicht neu (TrackingView)
+  const dreiMalZwoelf = [1, 2, 3].map(n => satz('2030-01-01', KH, 12, 12, n))
+  equal('S15 vorher 8-12, alle Saetze 12', erinnere(dreiMalZwoelf, { bereich: { min: 8, max: 12 } }).grund, 'oben')
+  equal('S15 nach Aenderung auf 8-13 nicht mehr oben', erinnere(dreiMalZwoelf, { bereich: { min: 8, max: 13 } }).faellig, false)
 }
 
 // S16: Kommawerte ohne Rundung.

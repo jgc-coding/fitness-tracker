@@ -17,3 +17,4 @@ Was der Autopilot nicht selbst pruefen kann. Je Zeile eine Handlung am Handy.
 - Zu zweit bei 360 px: der Ring wird nicht abgeschnitten, nichts bricht um, das Pulsieren wirkt nicht stoerend (P3)
 - Am Handy "Animationen entfernen" einschalten (Bedienungshilfen): der Ring steht still statt zu pulsieren (P3)
 - Mit TalkBack auf den Knopf tippen: angesagt wird der Grund, z.B. "Steigern, 12 Wdh erreicht" bzw. "Steigern, 3 Mal ohne Steigerung" (P3)
+- Bei einer Uebung mit Ring (12 Wdh) im Training aufs Vorschaubild tippen, den Bereich auf 8-13 aendern und die Detailansicht schliessen: der Ring ist sofort weg, ohne Neustart (P4)
