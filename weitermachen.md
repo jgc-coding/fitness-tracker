@@ -72,14 +72,13 @@
   **UserSelectModal uebernimmt nur ueber Bestaetigen** — beibehalten.
 
 ## Naechste Schritte (Claude)
-0. **Bestellt 17.11.2026, Umsetzung ab 18.11.: Steigern-Erinnerung (v2.17.0).**
-   Plan `docs/plan-steigern-erinnerung.md` (Gabriels Entscheidungen stehen
-   drin, Symbol = Variante 1 pulsierender Ring), Symbol-Entwuerfe
-   `docs/entwuerfe/steigern-symbol-varianten.html`. Alle Fragen sind
-   beantwortet (auch Frage 7: ausgelassene Gruppe zaehlt nicht), der Plan
-   kann starten. Erster Schritt ist die Analyse der
-   Wdh-Bereiche, deren Tabelle Gabriel freigibt. Noch nichts umgesetzt,
-   nichts an der Cloud gelesen.
+0. **Steigern-Erinnerung (v2.17.0) laeuft seit 18.11.2026 per Autopilot.**
+   Plan `docs/plan-steigern-erinnerung.md`, fuenf Pakete P1-P5, Stand per
+   `/autopilot status`. Schritt 1 ausserhalb der Kette erledigt:
+   `scripts/wdh-bereiche.mjs`, Tabelle in `privat\wdh-bereiche-vorschlag.md`
+   (unveraendert uebernommen, 14 Abweichungen von 8-12). OFFEN: das
+   Schreiben der Startwerte (`--jetzt`), siehe "Was Gabriel selbst tun
+   muss". Alte Browser-Tests liegen jetzt in `privat\browsertests\`.
 1. **Handy-Tests v2.10.0 bis v2.16.0 bestanden** (Gabriel 17.11.2026: "alle
    alten Versionen getestet, alles funktioniert"). Kommt doch noch etwas:
    Regeln stehen in der CLAUDE.md, Aenderungen je Version im CHANGELOG,
@@ -115,5 +114,8 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] **Startwerte der Wdh-Bereiche in die Cloud schreiben** (seit 2026-11-18):
+  `node .\scripts\wdh-bereiche.mjs --jetzt` im Projektordner. Claude durfte
+  das nicht selbst (Sicherheitspruefung). Ohne die Werte gilt ueberall 8-12.
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
