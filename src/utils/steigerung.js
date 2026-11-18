@@ -182,3 +182,40 @@ export function erinnerung({ setLogs, gruppe, exerciseId, userId, bereich = null
   if (zaehler >= STILLSTAND_EINHEITEN) return { faellig: true, grund: 'stillstand', zaehler }
   return nichts
 }
+
+/**
+ * Ist die Uebung fuer die Person markiert? Liest denselben Ort, den
+ * `toggleIncreaseNextTime` (stores/workout.js) beschreibt: Gibt es heute im
+ * laufenden Training schon Saetze, der Merker an diesen (gilt fuers naechste
+ * Mal), sonst der Merker an der letzten Einheit (gilt fuer heute). So kommt
+ * "markiert" aus den gespeicherten Daten und ueberlebt einen Neustart.
+ */
+export function istMarkiert(saetzeHeute, letzteEinheit) {
+  const quelle = saetzeHeute && saetzeHeute.length ? saetzeHeute : (letzteEinheit || [])
+  return quelle.some(s => s && s.increaseNextTime === true)
+}
+
+/**
+ * Zustand des Steigern-Knopfs: 'markiert' | 'erinnern' | 'aus'.
+ * Markiert geht immer vor; die Erinnerung nur bei faellig UND Einstellung an
+ * (nur ein `false` schaltet aus, wie `erinnerungAn`).
+ */
+export function knopfZustand({ markiert = false, faellig = false, aktiv = true } = {}) {
+  if (markiert) return 'markiert'
+  if (faellig && erinnerungAn(aktiv)) return 'erinnern'
+  return 'aus'
+}
+
+/**
+ * Text fuer Vorleseprogramme und den Tooltip; nennt bei der Erinnerung den
+ * Grund ("12 Wdh erreicht" bzw. "3 Mal ohne Steigerung").
+ */
+export function knopfText({ zustand, grund, zaehler, max, name = '' } = {}) {
+  const wer = name ? `${name}: ` : ''
+  if (zustand === 'markiert') return `${wer}Steigern markiert, Tipp hebt die Markierung auf`
+  if (zustand === 'erinnern') {
+    if (grund === 'oben') return `${wer}Steigern, ${max ?? STANDARD_BEREICH.max} Wdh erreicht`
+    return `${wer}Steigern, ${zaehler} Mal ohne Steigerung`
+  }
+  return `${wer}Gewicht beim nächsten Mal steigern`
+}

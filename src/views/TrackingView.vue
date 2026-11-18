@@ -201,11 +201,16 @@
                     </span>
                   </span>
                 </Transition>
+                <!-- Steigern-Knopf (v2.17.0): aus | erinnern (Pulsring) |
+                     markiert. Zustand aus den gespeicherten Saetzen, nie
+                     aus der Ansicht (steigernStand, ladeVorschlag). -->
                 <button
                   class="increase-icon-btn"
-                  :class="{ active: increaseToggles[z.exId]?.[z.user.id] }"
-                  :style="{ '--user-color': z.user.color }"
-                  :title="`${z.user.name}: Gewicht beim nächsten Mal steigern`"
+                  :class="z.steigernZustand"
+                  :style="{ '--user-color': z.user.color, '--user-bg': z.user.bgColor }"
+                  :title="z.steigernText"
+                  :aria-label="z.steigernText"
+                  :aria-pressed="z.steigernZustand === 'markiert' ? 'true' : 'false'"
                   @click.stop="toggleIncrease(z.exId, z.user.id)"
                 >
                   <img src="/logo.svg" alt="" class="increase-icon-logo" />
@@ -633,6 +638,8 @@ import {
 import { syncStatus, flushQueue } from '../services/syncService.js'
 import { db } from '../db/dexie.js'
 import { hatZweiSeiten, proSeite, gesamtAusSeite, seitenRaster } from '../utils/gewichtProSeite.js'
+import { erinnerung, istMarkiert, knopfZustand, knopfText } from '../utils/steigerung.js'
+import { ladeWdhBereich } from '../composables/useWdhBereich.js'
 
 const route = useRoute()
 const workoutStore = useWorkoutStore()
@@ -651,7 +658,10 @@ const quickAddSearch = ref('')
 const swapIndex = ref(-1)
 const recommendations = reactive({})
 const increaseFlags = reactive({})
-const increaseToggles = reactive({})
+// Steigern-Knopf je Uebung und Person (v2.17.0): { markiert, faellig, grund,
+// zaehler, max } — gerechnet in ladeVorschlag aus den gespeicherten Saetzen.
+// Die Einstellung An/Aus wirkt erst in kartenZeilen (reaktiv, auch per Sync).
+const steigernStand = reactive({})
 // Saetze der letzten Einheit je Uebung und Person (ohne das laufende
 // Workout) — Quelle fuer "Letztes Mal, Satz n" und die Vorschlaege je Satz
 const letzteEinheit = reactive({})
@@ -958,11 +968,19 @@ const kartenZeilen = computed(() => workoutExercises.value.map((entry, index) =>
   istStandard: kartenStandard(entry, standardReihenfolge.value) === kopfId(entry),
   nutzer: authStore.activeUsers.map(user => {
     const exId = aktiveId(entry, user.id)
+    const stand = steigernStand[exId]?.[user.id]
+    const steigernZustand = knopfZustand({
+      markiert: stand?.markiert,
+      faellig: stand?.faellig,
+      aktiv: authStore.steigernErinnerung(user.id)
+    })
     return {
       user,
       exId,
       wert: kartenWert(exId, user.id),
       steigern: increaseFlags[exId]?.[user.id] || false,
+      steigernZustand,
+      steigernText: knopfText({ zustand: steigernZustand, grund: stand?.grund, zaehler: stand?.zaehler, max: stand?.max, name: user.name }),
       punkte: satzPunkte(exId, user.id),
       eigene: wechselAnzeige(entry, user.id, preferredUserId.value).eigene
     }
@@ -993,16 +1011,41 @@ async function loadRecommendations() {
     // leere Zeile.
     for (const user of authStore.activeUsers) {
       for (const exId of new Set([aktiveId(ex, user.id), ...ringFuer(ex)])) {
-        await ladeVorschlag(exId, user.id)
+        await ladeVorschlag(exId, user.id, gruppeFuer(ex, exId))
       }
     }
   }
 }
 
-async function ladeVorschlag(exId, userId) {
+// Uebungsgruppe fuer die Steigern-Erinnerung: der Ring der Karte. Steht nach
+// einem freien Tausch eine Uebung ausserhalb des Rings auf der Karte, zaehlt
+// sie allein — ihre Saetze mit fremden Uebungen zu mischen, waere falsch.
+function gruppeFuer(entry, exId) {
+  const ring = ringFuer(entry)
+  return ring.includes(exId) ? ring : [exId]
+}
+
+// Gruppe zu einer Uebung ohne bekannte Karte (Tipp, Speichern, Rueckgaengig):
+// die erste Karte, deren Ring oder Uebung sie ist
+function gruppeZuUebung(exId, userId) {
+  const entry = workoutExercises.value.find(e => ringFuer(e).includes(exId) || aktiveId(e, userId) === exId)
+  return entry ? gruppeFuer(entry, exId) : [exId]
+}
+
+// Alle gespeicherten Saetze der Person in den Uebungen der Gruppe (heute
+// eingeschlossen: "heute zaehlt mit, sobald ein Satz da ist")
+async function gruppenSaetze(gruppe, userId) {
+  const listen = await Promise.all(gruppe.map(id =>
+    db.setLogs.where('[exerciseId+userId]').equals([id, userId]).toArray()
+  ))
+  return listen.flat()
+}
+
+async function ladeVorschlag(exId, userId, gruppe = gruppeZuUebung(exId, userId)) {
   if (!recommendations[exId]) recommendations[exId] = {}
   if (!increaseFlags[exId]) increaseFlags[exId] = {}
   if (!letzteEinheit[exId]) letzteEinheit[exId] = {}
+  if (!steigernStand[exId]) steigernStand[exId] = {}
 
   // Alle Saetze der letzten Einheit OHNE das laufende Workout — sonst wuerde
   // nach dem ersten Satz von heute "letztes Mal" zu "heute"
@@ -1025,6 +1068,26 @@ async function ladeVorschlag(exId, userId) {
     // hier. Ein Eintrag, ein Paar: das Rad startet mit dem, was die Karte
     // zeigt, und ein leeres Abfrageergebnis kann kein halbes Paar hinterlassen.
     recommendations[exId][userId] = { ...basis, weight }
+  }
+
+  // Steigern-Knopf: "markiert" aus demselben Ort, den der Tipp beschreibt;
+  // die Erinnerung aus allen Saetzen der Gruppe (Regeln: utils/steigerung.js).
+  // Ein Fehler hier darf den Vorschlag nicht kippen — dann eben kein Ring.
+  const markiert = istMarkiert(saetzeHeute(exId, userId), letzte)
+  try {
+    const bereich = await ladeWdhBereich(userId, exId)
+    const r = erinnerung({
+      setLogs: await gruppenSaetze(gruppe, userId),
+      gruppe,
+      exerciseId: exId,
+      userId,
+      bereich,
+      markiert
+    })
+    steigernStand[exId][userId] = { markiert, faellig: r.faellig, grund: r.grund, zaehler: r.zaehler, max: bereich.max }
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Steigern-Erinnerung nicht berechnet:', exId, userId, err)
+    steigernStand[exId][userId] = { markiert, faellig: false, grund: null, zaehler: 0, max: null }
   }
 }
 
@@ -1331,9 +1394,24 @@ async function savePickerValues() {
   const userId = pickerUserId.value
   // Der Satz gehoert zur aktiven Uebung DES NUTZERS — bei Altbestand mit
   // Abweichung landet ein Latzug-Satz bei Latzug, ein Klimmzug-Satz bei Klimmzug
-  const rueckweg = await workoutStore.saveSet(aktiveId(ex, userId), userId, pickerSatz.value, pickerWeight.value, pickerReps.value)
+  const exId = aktiveId(ex, userId)
+  const rueckweg = await workoutStore.saveSet(exId, userId, pickerSatz.value, pickerWeight.value, pickerReps.value)
   if (rueckweg) zeigeRueckgaengig(rueckweg, pickerSlots.value)
   weiterImRad(userId)
+  // Heute zaehlt mit: wer gerade oben im Bereich ankam oder zum dritten Mal
+  // gleich blieb, sieht die Erinnerung direkt nach dem Speichern
+  await steigernNeuRechnen(exId, userId, ex ? gruppeFuer(ex, exId) : undefined)
+}
+
+// Vorschlag und Steigern-Knopf einer Uebung neu laden (nach Speichern,
+// Rueckgaengig und Tipp auf den Knopf). Fehler nur ins Log: der Satz ist
+// dann trotzdem gespeichert.
+async function steigernNeuRechnen(exId, userId, gruppe) {
+  try {
+    await ladeVorschlag(exId, userId, gruppe)
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Vorschlag nicht neu geladen:', exId, userId, err)
+  }
 }
 
 // Saetze auslassen (v2.15.0): der gewaehlte und alle spaeteren offenen
@@ -1480,6 +1558,7 @@ async function macheRueckgaengig() {
     pickerReps.value = rueckweg.reps
   }
   updateNotification()
+  await steigernNeuRechnen(rueckweg.exerciseId, rueckweg.userId)
 }
 
 // Rueckgaengig nach dem Auslassen: die Liste von vorher zurueck; steht das
@@ -1503,11 +1582,21 @@ async function auslassenZuruecknehmen(rueckweg) {
   updateNotification()
 }
 
+// Tipp auf den Steigern-Knopf (auch auf die Erinnerung = annehmen): der
+// Merker liegt an den Saetzen, danach Vorschlag und Knopf neu aus den Daten —
+// vor dem ersten Satz von heute steht der Vorschlag so sofort einen Schritt
+// hoeher (vorher erst nach einem Neustart)
 async function toggleIncrease(exerciseId, userId) {
   if (istWischNachklick()) return
-  const result = await workoutStore.toggleIncreaseNextTime(exerciseId, userId)
-  if (!increaseToggles[exerciseId]) increaseToggles[exerciseId] = {}
-  increaseToggles[exerciseId][userId] = result
+  try {
+    await workoutStore.toggleIncreaseNextTime(exerciseId, userId)
+  } catch (err) {
+    console.error('[Fitness Tracker] [ERROR] Steigern-Merker nicht gespeichert:', exerciseId, userId, err)
+    zeigeRueckgaengigFehler(`${err?.name || 'Fehler'} · Steigern ${exerciseId}`, 'Steigern hat nicht geklappt. Bitte noch einmal tippen.')
+    return
+  }
+  await steigernNeuRechnen(exerciseId, userId)
+  updateNotification()
 }
 
 // Bestaetigte Nutzer-Auswahl ueber die Farbkreise im Kopf: der Store ist schon
@@ -2418,7 +2507,13 @@ onUnmounted(() => {
   font-weight: var(--font-weight-bold);
 }
 
+/* Steigern-Knopf: aus (blass) | erinnern (Pulsring, Variante 1 aus
+   docs/entwuerfe/steigern-symbol-varianten.html) | markiert (Rahmen +
+   Flaeche). Personenfarben statisch ueber --user-color/--user-bg, kein
+   color-mix (alte Android-WebViews). Der Ring liegt absolut und aendert die
+   Breite nicht — bei 360 px bricht nichts um. */
 .increase-icon-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2431,7 +2526,10 @@ onUnmounted(() => {
   background: transparent;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.15s;
+  transition: opacity 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.increase-icon-btn.aus {
   opacity: 0.35;
 }
 
@@ -2439,10 +2537,32 @@ onUnmounted(() => {
   background: var(--color-bg);
 }
 
-.increase-icon-btn.active {
-  opacity: 1;
+.increase-icon-btn.markiert {
   border-color: var(--user-color);
-  background: color-mix(in srgb, var(--user-color) 12%, white);
+  background: var(--user-bg);
+}
+
+.increase-icon-btn.erinnern::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--user-color);
+  pointer-events: none;
+  animation: steigern-puls 1.8s ease-out infinite;
+}
+
+@keyframes steigern-puls {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .increase-icon-btn.erinnern::after {
+    animation: none;
+    transform: scale(1.25);
+    opacity: 0.5;
+  }
 }
 
 .increase-icon-logo {
