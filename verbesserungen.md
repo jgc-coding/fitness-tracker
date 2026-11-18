@@ -31,6 +31,18 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       Optionen: Historie neu schreiben (Force-Push, alle Kennungen und Tags aendern sich,
       GitHub haelt alte Staende noch eine Weile per Direktlink) oder Repo privat stellen
       (GitHub Pages braucht dann ein bezahltes Konto) oder so lassen.
+- [ ] **V18** (B) Steigern-Knopf nach einem Satz vom Sperrbildschirm neu rechnen — Abnahme plan-steigern-erinnerung (P3)
+      Gefahr: Wer einen Satz per Quick-Log in der Benachrichtigung speichert, waehrend die
+      App im Hintergrund offen ist, sieht danach einen veralteten Knopf: 12 Wdh geschafft,
+      aber kein Ring; oder "markiert" steht noch da, obwohl die heutigen Saetze keinen
+      Merker tragen, und ein Tipp darauf markiert, statt die Markierung aufzuheben.
+      Beleg: `src/views/TrackingView.vue:1740-1745` (`onSwMessage`, 'quicklog-saved') laedt nur
+      `workoutStore.loadSets()` und die Notification; `steigernNeuRechnen` bzw. `ladeVorschlag`
+      fehlt dort. Die Quick-Log-Saetze tragen `increaseNextTime: false` (`TrackingView.vue:1689`).
+      Plan Schritt 5 verlangt das Neurechnen nach JEDEM gespeicherten Satz; nur der Weg ueber
+      das Rad (`savePickerValues`) tut es.
+      Empfehlung: in `onSwMessage` nach `loadSets` die Steigern-Staende der aktiven Personen
+      neu rechnen (z.B. `loadRecommendations()`), Fall im Browser-Test v217 ergaenzen. · Aufwand: S
 
 ## Ideen
 - **I8** (Erweiterung) Alle Saetze eines Tages in der History zeigen — Aufwand: S-M
