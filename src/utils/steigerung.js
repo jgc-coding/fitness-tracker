@@ -27,6 +27,33 @@ export const STILLSTAND_EINHEITEN = 3
 /** Wdh-Bereich, wenn fuer Person und Uebung keiner gespeichert ist. */
 export const STANDARD_BEREICH = Object.freeze({ min: 8, max: 12 })
 
+/**
+ * Speicherorte (gesynct ueber db.meta, keine eigene Tabelle):
+ *   steigernErinnerung_<userId>          value true/false, fehlt = an
+ *   wdhBereich_<userId>_<exerciseId>     value { min, max }, fehlt = 8-12
+ * Ein Eintrag je Paar, damit zwei Handys sich nicht gegenseitig
+ * ueberschreiben. Grenzen wie scripts/wdh-bereiche.mjs (das die Startwerte
+ * schreibt): ganze Zahlen, WDH_GRENZEN.min <= min < max <= WDH_GRENZEN.max.
+ */
+export const WDH_GRENZEN = Object.freeze({ min: 1, max: 50 })
+
+export const erinnerungSchluessel = (userId) => `steigernErinnerung_${userId}`
+export const wdhBereichSchluessel = (userId, exerciseId) => `wdhBereich_${userId}_${exerciseId}`
+
+/** Einstellung lesen: nur ein gespeichertes `false` schaltet aus. */
+export function erinnerungAn(wert) {
+  return wert !== false
+}
+
+/** Gueltiger Bereich als frische Kopie { min, max }, sonst null. */
+export function wdhBereichGueltig(wert) {
+  if (!wert || typeof wert !== 'object') return null
+  const { min, max } = wert
+  if (!Number.isInteger(min) || !Number.isInteger(max)) return null
+  if (min < WDH_GRENZEN.min || max > WDH_GRENZEN.max || min >= max) return null
+  return { min, max }
+}
+
 const hatWdh = (reps) => typeof reps === 'number' && Number.isFinite(reps)
 const hatGewicht = (weight) => typeof weight === 'number' && Number.isFinite(weight)
 

@@ -1790,6 +1790,8 @@ onMounted(async () => {
   // Vor den Vorschlaegen: wer mehrere Saetze erfasst, bekommt Satz 1 der
   // letzten Einheit als Vorschlag statt des zuletzt eingetragenen Satzes
   await authStore.loadSatzZahlen()
+  // Steigern-Erinnerung an/aus je Person (v2.17.0; die Karte liest sie ab P3)
+  await authStore.loadSteigernErinnerungen()
 
   // Show notification banner if not yet permitted
   if (isNotificationSupported() && Notification.permission !== 'granted' && Notification.permission !== 'denied') {

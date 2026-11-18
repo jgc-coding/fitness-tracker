@@ -69,6 +69,32 @@
             </div>
           </div>
         </div>
+
+        <!-- Steigern-Erinnerung je Person (v2.17.0): gesynct, Standard an -->
+        <div class="default-user">
+          <span class="user-label-id">Steigern-Erinnerung</span>
+          <p class="settings-desc">
+            Die App erinnert ans Steigern, wenn eine Person dreimal nacheinander
+            gleich geblieben ist oder beim letzten Mal oben im Wdh-Bereich war.
+            Die Einstellung gilt auf allen Geraeten.
+          </p>
+          <div v-for="user in authStore.users" :key="user.id" class="satz-zeile">
+            <span class="satz-name" :style="{ borderLeftColor: user.color }">{{ user.name }}</span>
+            <div class="user-toggle satz-auswahl" role="group" :aria-label="`Steigern-Erinnerung fuer ${user.name}`">
+              <button
+                v-for="wahl in ERINNERUNG_WAHL"
+                :key="wahl.text"
+                class="toggle-btn"
+                :class="{ active: authStore.steigernErinnerung(user.id) === wahl.an }"
+                :style="{ '--user-color': user.color }"
+                :aria-pressed="authStore.steigernErinnerung(user.id) === wahl.an"
+                @click="authStore.setSteigernErinnerung(user.id, wahl.an)"
+              >
+                {{ wahl.text }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Seed exercises -->
@@ -243,6 +269,8 @@ import bildKatalog from '../data/uebungskatalog.json'
 import { STANDARD_UEBUNGEN } from '../data/standardUebungen.js'
 
 const authStore = useAuthStore()
+// Knoepfe der Steigern-Erinnerung (An zuerst, Standard)
+const ERINNERUNG_WAHL = [{ an: true, text: 'An' }, { an: false, text: 'Aus' }]
 const { updateExercise } = useExercises()
 const seedMessage = ref('')
 const imageMessage = ref('')
@@ -318,6 +346,7 @@ async function doBackupImport(event) {
     const { imported, skipped } = await importFromJSON(text)
     await authStore.loadUserNames()
     await authStore.loadSatzZahlen()
+    await authStore.loadSteigernErinnerungen()
     resyncAll() // bringt neue lokale Daten in die Cloud (falls angemeldet)
     backupError.value = false
     backupMessage.value = `Import fertig: ${imported} uebernommen, ${skipped} unveraendert.`
@@ -573,6 +602,7 @@ async function seedHistory() {
 onMounted(() => {
   authStore.loadUserNames()
   authStore.loadSatzZahlen()
+  authStore.loadSteigernErinnerungen()
 })
 </script>
 

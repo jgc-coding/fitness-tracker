@@ -4,6 +4,7 @@ import { db, generateId } from '../db/dexie.js'
 import { USERS } from '../utils/constants.js'
 import { pushRecord } from '../services/syncService.js'
 import { satzZahlGueltig } from '../utils/saetze.js'
+import { erinnerungAn, erinnerungSchluessel } from '../utils/steigerung.js'
 
 // Der Standard-Nutzer ist eine GERAETE-Einstellung, kein geteilter Datensatz:
 // auf dem Handy von user1 soll user1 vorausgewaehlt sein, auf dem von user2
@@ -65,7 +66,11 @@ export const useAuthStore = defineStore('auth', () => {
   // sofort anzeigen — nicht erst beim naechsten Wechsel der Ansicht
   if (typeof window !== 'undefined') {
     window.addEventListener('fitness-sync-changed', (e) => {
-      if (e.detail?.collection === 'meta') loadUserNames()
+      if (e.detail?.collection === 'meta') {
+        loadUserNames()
+        // Erinnerung an/aus vom anderen Handy sofort wirksam (v2.17.0)
+        loadSteigernErinnerungen()
+      }
     })
   }
 
@@ -103,6 +108,40 @@ export const useAuthStore = defineStore('auth', () => {
     satzZahlen.value = { ...satzZahlen.value, [userId]: n }
     const key = `saetze_${userId}`
     const record = { key, value: n, updatedAt: new Date().toISOString() }
+    await db.meta.put(record)
+    pushRecord('meta', key, record)
+  }
+
+  // Steigern-Erinnerung je Person (v2.17.0, Regeln in utils/steigerung.js):
+  // geteilt wie die Satzzahl (db.meta, gesynct). Fehlt der Eintrag = an,
+  // nur ein gespeichertes false schaltet aus.
+  const erinnerungen = ref({})
+
+  function steigernErinnerung(userId) {
+    return erinnerungAn(erinnerungen.value[userId])
+  }
+
+  async function loadSteigernErinnerungen() {
+    const werte = {}
+    for (const user of users.value) {
+      const stored = await db.meta.get(erinnerungSchluessel(user.id))
+      if (stored && typeof stored.value !== 'boolean') {
+        // Nicht still ueberdecken: ein kaputter Wert gehoert ins Log
+        console.warn('[FitTrack] [WARN] Ungueltige Steigern-Erinnerung ignoriert, nutze an:', user.id, stored.value)
+      }
+      werte[user.id] = typeof stored?.value === 'boolean' ? stored.value : true
+    }
+    erinnerungen.value = werte
+  }
+
+  async function setSteigernErinnerung(userId, an) {
+    if (typeof an !== 'boolean' || !users.value.some(u => u.id === userId)) {
+      console.warn('[FitTrack] [WARN] Steigern-Erinnerung nicht gespeichert (ungueltig):', userId, an)
+      return
+    }
+    erinnerungen.value = { ...erinnerungen.value, [userId]: an }
+    const key = erinnerungSchluessel(userId)
+    const record = { key, value: an, updatedAt: new Date().toISOString() }
     await db.meta.put(record)
     pushRecord('meta', key, record)
   }
@@ -216,6 +255,10 @@ export const useAuthStore = defineStore('auth', () => {
     satzZahl,
     loadSatzZahlen,
     setSatzZahl,
+    erinnerungen,
+    steigernErinnerung,
+    loadSteigernErinnerungen,
+    setSteigernErinnerung,
     setDefaultUser,
     setActiveUsers,
     resetActiveUsers,
