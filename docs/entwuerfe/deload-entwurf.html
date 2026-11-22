@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deload-Wochen Entwurf</title>
+<style>
+/* Entwurf fuer v2.18.0: Deload-Wochen auf dem Startbildschirm.
+   Farben wie die App (src/styles/variables.css), Personen nur als Nummer. */
+:root {
+  --bg: #f3f6f7;
+  --karte: #ffffff;
+  --text: #1e1f23;
+  --text-hell: #6b6d75;
+  --text-blass: #9b9da5;
+  --rand: #dde1e3;
+  --akzent: #911f2f;
+  --gruen: #2d8a4e;
+  --u1: #911f2f; --u1-bg: rgba(145, 31, 47, 0.12);
+  --u2: #2c5f8a; --u2-bg: rgba(44, 95, 138, 0.12);
+  --u3: #2f7d4f; --u3-bg: rgba(47, 125, 79, 0.12);
+  --faellig-bg: #fbf1de;
+  --faellig-rand: #e3b866;
+  --faellig-text: #8a5a0b;
+  --schrift: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); font-family: var(--schrift);
+  font-size: 15px; line-height: 1.45; padding: 20px 16px 48px;
+}
+.seite { max-width: 430px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 16px; margin: 0; }
+p { margin: 0; }
+.hell { color: var(--text-hell); font-size: 14px; }
+.titel { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-hell); font-weight: 600; margin: 10px 0 -8px; }
+
+/* Startbildschirm-Ausschnitt */
+.handy { background: var(--bg); border: 1px solid var(--rand); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.tag { background: var(--karte); border-radius: 10px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); display: flex; justify-content: space-between; }
+.tag b { font-weight: 600; }
+.tag span { color: var(--text-hell); font-size: 13px; }
+.kreise { display: flex; justify-content: center; gap: 16px; padding-top: 12px; border-top: 1px solid var(--rand); margin-top: 4px; }
+.kreis { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; }
+.kreis.blass { opacity: 0.3; }
+.kreis.an { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px currentColor; }
+
+/* Die neue Deload-Leiste */
+.deload { background: var(--karte); border: 1px solid var(--rand); border-radius: 10px; overflow: hidden; }
+.dzeile { display: flex; align-items: center; gap: 10px; padding: 9px 12px; min-height: 44px; }
+.dzeile + .dzeile { border-top: 1px solid var(--rand); }
+.punkt { width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dtext { flex: 1; min-width: 0; font-size: 14px; }
+.dtext small { display: block; color: var(--text-hell); font-size: 12.5px; }
+.pfeil { color: var(--text-blass); font-size: 18px; }
+.dzeile.faellig { background: var(--faellig-bg); box-shadow: inset 3px 0 0 var(--faellig-rand); }
+.dzeile.faellig .dtext b { color: var(--faellig-text); }
+.dzeile.laeuft .dtext b { color: var(--gruen); }
+.dzeile.leer .dtext { color: var(--text-hell); }
+.zustand-name { font-size: 12px; color: var(--text-hell); margin: 2px 0 -4px 2px; }
+
+/* Fenster */
+.fenster { background: var(--karte); border-radius: 16px 16px 10px 10px; border: 1px solid var(--rand); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.fkopf { display: flex; justify-content: space-between; align-items: center; }
+.zu { color: var(--text-hell); font-size: 22px; line-height: 1; }
+.gilt { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-hell); }
+.gilt .punkt { width: 30px; height: 30px; font-size: 13px; }
+.gilt .punkt.aus { opacity: 0.3; }
+.gross { background: var(--akzent); color: #fff; border-radius: 10px; padding: 12px; text-align: center; font-weight: 600; }
+.wochen { display: flex; flex-direction: column; border: 1px solid var(--rand); border-radius: 10px; overflow: hidden; }
+.woche { display: flex; align-items: center; gap: 10px; padding: 8px 12px; font-size: 14px; }
+.woche + .woche { border-top: 1px solid var(--rand); }
+.woche .kw { width: 52px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.woche .datum { flex: 1; color: var(--text-hell); font-size: 13px; }
+.woche .marke { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.marke.gemacht { background: rgba(45, 138, 78, 0.12); color: var(--gruen); }
+.marke.vorschlag { border: 1px dashed var(--faellig-rand); color: var(--faellig-text); }
+.marke.geplant { background: rgba(145, 31, 47, 0.10); color: var(--akzent); }
+.woche.heute { background: var(--bg); }
+
+/* Training */
+.training { background: var(--bg); border: 1px solid var(--rand); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.tkopf { display: flex; align-items: center; justify-content: space-between; }
+.tkopf h3 { margin: 0; font-size: 20px; }
+.chip { font-size: 12px; font-weight: 600; color: var(--gruen); background: rgba(45, 138, 78, 0.12); padding: 3px 9px; border-radius: 999px; }
+.karte { background: var(--karte); border-radius: 10px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 8px; }
+.wertzeile { display: flex; align-items: center; gap: 8px; background: var(--bg); border-left: 3px solid var(--u2); border-radius: 4px; padding: 6px 8px; }
+.wertzeile .wert { flex: 1; font-weight: 600; color: var(--text-blass); font-style: italic; }
+.knopf { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--rand); opacity: 0.35; }
+
+/* Regeln */
+.regeln { background: var(--karte); border: 1px solid var(--rand); border-radius: 10px; padding: 14px 14px 14px 32px; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+</style>
+</head>
+<body>
+<main class="seite">
+  <h1>Deload-Wochen: Vorschlag</h1>
+  <p class="hell">Beispiel: Heute ist KW 47. Person 2 hatte die letzte Deload-Woche in KW 40. Danach kommen 8 normale Wochen, die nächste Deload-Woche ist also KW 49.</p>
+
+  <p class="titel">1 · Startbildschirm, ganz unten</p>
+  <div class="handy">
+    <div class="tag"><b>Push</b><span>7 Übungen</span></div>
+    <div class="tag"><b>Pull</b><span>6 Übungen</span></div>
+    <div class="kreise">
+      <span class="kreis blass" style="background:var(--u1)">1</span>
+      <span class="kreis an" style="background:var(--u2); color:var(--u2)"><span style="color:#fff">2</span></span>
+      <span class="kreis blass" style="background:var(--u3)">3</span>
+    </div>
+    <div class="deload">
+      <div class="dzeile">
+        <span class="punkt" style="background:var(--u2)">2</span>
+        <span class="dtext"><b>Deload in 2 Wochen</b><small>KW 49 · letzte vor 7 Wochen (KW 40)</small></span>
+        <span class="pfeil">›</span>
+      </div>
+    </div>
+  </div>
+  <p class="hell">Eine Zeile je Person, die gerade ausgewählt ist. Trainiert ihr zu zweit, stehen zwei Zeilen untereinander.</p>
+
+  <p class="titel">2 · Die Zustände der Zeile</p>
+  <div class="zustand-name">Normal</div>
+  <div class="deload"><div class="dzeile"><span class="punkt" style="background:var(--u2)">2</span><span class="dtext"><b>Deload in 2 Wochen</b><small>KW 49 · letzte vor 7 Wochen (KW 40)</small></span><span class="pfeil">›</span></div></div>
+  <div class="zustand-name">Fällig (so sieht es dann in KW 49 aus) — das Feld färbt sich dezent</div>
+  <div class="deload"><div class="dzeile faellig"><span class="punkt" style="background:var(--u2)">2</span><span class="dtext"><b>Deload-Woche fällig</b><small>diese Woche (KW 49) · antippen zum Eintragen</small></span><span class="pfeil">›</span></div></div>
+  <div class="zustand-name">Nicht gemacht (in KW 51) — bleibt gefärbt, zählt mit</div>
+  <div class="deload"><div class="dzeile faellig"><span class="punkt" style="background:var(--u2)">2</span><span class="dtext"><b>Deload seit 2 Wochen fällig</b><small>war für KW 49 vorgesehen</small></span><span class="pfeil">›</span></div></div>
+  <div class="zustand-name">Eingetragen (in KW 49) — diese Woche ist Deload</div>
+  <div class="deload"><div class="dzeile laeuft"><span class="punkt" style="background:var(--u2)">2</span><span class="dtext"><b>✓ Deload-Woche läuft</b><small>KW 49 · nächste KW 5 (ab 01.02.)</small></span><span class="pfeil">›</span></div></div>
+  <div class="zustand-name">Zu zweit in KW 49, nur Person 2 fällig</div>
+  <div class="deload">
+    <div class="dzeile"><span class="punkt" style="background:var(--u1)">1</span><span class="dtext"><b>Deload in 2 Wochen</b><small>KW 51 · letzte vor 7 Wochen (KW 42)</small></span><span class="pfeil">›</span></div>
+    <div class="dzeile faellig"><span class="punkt" style="background:var(--u2)">2</span><span class="dtext"><b>Deload-Woche fällig</b><small>diese Woche (KW 49) · antippen zum Eintragen</small></span><span class="pfeil">›</span></div>
+  </div>
+  <div class="zustand-name">Ganz am Anfang</div>
+  <div class="deload"><div class="dzeile leer"><span class="punkt" style="background:var(--u2)">2</span><span class="dtext">Noch keine Deload-Woche eingetragen<small>antippen und die erste Woche wählen</small></span><span class="pfeil">›</span></div></div>
+
+  <p class="titel">3 · Antippen öffnet ein Fenster</p>
+  <div class="fenster">
+    <div class="fkopf"><h2>Deload-Wochen</h2><span class="zu">×</span></div>
+    <div class="gilt">Gilt für
+      <span class="punkt aus" style="background:var(--u1)">1</span>
+      <span class="punkt" style="background:var(--u2)">2</span>
+      <span class="punkt aus" style="background:var(--u3)">3</span>
+    </div>
+    <div class="gross">Diese Woche (KW 47) ist Deload</div>
+    <div class="wochen">
+      <div class="woche"><span class="kw">KW 40</span><span class="datum">28.09.–04.10.</span><span class="marke gemacht">✓ Deload</span></div>
+      <div class="woche"><span class="kw">KW 46</span><span class="datum">09.11.–15.11.</span></div>
+      <div class="woche heute"><span class="kw">KW 47</span><span class="datum">diese Woche</span></div>
+      <div class="woche"><span class="kw">KW 48</span><span class="datum">23.11.–29.11.</span></div>
+      <div class="woche"><span class="kw">KW 49</span><span class="datum">30.11.–06.12.</span><span class="marke vorschlag">Vorschlag</span></div>
+      <div class="woche"><span class="kw">KW 50</span><span class="datum">07.12.–13.12.</span></div>
+      <div class="woche"><span class="kw">KW 52</span><span class="datum">21.12.–27.12.</span><span class="marke geplant">geplant</span></div>
+    </div>
+    <p class="hell">Ein Tipp auf eine Woche setzt oder entfernt sie: nachtragen, im Voraus planen oder verschieben. Eine geplante Woche (hier KW 52, z.&nbsp;B. wegen Urlaub) ersetzt den Vorschlag.</p>
+  </div>
+
+  <p class="titel">4 · Im Training einer Deload-Woche</p>
+  <div class="training">
+    <div class="tkopf"><h3>Push</h3><span class="chip">Deload-Woche</span></div>
+    <div class="karte">
+      <b>Schrägbank Kurzhantel</b>
+      <div class="wertzeile"><span class="punkt" style="background:var(--u2)">2</span><span class="wert">30 × 10</span><span class="knopf"></span></div>
+    </div>
+    <p class="hell">Kein Steigern-Ring in dieser Woche. Die leichten Gewichte zählen nicht für die Steigern-Regel, und nach der Deload-Woche schlägt die Karte wieder die Werte von davor vor.</p>
+  </div>
+
+  <p class="titel">Die Regeln kurz</p>
+  <ol class="regeln">
+    <li>Nach jeder Deload-Woche kommen 8 volle normale Wochen, die neunte schlägt die App als nächste Deload-Woche vor.</li>
+    <li>Die Erinnerung ist nur das gefärbte Feld auf dem Startbildschirm, kein Banner und keine Meldung.</li>
+    <li>Ein Tipp auf „Diese Woche ist Deload“ trägt die Woche ein; ab da zählt der Rhythmus neu.</li>
+    <li>Wochen lassen sich jederzeit nachtragen, vorplanen oder wieder entfernen.</li>
+    <li>Deload gilt je Person und auf allen Handys; beim Eintragen sind die gerade Ausgewählten vorbelegt.</li>
+  </ol>
+</main>
+</body>
+</html>

@@ -1,4 +1,24 @@
-# Weitermachen — Stand 2026-11-18 (v2.17.0)
+# Weitermachen — Stand 2026-11-22 (v2.17.1)
+
+## Offener Auftrag (22.11.2026): Deload-Wochen
+- Gabriel will Deload-Wochen tracken: Startbildschirm unter den
+  Farbkreisen, alle 8 volle Wochen eine Deload-Woche, dezente Erinnerung
+  (Feld faerbt sich), manuell setzen/nachtragen. Vorschlag samt Bild:
+  `docs/entwuerfe/deload-entwurf.html`. **Wartet auf Gabriels Freigabe**
+  und drei Entscheidungen (je Person vs. gemeinsam, alten Planungs-
+  Schalter "Deload-Wochen alle X Wochen" ersetzen, Vorwert nach dem Deload
+  aus der Woche davor). Danach v2.18.0 bauen; Regeln in `utils/deload.js`
+  mit Vertragstest, Speicher `db.meta` `deload_<userId>_<montag>`.
+- Wechselwirkung mit der Steigern-Erinnerung: Deload-Saetze aus
+  `einheitenDerGruppe` herausnehmen (sonst wirkt die Woche danach wie eine
+  Steigerung), in der Deload-Woche kein Ring.
+
+## v2.17.1 (22.11.2026, live, Tag `v2.17.1` auf `27ef73a`)
+- Steigern-Erinnerung erst nach drei VOLLEN Trainingswochen
+  (`stillstandWochen`), gestrichelter statt pulsierender Ring.
+- Gate gruen (steigerung-test 138), `privat\browsertests\v2171-test.mjs`
+  54/54 (ersetzt `v217-test.mjs`, das noch Puls und Einheiten-Regel prueft),
+  `v215-regress.mjs` gruen. Live-Seite liefert 2.17.1 aus.
 
 ## Stand
 
@@ -33,8 +53,13 @@
   (gitignoriert, harmlos). Befehle zum Entfernen im save-state-Bericht.
 
 ## Stolperfallen (aktuell)
+- **`v215-regress.mjs` startet KEINEN eigenen Server:** vorher
+  `node node_modules/vite/bin/vite.js preview --port 4199 --strictPort`
+  starten (lauscht nur auf ::1), sonst Abbruch "Zeitueberschreitung
+  .bottom-nav". Die Version liest er seit 22.11. aus package.json.
 - **Browser-Tests liegen in `privat\browsertests\`** (gitignoriert, nur im
-  Hauptbaum): `v217-test.mjs` (Steigern-Erinnerung), `v216-test.mjs`
+  Hauptbaum): `v2171-test.mjs` (Steigern-Erinnerung, startet eigenen
+  Server; ersetzt `v217-test.mjs`), `v216-test.mjs`
   (Zyklus), `v215-regress.mjs`. `v217-test` brach zweimal bei
   "[Einstellung] Zeitueberschreitung: Aus aktiv" ab, der naechste Lauf war
   gruen — vermutlich Wettlauf zwischen Tipp und Laden der Einstellungen;
@@ -109,5 +134,7 @@
 
 ## Was Gabriel selbst tun muss
 - [ ] Gerätetest v2.17.0: docs/tests/geraetetest-plan-steigern-erinnerung.md durchklicken (seit 2026-11-18)
+- [ ] Handy-Test v2.17.1: docs/tests/v2.17.1-handy.md (gestrichelter Ring, drei volle Wochen) (seit 2026-11-22)
+- [ ] Deload-Vorschlag ansehen und freigeben: docs/entwuerfe/deload-entwurf.html (seit 2026-11-22)
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
