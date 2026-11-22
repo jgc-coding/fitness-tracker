@@ -38,6 +38,7 @@ src/
                          ohne Manifest-Eintrag die Grobgruppe)
   components/tracking/   ExerciseDetail (Bild-Ueberblendung, MuscleMap, Notizen,
                          Verlauf), StartNutzerwahl (Farbkreise Startbildschirm),
+                         DeloadLeiste (Deload-Zeilen + Fenster darunter),
                          UebungsVerlauf (SVG-Diagramm + Liste)
   components/history/    AuswertungsAnsicht (History -> Auswertung),
                          VerlaufMini (kleines Diagramm je Uebung)
@@ -51,7 +52,7 @@ src/
                          uebungsRing, uebungsBilder, uebungsDubletten,
                          planReihenfolge, radWerte (Vorwert ausserhalb des
                          Rasters nie still ersetzen), gewichtProSeite,
-                         verlauf, auswertung, steigerung, trainingGeraet,
+                         verlauf, auswertung, steigerung, deload, trainingGeraet,
                          runPlanMerge, runMatch, laufEintrag, zyklusTag;
                          dazu runPlanSchema (Format),
                          intervalsApi (Browser + Node), exportData (CSV mit
@@ -195,6 +196,24 @@ npm run preview   # Build lokal testen (Port 4173)
   `wdhBereich_<userId>_<exerciseId>` = `{ min, max }` (ein Eintrag je Paar,
   ohne = 8-12), gelesen und geschrieben NUR ueber
   `composables/useWdhBereich.js`. Die App erhoeht nie selbst.
+- **Deload-Wochen je Person** (Gabriel 22.11.2026, v2.18.0): Regeln NUR in
+  `utils/deload.js` (Vertrag `scripts/deload-test.mjs`), gelesen und
+  geschrieben NUR ueber `stores/deload.js`. Speicher `db.meta`
+  `deload_<userId>_<Montag>` = `true`, Entfernen schreibt `false` (keine
+  Tombstones), ein Eintrag je Person und Woche. Rhythmus: nach jeder
+  Deload-Woche `DELOAD_ABSTAND` (8) normale Wochen, die neunte ist der
+  Vorschlag; eine eingetragene kuenftige Woche ersetzt ihn (`deloadStatus`).
+  Erinnerung = NUR die dezent gefaerbte Zeile in `DeloadLeiste.vue` unter
+  den Farbkreisen (eine je ausgewaehlter Person); das Fenster setzt fuer
+  alle oben Gewaehlten gemeinsam (`zielWert`). Wirkung: `erinnerung(...,
+  deloadWochen)` laesst Deload-Saetze weg und schweigt in der Deload-Woche;
+  "letzte Einheit" fuer Vorschlag UND Steigern-Merker kommt aus
+  `letzteEinheit` (nach dem Deload die Woche davor, in der Woche selbst
+  alles) — `getLastSets` und `toggleIncreaseNextTime` muessen dieselbe
+  Einheit meinen. History: Spalte `ist-deload`, Tages-Detail, Baender in
+  `VerlaufMini`, `veraenderung(..., deloadWochen)` ohne Deload-Tage. Der
+  alte Plan-Schalter (`deloadEnabled` & Co. an Plaenen) ist entfallen und
+  wird nicht mehr gelesen.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
 - **Umsortieren in der Planung:** langer Druck (HALTEN_MS) hebt eine Gruppe samt
   Alternativen an. Touch- und Maus-Events, KEINE Pointer-Events (nur ein

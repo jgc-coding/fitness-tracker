@@ -147,6 +147,13 @@ const v4 = veraenderung([p('2026-09-01', 40, null, null), p('2026-10-01', 42.5, 
 pruefe('1RM: Tage ohne Wdh werden uebersprungen', v4.start === 53.8 && v4.tage === 2, v4)
 const v5 = veraenderung([p('2026-09-01', 50, 8, 63), p('2026-11-01', 45, 8, 57)])
 pruefe('Rueckgang ist negativ', v5.diff === -5 && v5.prozent === -10, v5)
+// Deload-Wochen (v2.18.0): leichte Tage dort zaehlen nicht als Rueckgang.
+// 2026-11-09 ist ein Montag; 2026-11-11 liegt in dieser Woche.
+const mitDeload = [p('2026-10-26', 40, 10, 53.3), p('2026-11-02', 40, 10, 53.3), p('2026-11-11', 25, 10, 33.3)]
+const v6 = veraenderung(mitDeload, 'weight', ['2026-11-09'])
+pruefe('Deload-Woche: letzter Tag davor zaehlt (40 -> 40, nicht 25)', v6.ende === 40 && v6.diff === 0 && v6.tage === 2, v6)
+pruefe('ohne Deload-Wissen: der leichte Tag zaehlt', veraenderung(mitDeload).ende === 25)
+pruefe('nur ein Tag ausserhalb der Deload-Woche: null', veraenderung(mitDeload.slice(1), 'weight', ['2026-11-09']) === null)
 
 console.log('[auswertung-test] Rangliste:')
 const zeilen = [

@@ -31,9 +31,8 @@ export const usePlansStore = defineStore('plans', () => {
       name,
       type,
       isActive: plans.value.length === 0,
-      deloadEnabled: false,
-      deloadIntervalWeeks: 4,
-      deloadStartDate: null,
+      // Deload liegt seit v2.18.0 je Person in db.meta (stores/deload.js);
+      // alte Plaene tragen noch deloadEnabled & Co., gelesen wird das nicht mehr
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }

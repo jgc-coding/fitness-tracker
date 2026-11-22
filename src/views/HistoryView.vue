@@ -62,9 +62,12 @@
                   v-for="date in spreadsheet.dates"
                   :key="date"
                   class="col-date date-head"
+                  :class="{ 'ist-deload': deloadDaten.has(date) }"
                   @click="openDayModal(date)"
                 >
                   {{ formatDateHeader(date) }}<span v-if="metaDates.has(date)" class="meta-dot"></span>
+                  <!-- Deload-Woche der gewaehlten Person (v2.18.0) -->
+                  <span v-if="deloadDaten.has(date)" class="deload-kopf">Deload</span>
                 </th>
               </tr>
             </thead>
@@ -105,7 +108,7 @@
                     v-for="date in spreadsheet.dates"
                     :key="date"
                     class="col-date"
-                    :class="{ 'has-value': ex.dates[date] }"
+                    :class="{ 'has-value': ex.dates[date], 'ist-deload': deloadDaten.has(date) }"
                   >
                     <template v-if="ex.dates[date]">
                       <span class="cell-weight">{{ ex.dates[date].weight }}</span>
@@ -132,6 +135,10 @@
          db.workoutLogs.update + pushRecord — die Store-Funktionen haengen
          am aktiven Workout und passen hier nicht) -->
     <Modal v-model="showDayModal" :title="dayModalTitle">
+      <!-- Wer in dieser Woche Deload hatte (v2.18.0) -->
+      <p v-if="deloadNamenAm(dayModalDate)" class="day-deload">
+        Deload-Woche: {{ deloadNamenAm(dayModalDate) }}
+      </p>
       <p v-if="dayLogs.length === 0" class="day-empty">
         Kein Workout-Eintrag zu diesem Datum.
       </p>
@@ -242,8 +249,12 @@ import { formatDate } from '../utils/dateHelpers.js'
 import { ausgelasseneEintraege, satzListeText } from '../utils/saetze.js'
 import { sammleZyklusEintraege, zyklusTageFuerDaten, errechneZyklustag } from '../utils/zyklusTag.js'
 import AuswertungsAnsicht from '../components/history/AuswertungsAnsicht.vue'
+import { useDeloadStore } from '../stores/deload.js'
+import { istDeloadTag } from '../utils/deload.js'
 
 const authStore = useAuthStore()
+const deloadStore = useDeloadStore()
+deloadStore.bereit().catch(() => { /* geloggt im Store; dann ohne Markierung */ })
 const { buildSpreadsheetData } = useHistory()
 const { loadExercises, getExerciseById } = useExercises()
 
@@ -417,6 +428,21 @@ function ausgelasseneFuer(log) {
 function openDayModal(date) {
   dayModalDate.value = date
   showDayModal.value = true
+}
+
+// --- Deload-Wochen (v2.18.0, stores/deload.js) ---
+// Tabelle: Spalten der gewaehlten Person in einer Deload-Woche
+const deloadDaten = computed(() => {
+  void deloadStore.stand
+  const wochen = new Set(deloadStore.wochenVon(selectedUser.value))
+  return new Set(spreadsheet.dates.filter(d => istDeloadTag(wochen, d)))
+})
+
+// Tages-Detail: alle Personen mit Deload in dieser Woche, sonst ''
+function deloadNamenAm(date) {
+  void deloadStore.stand
+  if (!date) return ''
+  return authStore.users.filter(u => deloadStore.istDeload(u.id, date)).map(u => u.name).join(', ')
 }
 
 function logTitle(log) {
@@ -730,6 +756,40 @@ th.sticky-max {
 .zyklus-errechnet {
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
+}
+
+/* Deload-Woche (v2.18.0): Spalte gruen gehaucht, im Kopf ein kleines
+   "Deload" unter dem Datum. Statische Farben, kein color-mix. */
+.col-date.ist-deload {
+  background: rgba(45, 138, 78, 0.07);
+}
+
+.col-date.has-value.ist-deload {
+  background: rgba(45, 138, 78, 0.12);
+}
+
+/* Der Kopf klebt oben: deckend, sonst scheint die Tabelle durch */
+th.col-date.ist-deload {
+  background: #eaf3ed;
+}
+
+.deload-kopf {
+  display: block;
+  font-size: 9px;
+  line-height: 1.1;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+  letter-spacing: 0.02em;
+}
+
+.day-deload {
+  margin: 0 0 var(--space-sm);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(45, 138, 78, 0.12);
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Tages-Detail (P12) */

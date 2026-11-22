@@ -193,17 +193,23 @@ export function obenImBereich(saetze, bereich) {
  *   markiert   schon zum Steigern markiert; fehlt der Wert, entscheidet der
  *              Merker `increaseNextTime` an der letzten Einheit der Uebung
  *   heute      'YYYY-MM-DD' (lokal); fehlt = heute laut Geraeteuhr
+ *   deloadWochen  Montage der Deload-Wochen der Person (v2.18.0, utils/deload.js):
+ *              deren Saetze zaehlen nicht (sonst saehe die Woche danach wie
+ *              eine Steigerung aus und die leichten Gewichte wie ein
+ *              Neuanfang), und liegt heute in einer, gibt es keine Erinnerung
  * Liefert { faellig, grund: 'oben' | 'stillstand' | null, wochen }.
  * "oben" geht vor "stillstand". Heute zaehlt mit, sobald ein Satz da ist
  * (eine Steigerung heute nimmt die Erinnerung weg, 12 Wdh heute loesen sie aus).
  */
-export function erinnerung({ setLogs, gruppe, exerciseId, userId, bereich = null, aktiv = true, markiert, heute = getToday() } = {}) {
+export function erinnerung({ setLogs, gruppe, exerciseId, userId, bereich = null, aktiv = true, markiert, heute = getToday(), deloadWochen = [] } = {}) {
   const ring = gruppe && gruppe.length ? gruppe : [exerciseId]
-  const einheiten = einheitenDerGruppe(setLogs, ring, userId)
+  const deload = new Set(deloadWochen || [])
+  const saetze = deload.size ? (setLogs || []).filter(s => !s || !deload.has(mondayOf(s.date))) : setLogs
+  const einheiten = einheitenDerGruppe(saetze, ring, userId)
   const wochen = stillstandWochen(einheiten, heute)
   const nichts = { faellig: false, grund: null, wochen }
 
-  if (aktiv === false) return nichts
+  if (aktiv === false || deload.has(mondayOf(heute))) return nichts
 
   let letzte = []
   for (let i = einheiten.length - 1; i >= 0; i--) {

@@ -8,6 +8,7 @@
 
 import { ZEITRAEUME, zeitraumStart, verlaufPunkte, messgroesse, formatZahl } from './verlauf.js'
 import { ringFuer } from './uebungsRing.js'
+import { mondayOf } from './dateHelpers.js'
 
 export const AUSWERTUNG_ZEITRAEUME = [
   ...ZEITRAEUME,
@@ -141,8 +142,11 @@ function messwert(punkt, groesse, modus) {
 // Veraenderung im Zeitraum: erster gegen letzten Tag mit Wert.
 // { groesse, einheit, start, ende, diff, prozent, tage } — null unter zwei Tagen.
 // Prozent null, wenn der Start 0 ist (keine Teilung durch 0).
-export function veraenderung(punkte, modus = 'weight') {
-  const liste = Array.isArray(punkte) ? punkte : []
+// Tage in Deload-Wochen (Montage, v2.18.0) zaehlen nicht mit: die bewusst
+// leichten Gewichte sind kein Rueckschritt. Die Diagramme zeigen sie trotzdem.
+export function veraenderung(punkte, modus = 'weight', deloadWochen = []) {
+  const deload = new Set(deloadWochen || [])
+  const liste = (Array.isArray(punkte) ? punkte : []).filter(p => !deload.size || !deload.has(mondayOf(p.date)))
   const groesse = messgroesse(liste)
   const werte = liste
     .map(p => messwert(p, groesse, modus))

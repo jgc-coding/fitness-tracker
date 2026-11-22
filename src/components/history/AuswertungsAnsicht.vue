@@ -123,6 +123,11 @@
             </svg>
             geschätztes 1RM
           </span>
+          <!-- Deload-Wochen der Person (v2.18.0) als gruenes Band -->
+          <span v-if="deloadWochen.length" class="aw-legende-eintrag">
+            <span class="aw-legende-deload" aria-hidden="true"></span>
+            Deload-Woche
+          </span>
         </div>
         <article v-for="z in karten" :id="'aw-karte-' + z.id" :key="z.id" class="card aw-karte">
           <header class="aw-karte-kopf">
@@ -136,6 +141,7 @@
             :bis="grenzen.bis"
             :farbe="farbe"
             :name="z.name"
+            :deload-wochen="deloadWochen"
           />
           <p v-else class="aw-karte-leer">Keine Einträge in diesem Zeitraum.</p>
         </article>
@@ -179,6 +185,7 @@ import { MUSCLE_GROUPS } from '../../utils/constants.js'
 import { toTitleCase } from '../../utils/formatters.js'
 import { getToday } from '../../utils/dateHelpers.js'
 import { formatZahl } from '../../utils/verlauf.js'
+import { useDeloadStore } from '../../stores/deload.js'
 import {
   AUSWERTUNG_ZEITRAEUME, zeitraumGrenzen, workoutGruppen, gruppenUebungen, punkteJeUebung,
   sortiereUebungen, auswahlIds, veraenderung, rangliste, balkenSkala, balken, prozentText,
@@ -203,6 +210,11 @@ const heute = getToday()
 const nutzer = computed(() => authStore.users.find(u => u.id === props.userId))
 const nutzerName = computed(() => nutzer.value?.name || '')
 const farbe = computed(() => nutzer.value?.color || 'var(--color-accent)')
+
+// Deload-Wochen der Person (v2.18.0): gruene Baender in den Diagrammen
+const deloadStore = useDeloadStore()
+deloadStore.bereit().catch(() => { /* geloggt im Store; dann ohne Baender */ })
+const deloadWochen = computed(() => { void deloadStore.stand; return deloadStore.wochenVon(props.userId) })
 
 // --- Gemerkte Einstellungen (pro Geraet, wie der Standard-Nutzer) ----------
 const SPEICHER_KEY = `${db.name}:auswertung`
@@ -339,7 +351,7 @@ const karten = computed(() => ids.value.map(id => ({
 })))
 
 // --- Rangliste -----------------------------------------------------------------
-const zeilen = computed(() => karten.value.map(k => ({ ...k, v: veraenderung(k.punkte, einst.modus) })))
+const zeilen = computed(() => karten.value.map(k => ({ ...k, v: veraenderung(k.punkte, einst.modus, deloadWochen.value) })))
 const skala = computed(() => {
   const s = balkenSkala(zeilen.value.map(z => z.v?.prozent))
   return { ...s, nullLinie: balken(0, s).nullLinie }
@@ -353,7 +365,7 @@ const zusammenfassung = computed(() => {
   if (mitWert.length === 0) return 'Erster gegen letzten Trainingstag'
   const teile = [`${hoch} von ${mitWert.length} gesteigert`]
   if (runter > 0) teile.push(`${runter} gesunken`)
-  return teile.join(', ') + ' · erster gegen letzten Tag'
+  return teile.join(', ') + ' · erster gegen letzten Tag' + (deloadWochen.value.length ? ', ohne Deload-Wochen' : '')
 })
 
 function rangDetail(z) {
@@ -647,6 +659,15 @@ async function oeffneVerlauf(id) {
 
 .aw-legende-1rm {
   stroke-dasharray: 5 4;
+}
+
+/* Gleiche Farbe wie das Band in VerlaufMini (.mini-deload) */
+.aw-legende-deload {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(45, 138, 78, 0.16);
 }
 
 .aw-karte {

@@ -8,7 +8,10 @@
        Regeln: utils/verlauf.js -->
   <div class="mini">
     <div class="mini-ablesen" aria-live="polite">
-      <span class="mini-datum">{{ datumKurz(aktiverPunkt.date) }}</span>
+      <span class="mini-datum">{{ datumKurz(aktiverPunkt.date) }}<span
+        v-if="istDeloadTag(deloadWochen, aktiverPunkt.date)"
+        class="mini-deload-text"
+      > · Deload</span></span>
       <span class="mini-wert">{{ wertText(aktiverPunkt) }}<span
         v-if="zeigtEinRM && aktiverPunkt.e1rm !== null"
         class="mini-1rm"
@@ -23,6 +26,16 @@
       @pointerdown="zeigeAuf"
       @pointermove="zeigeAuf"
     >
+      <!-- Deload-Wochen (v2.18.0): blasses gruenes Band hinter allem -->
+      <rect
+        v-for="b in deloadBaender"
+        :key="'d' + b.montag"
+        class="mini-deload"
+        :x="b.x"
+        :y="RO - 4"
+        :width="b.breite"
+        :height="H - RU - RO + 4"
+      />
       <g class="mini-raster">
         <line v-for="t in ax.ticks" :key="'g' + t" :x1="RL" :x2="B - RR" :y1="y(t)" :y2="y(t)" />
       </g>
@@ -48,8 +61,9 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { daysBetweenDates, weekdayShort } from '../../utils/dateHelpers.js'
+import { addDaysToDate, daysBetweenDates, weekdayShort } from '../../utils/dateHelpers.js'
 import { achse, formatZahl, naechsterIndex, monatsMarken, messgroesse, mitEinRM } from '../../utils/verlauf.js'
+import { istDeloadTag } from '../../utils/deload.js'
 
 const props = defineProps({
   // Punkte aus verlaufPunkte (aelteste zuerst), mindestens einer
@@ -59,7 +73,9 @@ const props = defineProps({
   bis: { type: String, required: true },
   farbe: { type: String, default: 'var(--color-accent)' },
   // Fuer Vorleser: Name der Uebung
-  name: { type: String, default: '' }
+  name: { type: String, default: '' },
+  // Montage der Deload-Wochen der Person (v2.18.0, stores/deload.js)
+  deloadWochen: { type: Array, default: () => [] }
 })
 
 const B = 340
@@ -94,6 +110,14 @@ const xs = computed(() => props.punkte.map(p => x(p.date)))
 const ys = computed(() => props.punkte.map(p => y(wert(p) ?? 0)))
 const linie = computed(() => xs.value.map((px, i) => `${i ? 'L' : 'M'}${px.toFixed(1)} ${ys.value[i].toFixed(1)}`).join(' '))
 const xMarken = computed(() => monatsMarken(xStart.value, props.bis))
+
+// Nur Wochen, die in die Zeitachse ragen; x() klemmt die Raender ein
+const deloadBaender = computed(() => (props.deloadWochen || [])
+  .filter(m => addDaysToDate(m, 6) >= xStart.value && m <= props.bis)
+  .map(m => {
+    const links = x(m)
+    return { montag: m, x: links, breite: Math.max(2, x(addDaysToDate(m, 7)) - links) }
+  }))
 
 const einRMLinie = computed(() => {
   if (!zeigtEinRM.value) return ''
@@ -192,6 +216,15 @@ const beschreibung = computed(() => {
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.mini-deload {
+  fill: rgba(45, 138, 78, 0.16);
+}
+
+.mini-deload-text {
+  color: var(--color-success);
+  font-weight: var(--font-weight-semibold);
 }
 
 .mini-raster line {

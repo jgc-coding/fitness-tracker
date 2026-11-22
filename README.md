@@ -9,9 +9,11 @@ Firebase (gemeinsames Konto), deployed auf GitHub Pages.
 ## Funktionen
 - Nutzerwahl beim App-Start ("Wer trainiert?"), im Workout jederzeit aenderbar;
   Anzeige und Sperrbildschirm-Knoepfe folgen den aktiven Nutzern
-- Trainingsplaene mit Trainingstagen (woechentlich oder Woche A/B), Deload-Hinweis
+- Trainingsplaene mit Trainingstagen (woechentlich oder Woche A/B)
 - Workout-Tracking mit Gewichts-/Wiederholungsraedern, Vorbelegung mit den
-  letzten Werten, "Gewicht steigern"-Merker
+  letzten Werten, "Gewicht steigern"-Merker und dezente Steigern-Erinnerung
+- Deload-Wochen je Person: Vorschlag alle 8 Wochen, dezente Erinnerung auf
+  dem Startbildschirm, Markierung in der History
 - Uebungszeichnungen mit Muskel-Grafik und Detailansicht (Start- und
   Endposition im Wechsel), dort Notizen je Nutzer
 - Alternativ-Uebungen je Plan-Eintrag mit Schnellwechsel im Workout

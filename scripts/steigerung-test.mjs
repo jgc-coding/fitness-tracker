@@ -459,6 +459,30 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, wochen: 0 })
   equal('S27 heute vor den Daten', stillstandWochen(e(urlaub), W(-3)), 0)
 }
 
+// S28: Deload-Wochen (v2.18.0) — keine Erinnerung in der Deload-Woche, ihre
+// Saetze zaehlen weder als Neuanfang noch als Trainingswoche, und die Woche
+// danach ist keine Scheinsteigerung.
+{
+  const vorher = [satz(W(0), KH, 60, 10), satz(W(1), KH, 60, 10), satz(W(2), KH, 60, 10)]
+  const deloadSatz = satz(W(3, 1), KH, 40, 10)
+  const logs = [...vorher, deloadSatz, satz(W(4, 1), KH, 60, 10)]
+  const mitDeload = { deloadWochen: [W(3)] }
+  // Ohne Deload-Wissen: 40 ist Neuanfang, 60 danach eine Scheinsteigerung
+  equal('S28 ohne Deload: Woche danach wirkt wie Steigerung', erinnere(logs, { heute: W(5) }).wochen, 0)
+  // Mit Deload: Start W0, Trainingswochen W1, W2, W4 (W3 zaehlt nicht) -> 3
+  equal('S28 mit Deload: Deload-Woche zaehlt nicht, danach weiter faellig', erinnere(logs, { ...mitDeload, heute: W(5) }), { faellig: true, grund: 'stillstand', wochen: 3 })
+  equal('S28 Deload-Woche verlaengert die Ruhe', erinnere(logs, { ...mitDeload, heute: W(4, 3) }).faellig, false)
+  // In der Deload-Woche selbst nie eine Erinnerung, auch nicht "oben"
+  const oben = [satz(W(0), KH, 20, 12)]
+  equal('S28 oben, aber Deload-Woche laeuft: kein Ring', erinnere(oben, { deloadWochen: [W(0)], heute: W(0, 3) }).faellig, false)
+  equal('S28 vier Wochen gleich, Deload-Woche laeuft: kein Ring',
+    erinnere([...vorher, satz(W(3), KH, 60, 10)], { deloadWochen: [W(4)], heute: W(4, 2) }).faellig, false)
+  // "oben" nach dem Deload: die letzte Einheit vor dem Deload zaehlt
+  const obenVorDeload = [satz(W(0), KH, 20, 12), satz(W(1, 1), KH, 15, 10)]
+  equal('S28 oben vor dem Deload, danach wieder Ring', erinnere(obenVorDeload, { deloadWochen: [W(1)], heute: W(2) }).grund, 'oben')
+  equal('S28 Deload-Woche einer anderen Person zaehlt nicht', erinnere(logs, { deloadWochen: [], heute: W(5) }).wochen, 0)
+}
+
 if (failures.length) {
   console.log(`steigerung-test: ${failures.length} rot, ${passed} gruen`)
   for (const f of failures) console.log('  ROT: ' + f)

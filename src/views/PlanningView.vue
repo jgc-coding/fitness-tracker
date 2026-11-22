@@ -44,31 +44,11 @@
               </div>
             </div>
 
-            <!-- Deload config -->
-            <div class="deload-config">
-              <label class="toggle-row">
-                <span>Deload-Wochen</span>
-                <input
-                  type="checkbox"
-                  :checked="plan.deloadEnabled"
-                  @change="toggleDeload(plan)"
-                />
-              </label>
-              <div v-if="plan.deloadEnabled" class="deload-details">
-                <label>
-                  Alle
-                  <input
-                    type="number"
-                    :value="plan.deloadIntervalWeeks"
-                    @change="updateDeloadInterval(plan, $event)"
-                    class="inline-input"
-                    min="2"
-                    max="12"
-                  />
-                  Wochen
-                </label>
-              </div>
-            </div>
+            <!-- Deload-Wochen gibt es seit v2.18.0 je Person auf dem
+                 Startbildschirm (DeloadLeiste); der alte Schalter "alle X
+                 Wochen" am Plan ist entfallen, seine Felder am Plan werden
+                 nicht mehr gelesen -->
+            <p class="deload-hinweis">Deload-Wochen trägst du auf dem Startbildschirm im Tracking ein, unter den Farbkreisen.</p>
           </div>
 
           <!-- Week variant tabs for alternating -->
@@ -459,17 +439,6 @@ async function deletePlan(plan) {
   if (confirm(`Plan "${plan.name}" wirklich löschen? Alle darin enthaltenen Trainingstage werden ebenfalls gelöscht.`)) {
     await plansStore.deletePlan(plan.id)
   }
-}
-
-async function toggleDeload(plan) {
-  await plansStore.updatePlan(plan.id, {
-    deloadEnabled: !plan.deloadEnabled,
-    deloadStartDate: !plan.deloadEnabled ? new Date().toISOString().split('T')[0] : plan.deloadStartDate
-  })
-}
-
-async function updateDeloadInterval(plan, event) {
-  await plansStore.updatePlan(plan.id, { deloadIntervalWeeks: Number(event.target.value) })
 }
 
 async function addDay(plan) {
@@ -1002,33 +971,12 @@ onMounted(async () => {
   font-weight: var(--font-weight-semibold);
 }
 
-.deload-config {
-  margin-top: var(--space-md);
-  padding-top: var(--space-md);
+.deload-hinweis {
+  margin: var(--space-md) 0 0;
+  padding-top: var(--space-sm);
   border-top: 1px solid var(--color-border);
-}
-
-.toggle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--font-size-sm);
-}
-
-.deload-details {
-  margin-top: var(--space-sm);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-light);
-}
-
-.inline-input {
-  width: 50px;
-  padding: var(--space-xs);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  text-align: center;
-  font-size: var(--font-size-sm);
-  margin: 0 var(--space-xs);
 }
 
 .week-tabs {

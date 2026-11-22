@@ -3,6 +3,39 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.18.0] — 2026-11-22
+
+### Features
+- **Deload-Wochen je Person** (Wunsch Gabriel): Auf dem Startbildschirm
+  steht unter den Farbkreisen je ausgewaehlter Person eine Zeile, z.B.
+  "Deload in 2 Wochen · letzte vor 7 Wochen". Nach jeder Deload-Woche
+  folgen 8 normale Wochen, die neunte schlaegt die App vor. Ist sie
+  faellig, faerbt sich die Zeile dezent und bleibt so, bis die Woche
+  eingetragen ist — kein Banner, keine Meldung. Ein Tipp oeffnet ein
+  Fenster: "Diese Woche ist Deload" mit einem Tipp, dazu eine Liste von
+  Wochen zum Nachtragen, Vorplanen oder Entfernen. Eine vorgeplante Woche
+  ersetzt den Vorschlag. Was man eintraegt, gilt fuer die oben gewaehlten
+  Personen (vorbelegt: wer gerade trainiert) und auf allen Handys.
+- **Training in der Deload-Woche:** Im Trainingskopf steht "Deload-Woche"
+  (mit Punkten, wenn nicht alle Deload haben). Der Steigern-Ring bleibt
+  aus, und die leichten Saetze zaehlen nicht fuer die Steigern-Regel —
+  sonst saehe die Woche danach wie eine Steigerung aus.
+- **Nach dem Deload schlaegt die Karte wieder die Werte von davor vor**,
+  nicht die leichten. Der Steigern-Tipp schreibt seinen Merker an dieselbe
+  Einheit.
+- **History markiert Deload-Wochen:** In der Tabelle ist die Spalte gruen
+  gehaucht und traegt "Deload" unter dem Datum; das Tages-Detail nennt,
+  wer Deload hatte. In der Auswertung liegen gruene Baender hinter den
+  Diagrammen, und "Veraenderung im Zeitraum" vergleicht ohne Deload-Tage
+  (die leichten Gewichte sind kein Rueckgang).
+
+### Entfernt
+- **Alter Schalter "Deload-Wochen alle X Wochen" in der Planung** samt
+  Banner "Volumen um 50% reduzieren". Er rechnete nur von einem Startdatum
+  aus und kannte weder Personen noch eingetragene Wochen. Seine Felder an
+  alten Plaenen bleiben in den Daten, werden aber nicht mehr gelesen; die
+  Planung zeigt stattdessen einen Hinweis auf den Startbildschirm.
+
 ## [2.17.1] — 2026-11-22
 
 ### Geaendert

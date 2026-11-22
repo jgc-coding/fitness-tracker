@@ -8,6 +8,8 @@ import { offenesTrainingDiesesGeraets, logFuerTagDiesesGeraets } from '../utils/
 import { rueckgaengigSchritt, ausgelasseneAusLog, mitAusgelassenen } from '../utils/saetze.js'
 import { brauchtZyklusStempel, zyklusStempel } from '../utils/zyklusTag.js'
 import { errechneZyklustagFuer } from '../composables/useZyklusTag.js'
+import { letzteEinheit } from '../utils/deload.js'
+import { deloadWochenVon } from '../composables/useHistory.js'
 
 export const useWorkoutStore = defineStore('workout', () => {
   const authStore = useAuthStore()
@@ -319,15 +321,15 @@ export const useWorkoutStore = defineStore('workout', () => {
     )
 
     if (sets.length === 0) {
-      // No set saved yet — look at the most recent set from a previous workout
+      // Noch kein Satz heute: der Merker gehoert an die letzte Einheit —
+      // dieselbe Regel wie der Vorschlag (letzteEinheit, nach einer
+      // Deload-Woche die Woche davor), sonst liest die Karte ihn woanders
       const prevSets = await db.setLogs
         .where('[exerciseId+userId]')
         .equals([exerciseId, userId])
         .toArray()
-      if (prevSets.length === 0) return false
-      prevSets.sort((a, b) => b.date.localeCompare(a.date))
-      const lastDate = prevSets[0].date
-      const lastDateSets = prevSets.filter(s => s.date === lastDate)
+      const lastDateSets = letzteEinheit(prevSets, { deloadWochen: await deloadWochenVon(userId) })
+      if (lastDateSets.length === 0) return false
       const newValue = !lastDateSets[0].increaseNextTime
       const updatedAt = new Date().toISOString()
       for (const set of lastDateSets) {

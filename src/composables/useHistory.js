@@ -1,5 +1,21 @@
 import { db } from '../db/dexie.js'
 import { ausgelasseneEintraege } from '../utils/saetze.js'
+import { letzteEinheit } from '../utils/deload.js'
+import { useDeloadStore } from '../stores/deload.js'
+
+/**
+ * Deload-Wochen einer Person fuer die Regel "letzte Einheit". Sind sie nicht
+ * lesbar, gilt die Einheit ohne Deload-Wissen (der Store hat es geloggt).
+ */
+export async function deloadWochenVon(userId) {
+  const store = useDeloadStore()
+  try {
+    await store.bereit()
+  } catch {
+    return []
+  }
+  return store.wochenVon(userId)
+}
 
 export function useHistory() {
   async function getLatestWeight(exerciseId, userId) {
@@ -24,20 +40,15 @@ export function useHistory() {
 
   // Alle Saetze der letzten Einheit (juengstes Datum), nach Satznummer.
   // ohneWorkoutLogId laesst das laufende Workout aus — sonst waere nach dem
-  // ersten Satz von heute "die letzte Einheit" schon heute.
+  // ersten Satz von heute "die letzte Einheit" schon heute. Nach einer
+  // Deload-Woche zaehlt die Woche davor (v2.18.0, Regel letzteEinheit in
+  // utils/deload.js — dieselbe, nach der der Steigern-Merker geschrieben wird).
   async function getLastSets(exerciseId, userId, ohneWorkoutLogId = null) {
-    let sets = await db.setLogs
+    const sets = await db.setLogs
       .where('[exerciseId+userId]')
       .equals([exerciseId, userId])
       .toArray()
-
-    if (ohneWorkoutLogId) sets = sets.filter(s => s.workoutLogId !== ohneWorkoutLogId)
-    if (sets.length === 0) return []
-
-    sets.sort((a, b) => b.date.localeCompare(a.date) || a.setNumber - b.setNumber)
-
-    const lastDate = sets[0].date
-    return sets.filter(s => s.date === lastDate)
+    return letzteEinheit(sets, { ohneWorkoutLogId, deloadWochen: await deloadWochenVon(userId) })
   }
 
   async function shouldIncreaseWeight(exerciseId, userId) {

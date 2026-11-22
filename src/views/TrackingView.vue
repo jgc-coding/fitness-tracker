@@ -20,11 +20,6 @@
         <button class="notif-dismiss" @click.stop="showNotifBanner = false">&times;</button>
       </div>
 
-      <!-- Deload Banner -->
-      <div v-if="isDeload" class="deload-banner">
-        Deload-Woche: Volumen um 50% reduzieren
-      </div>
-
       <!-- No active workout: choose what to start -->
       <div v-if="!workoutStore.isWorkoutActive" class="start-section">
         <h2 class="section-title">Training starten</h2>
@@ -47,6 +42,8 @@
         </div>
 
         <StartNutzerwahl />
+        <!-- Deload-Wochen je ausgewaehlter Person (v2.18.0, Gabriel 22.11.2026) -->
+        <DeloadLeiste />
 
         <p v-if="!plansStore.activePlan" class="no-plan-hint">
           Kein aktiver Trainingsplan — du kannst trotzdem ein individuelles Training
@@ -60,6 +57,20 @@
           <div class="workout-titel">
             <h2>{{ currentDay?.title || 'Workout' }}</h2>
             <span class="workout-date">{{ formattedDate }}</span>
+            <!-- Deload-Woche (v2.18.0): nur bei den Personen, die sie
+                 eingetragen haben; ersetzt das alte Banner aus der Planung -->
+            <span v-if="deloadImTraining.length" class="deload-chip" :title="`Deload-Woche: ${deloadImTraining.map(u => u.name).join(', ')}`">
+              Deload-Woche
+              <template v-if="deloadImTraining.length < authStore.activeUsers.length">
+                <span
+                  v-for="user in deloadImTraining"
+                  :key="user.id"
+                  class="deload-chip-punkt"
+                  :style="{ background: user.color }"
+                  aria-hidden="true"
+                >{{ user.name.charAt(0) }}</span>
+              </template>
+            </span>
           </div>
 
           <!-- Wer trainiert: Farbkreise mit Anfangsbuchstaben rechts im Kopf
@@ -598,7 +609,10 @@ import { useAuthStore } from '../stores/auth.js'
 import { useExercises } from '../composables/useExercises.js'
 import { useHistory } from '../composables/useHistory.js'
 import { errechneZyklustagFuer } from '../composables/useZyklusTag.js'
-import { isDeloadWeek, formatDate, formatDayShort, getToday } from '../utils/dateHelpers.js'
+import { formatDate, formatDayShort, getToday } from '../utils/dateHelpers.js'
+import DeloadLeiste from '../components/tracking/DeloadLeiste.vue'
+import { useDeloadStore } from '../stores/deload.js'
+import { deloadWochenVon } from '../composables/useHistory.js'
 import { MUSCLE_GROUPS } from '../utils/constants.js'
 import { toTitleCase } from '../utils/formatters.js'
 import { vorschauUrl, eintragFuerKey } from '../utils/uebungsBilder.js'
@@ -645,6 +659,7 @@ const route = useRoute()
 const workoutStore = useWorkoutStore()
 const plansStore = usePlansStore()
 const authStore = useAuthStore()
+const deloadStore = useDeloadStore()
 const { exercises, loadExercises, getExerciseById } = useExercises()
 const { getLastSets } = useHistory()
 
@@ -686,10 +701,12 @@ const pickerQuelle = ref(null)
 const showNotifBanner = ref(false)
 const formattedDate = computed(() => formatDate(getToday()))
 
-const isDeload = computed(() => {
-  const plan = plansStore.activePlan
-  if (!plan?.deloadEnabled) return false
-  return isDeloadWeek(plan.deloadStartDate, plan.deloadIntervalWeeks)
+// Wer im laufenden Training gerade eine Deload-Woche hat (v2.18.0). Der alte
+// Planungs-Schalter "Deload alle X Wochen" ist damit ersetzt.
+const deloadImTraining = computed(() => {
+  void deloadStore.stand
+  const datum = workoutStore.activeWorkout?.date || getToday()
+  return authStore.activeUsers.filter(u => deloadStore.istDeload(u.id, datum))
 })
 
 const availableDays = computed(() => plansStore.getTodaysTrainingDays())
@@ -1093,7 +1110,9 @@ async function ladeVorschlag(exId, userId, gruppe = gruppeZuUebung(exId, userId)
       userId,
       bereich,
       markiert,
-      heute: getToday()
+      heute: getToday(),
+      // In der Deload-Woche kein Ring, ihre Saetze zaehlen nicht (v2.18.0)
+      deloadWochen: await deloadWochenVon(userId)
     })
     steigernStand[exId][userId] = { markiert, faellig: r.faellig, grund: r.grund, wochen: r.wochen, max: bereich.max }
   } catch (err) {
@@ -1933,6 +1952,12 @@ onMounted(async () => {
   }
 })
 
+// Kommt eine Deload-Woche per Sync vom anderen Handy, rechnen Vorschlaege
+// und Steigern-Ringe des laufenden Trainings neu (v2.18.0)
+watch(() => deloadStore.stand, (neu, alt) => {
+  if (alt !== undefined && workoutStore.isWorkoutActive) loadRecommendations()
+})
+
 onUnmounted(() => {
   versteckeRueckgaengig()
   if ('serviceWorker' in navigator) {
@@ -1983,15 +2008,32 @@ onUnmounted(() => {
   opacity: 0.7;
 }
 
-.deload-banner {
-  background: var(--color-accent);
-  color: var(--color-white);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
+/* Deload-Woche im Trainingskopf (v2.18.0): ruhige gruene Pille unter dem
+   Datum; die Punkte nennen die Personen, wenn nicht alle Deload haben */
+.deload-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 9px;
+  border-radius: var(--radius-full);
+  background: rgba(45, 138, 78, 0.12);
+  color: var(--color-success);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  text-align: center;
-  margin-bottom: var(--space-md);
+}
+
+.deload-chip-punkt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: var(--color-white);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
 }
 
 .section-title {

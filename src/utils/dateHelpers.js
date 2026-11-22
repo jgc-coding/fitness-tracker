@@ -88,16 +88,3 @@ export function isoWeekOfDate(dateStr) {
   const [y, m, d] = String(dateStr).split('-').map(Number)
   return getISOWeekNumber(new Date(y, (m || 1) - 1, d || 1))
 }
-
-export function isDeloadWeek(deloadStartDate, deloadIntervalWeeks) {
-  if (!deloadStartDate || !deloadIntervalWeeks) return false
-  // Compute the diff in calendar days via UTC midnights to avoid DST drift.
-  const [sy, sm, sd] = String(deloadStartDate).split('-').map(Number)
-  const now = new Date()
-  const startUtc = Date.UTC(sy, (sm || 1) - 1, sd || 1)
-  const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-  const diffDays = Math.floor((nowUtc - startUtc) / 86400000)
-  if (diffDays < 0) return false
-  const diffWeeks = Math.floor(diffDays / 7)
-  return diffWeeks % deloadIntervalWeeks === deloadIntervalWeeks - 1
-}
