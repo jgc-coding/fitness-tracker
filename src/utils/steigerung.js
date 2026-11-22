@@ -1,9 +1,11 @@
 /**
- * Steigern-Erinnerung (Plan v2.17.0, docs/plan-steigern-erinnerung.md).
+ * Steigern-Erinnerung (Plan v2.17.0, docs/plan-steigern-erinnerung.md;
+ * Wochen-Regel seit v2.17.1).
  *
  * Die App erinnert je Person ans Steigern, wenn
- *  - die Person in einer Uebungsgruppe STILLSTAND_EINHEITEN Mal nacheinander
- *    nicht gesteigert hat ("stillstand"), oder
+ *  - die Person in einer Uebungsgruppe seit ihrer letzten Steigerung
+ *    STILLSTAND_WOCHEN volle Trainingswochen ohne Steigerung hatte
+ *    ("stillstand"), oder
  *  - sie beim letzten Mal in der Uebung der Karte in ALLEN Saetzen am oberen
  *    Ende ihres Wdh-Bereichs war ("oben").
  *
@@ -11,6 +13,13 @@
  * Kalendertag mit mindestens einem gespeicherten Satz der Person in der
  * Gruppe — leere Trainings und Tage nur mit anderen Uebungen zaehlen darum
  * von selbst nie. Verglichen wird je Uebung, nie quer.
+ *
+ * Trainingswoche = Kalenderwoche (Mo-So) mit mindestens einer Einheit der
+ * Gruppe. Gezaehlt werden nur Wochen NACH der Woche der letzten Steigerung
+ * und VOR der laufenden Woche (Gabriel 22.11.2026: "nach einer Steigerung
+ * drei volle Wochen Ruhe, danach erst erinnern"). Bis v2.17.0 zaehlten drei
+ * Einheiten inklusive des Steigerungstags — die Erinnerung kam so schon nach
+ * zwei Trainings.
  *
  * Eingaben sind setLogs wie in useHistory:
  *   { exerciseId, userId, date: 'YYYY-MM-DD', setNumber, weight, reps,
@@ -21,8 +30,10 @@
  * Reine Funktionen ohne Vue und Dexie, Vertrag: scripts/steigerung-test.mjs.
  */
 
-/** Nach so vielen Einheiten ohne Steigerung erinnert die App. */
-export const STILLSTAND_EINHEITEN = 3
+import { getToday, mondayOf } from './dateHelpers.js'
+
+/** Nach so vielen vollen Trainingswochen ohne Steigerung erinnert die App. */
+export const STILLSTAND_WOCHEN = 3
 
 /** Wdh-Bereich, wenn fuer Person und Uebung keiner gespeichert ist. */
 export const STANDARD_BEREICH = Object.freeze({ min: 8, max: 12 })
@@ -142,6 +153,27 @@ export function stillstandZaehler(einheiten) {
 }
 
 /**
+ * Volle Trainingswochen ohne Steigerung: Kalenderwochen mit mindestens einer
+ * Einheit, die NACH der Woche der letzten Steigerung (bzw. des letzten
+ * Neuanfangs) und VOR der Woche von `heute` liegen. Die laufende Woche ist nie
+ * voll; eine Steigerung heute setzt auf 0. Ohne Einheiten 0.
+ */
+export function stillstandWochen(einheiten, heute) {
+  const liste = einheiten || []
+  const zaehler = stillstandZaehler(liste)
+  if (zaehler === 0) return 0
+  const seit = liste.slice(liste.length - zaehler)
+  const steigerungsWoche = mondayOf(seit[0].date)
+  const laufendeWoche = mondayOf(heute)
+  const wochen = new Set()
+  for (const einheit of seit.slice(1)) {
+    const woche = mondayOf(einheit.date)
+    if (woche > steigerungsWoche && woche < laufendeWoche) wochen.add(woche)
+  }
+  return wochen.size
+}
+
+/**
  * Alle uebergebenen Saetze (die letzte Einheit einer Uebung) haben Wdh >= der
  * Obergrenze. Leer oder ein Satz ohne Wdh = nicht oben. Ohne Bereich 8-12.
  */
@@ -160,14 +192,16 @@ export function obenImBereich(saetze, bereich) {
  *   aktiv      Einstellung der Person; nur `false` schaltet aus (fehlt = an)
  *   markiert   schon zum Steigern markiert; fehlt der Wert, entscheidet der
  *              Merker `increaseNextTime` an der letzten Einheit der Uebung
- * Liefert { faellig, grund: 'oben' | 'stillstand' | null, zaehler }.
- * "oben" geht vor "stillstand". Heute zaehlt mit, sobald ein Satz da ist.
+ *   heute      'YYYY-MM-DD' (lokal); fehlt = heute laut Geraeteuhr
+ * Liefert { faellig, grund: 'oben' | 'stillstand' | null, wochen }.
+ * "oben" geht vor "stillstand". Heute zaehlt mit, sobald ein Satz da ist
+ * (eine Steigerung heute nimmt die Erinnerung weg, 12 Wdh heute loesen sie aus).
  */
-export function erinnerung({ setLogs, gruppe, exerciseId, userId, bereich = null, aktiv = true, markiert } = {}) {
+export function erinnerung({ setLogs, gruppe, exerciseId, userId, bereich = null, aktiv = true, markiert, heute = getToday() } = {}) {
   const ring = gruppe && gruppe.length ? gruppe : [exerciseId]
   const einheiten = einheitenDerGruppe(setLogs, ring, userId)
-  const zaehler = stillstandZaehler(einheiten)
-  const nichts = { faellig: false, grund: null, zaehler }
+  const wochen = stillstandWochen(einheiten, heute)
+  const nichts = { faellig: false, grund: null, wochen }
 
   if (aktiv === false) return nichts
 
@@ -178,8 +212,8 @@ export function erinnerung({ setLogs, gruppe, exerciseId, userId, bereich = null
   const istMarkiert = typeof markiert === 'boolean' ? markiert : letzte.some(s => s.increaseNextTime)
   if (istMarkiert) return nichts
 
-  if (obenImBereich(letzte, bereich)) return { faellig: true, grund: 'oben', zaehler }
-  if (zaehler >= STILLSTAND_EINHEITEN) return { faellig: true, grund: 'stillstand', zaehler }
+  if (obenImBereich(letzte, bereich)) return { faellig: true, grund: 'oben', wochen }
+  if (wochen >= STILLSTAND_WOCHEN) return { faellig: true, grund: 'stillstand', wochen }
   return nichts
 }
 
@@ -208,14 +242,14 @@ export function knopfZustand({ markiert = false, faellig = false, aktiv = true }
 
 /**
  * Text fuer Vorleseprogramme und den Tooltip; nennt bei der Erinnerung den
- * Grund ("12 Wdh erreicht" bzw. "3 Mal ohne Steigerung").
+ * Grund ("12 Wdh erreicht" bzw. "3 Wochen ohne Steigerung").
  */
-export function knopfText({ zustand, grund, zaehler, max, name = '' } = {}) {
+export function knopfText({ zustand, grund, wochen, max, name = '' } = {}) {
   const wer = name ? `${name}: ` : ''
   if (zustand === 'markiert') return `${wer}Steigern markiert, Tipp hebt die Markierung auf`
   if (zustand === 'erinnern') {
     if (grund === 'oben') return `${wer}Steigern, ${max ?? STANDARD_BEREICH.max} Wdh erreicht`
-    return `${wer}Steigern, ${zaehler} Mal ohne Steigerung`
+    return `${wer}Steigern, ${wochen ?? STILLSTAND_WOCHEN} Wochen ohne Steigerung`
   }
   return `${wer}Gewicht beim nächsten Mal steigern`
 }

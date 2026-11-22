@@ -201,8 +201,8 @@
                     </span>
                   </span>
                 </Transition>
-                <!-- Steigern-Knopf (v2.17.0): aus | erinnern (Pulsring) |
-                     markiert. Zustand aus den gespeicherten Saetzen, nie
+                <!-- Steigern-Knopf (v2.17.0): aus | erinnern (gestrichelter
+                     Ring, seit v2.17.1) | markiert. Zustand aus den gespeicherten Saetzen, nie
                      aus der Ansicht (steigernStand, ladeVorschlag). -->
                 <button
                   class="increase-icon-btn"
@@ -659,7 +659,7 @@ const swapIndex = ref(-1)
 const recommendations = reactive({})
 const increaseFlags = reactive({})
 // Steigern-Knopf je Uebung und Person (v2.17.0): { markiert, faellig, grund,
-// zaehler, max } — gerechnet in ladeVorschlag aus den gespeicherten Saetzen.
+// wochen, max } — gerechnet in ladeVorschlag aus den gespeicherten Saetzen.
 // Die Einstellung An/Aus wirkt erst in kartenZeilen (reaktiv, auch per Sync).
 const steigernStand = reactive({})
 // Saetze der letzten Einheit je Uebung und Person (ohne das laufende
@@ -990,7 +990,7 @@ const kartenZeilen = computed(() => workoutExercises.value.map((entry, index) =>
       wert: kartenWert(exId, user.id),
       steigern: increaseFlags[exId]?.[user.id] || false,
       steigernZustand,
-      steigernText: knopfText({ zustand: steigernZustand, grund: stand?.grund, zaehler: stand?.zaehler, max: stand?.max, name: user.name }),
+      steigernText: knopfText({ zustand: steigernZustand, grund: stand?.grund, wochen: stand?.wochen, max: stand?.max, name: user.name }),
       punkte: satzPunkte(exId, user.id),
       eigene: wechselAnzeige(entry, user.id, preferredUserId.value).eigene
     }
@@ -1092,12 +1092,13 @@ async function ladeVorschlag(exId, userId, gruppe = gruppeZuUebung(exId, userId)
       exerciseId: exId,
       userId,
       bereich,
-      markiert
+      markiert,
+      heute: getToday()
     })
-    steigernStand[exId][userId] = { markiert, faellig: r.faellig, grund: r.grund, zaehler: r.zaehler, max: bereich.max }
+    steigernStand[exId][userId] = { markiert, faellig: r.faellig, grund: r.grund, wochen: r.wochen, max: bereich.max }
   } catch (err) {
     console.error('[Fitness Tracker] [ERROR] Steigern-Erinnerung nicht berechnet:', exId, userId, err)
-    steigernStand[exId][userId] = { markiert, faellig: false, grund: null, zaehler: 0, max: null }
+    steigernStand[exId][userId] = { markiert, faellig: false, grund: null, wochen: 0, max: null }
   }
 }
 
@@ -2525,11 +2526,13 @@ onUnmounted(() => {
   font-weight: var(--font-weight-bold);
 }
 
-/* Steigern-Knopf: aus (blass) | erinnern (Pulsring, Variante 1 aus
-   docs/entwuerfe/steigern-symbol-varianten.html) | markiert (Rahmen +
-   Flaeche). Personenfarben statisch ueber --user-color/--user-bg, kein
-   color-mix (alte Android-WebViews). Der Ring liegt absolut und aendert die
-   Breite nicht — bei 360 px bricht nichts um. */
+/* Steigern-Knopf: aus (blass) | erinnern (gestrichelter Ring, Variante 2 aus
+   docs/entwuerfe/steigern-symbol-varianten.html, seit v2.17.1 — der
+   Pulsring von v2.17.0 war Gabriel zu unruhig) | markiert (durchgezogener
+   Rahmen + Flaeche): gestrichelt = Vorschlag, durchgezogen = angenommen.
+   Personenfarben statisch ueber --user-color/--user-bg, kein color-mix
+   (alte Android-WebViews). Der Knopf bleibt 24 px breit (border-box) — bei
+   360 px bricht nichts um. */
 .increase-icon-btn {
   position: relative;
   display: flex;
@@ -2560,27 +2563,8 @@ onUnmounted(() => {
   background: var(--user-bg);
 }
 
-.increase-icon-btn.erinnern::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: var(--radius-full);
-  border: 2px solid var(--user-color);
-  pointer-events: none;
-  animation: steigern-puls 1.8s ease-out infinite;
-}
-
-@keyframes steigern-puls {
-  0% { transform: scale(1); opacity: 0.9; }
-  100% { transform: scale(1.55); opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .increase-icon-btn.erinnern::after {
-    animation: none;
-    transform: scale(1.25);
-    opacity: 0.5;
-  }
+.increase-icon-btn.erinnern {
+  border: 1.5px dashed var(--user-color);
 }
 
 .increase-icon-logo {

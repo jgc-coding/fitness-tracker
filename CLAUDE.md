@@ -171,12 +171,19 @@ npm run preview   # Build lokal testen (Port 4173)
   springt), bei geschlossenem Rad unten ueber der Navigation.
 - **Steigern-Erinnerung** (Gabriel 17.11.2026, v2.17.0): Der Steigern-Knopf
   hat je Person drei Zustaende `aus | erinnern | markiert` (`knopfZustand`),
-  "erinnern" = pulsierender Ring in der Personenfarbe. Regeln NUR in
+  "erinnern" = gestrichelter Ring in der Personenfarbe, statisch (v2.17.1,
+  der Pulsring war Gabriel zu unruhig; gestrichelt = Vorschlag,
+  durchgezogen = markiert). Regeln NUR in
   `utils/steigerung.js` (Vertrag `scripts/steigerung-test.mjs`): faellig,
   wenn alle Saetze der letzten Einheit der Uebung am oberen Ende des
-  Wdh-Bereichs liegen (`obenImBereich`, geht vor) oder die Gruppe
-  `STILLSTAND_EINHEITEN` (3) Einheiten ohne Steigerung hat
-  (`stillstandZaehler`). Gruppe = Ring der Karte (`ringFuer`), Einheit =
+  Wdh-Bereichs liegen (`obenImBereich`, geht vor) oder die Gruppe seit der
+  letzten Steigerung `STILLSTAND_WOCHEN` (3) VOLLE Trainingswochen ohne
+  Steigerung hat (`stillstandWochen`, Gabriel 22.11.2026): Kalenderwochen
+  Mo-So mit Einheit der Gruppe, nach der Woche der Steigerung und vor der
+  laufenden Woche — die Erinnerung kommt also fruehestens in der vierten
+  Woche. Bis v2.17.0 zaehlten 3 Einheiten inkl. Steigerungstag (kam nach
+  zwei Trainings). `erinnerung` braucht dafuer `heute` (lokal,
+  `getToday`). Gruppe = Ring der Karte (`ringFuer`), Einheit =
   Kalendertag mit gespeichertem Satz in der Gruppe, verglichen nur je Uebung
   — leere Trainings und ausgelassene Gruppen zaehlen so nie. "Markiert"
   kommt NUR aus `increaseNextTime` an den Saetzen (`istMarkiert`), nie aus
@@ -187,8 +194,7 @@ npm run preview   # Build lokal testen (Port 4173)
   (fehlt = an, nur `false` schaltet aus; auth store), Bereich
   `wdhBereich_<userId>_<exerciseId>` = `{ min, max }` (ein Eintrag je Paar,
   ohne = 8-12), gelesen und geschrieben NUR ueber
-  `composables/useWdhBereich.js`. Die App erhoeht nie selbst; bei
-  reduzierter Bewegung steht der Ring still.
+  `composables/useWdhBereich.js`. Die App erhoeht nie selbst.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
 - **Umsortieren in der Planung:** langer Druck (HALTEN_MS) hebt eine Gruppe samt
   Alternativen an. Touch- und Maus-Events, KEINE Pointer-Events (nur ein

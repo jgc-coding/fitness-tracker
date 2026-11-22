@@ -3,6 +3,25 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.17.1] — 2026-11-22
+
+### Geaendert
+- **Steigern-Erinnerung erst nach drei vollen Trainingswochen** (Wunsch
+  Gabriel): Nach einer Steigerung bleibt die Erinnerung drei volle Wochen
+  aus und kommt erst in der vierten Woche. Gezaehlt werden Kalenderwochen
+  (Montag bis Sonntag), in denen die Uebungsgruppe wirklich trainiert
+  wurde; die Woche der Steigerung und die laufende Woche zaehlen nicht.
+  Wochen ohne Training (Urlaub, krank) verlaengern die Ruhe. Vorher kam
+  die Erinnerung schon beim dritten Training, weil der Tag der Steigerung
+  selbst als erstes von drei Trainings zaehlte. Die Erinnerung "oben im
+  Wdh-Bereich" bleibt unveraendert sofort. Vorleseprogramme sagen jetzt
+  "3 Wochen ohne Steigerung".
+- **Gestrichelter statt pulsierender Ring** (Wunsch Gabriel, Variante 2 aus
+  den Symbol-Entwuerfen): Die Erinnerung zeigt einen ruhigen gestrichelten
+  Ring in der Personenfarbe; nichts bewegt sich mehr. Gestrichelt heisst
+  Vorschlag, nach dem Tipp wird daraus der durchgezogene Rahmen von
+  "markiert".
+
 ## [2.17.0] — 2026-11-18
 
 ### Features

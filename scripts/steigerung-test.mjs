@@ -11,11 +11,12 @@
  * Ausgabe bewusst ohne Umlaute und Sonderzeichen (Windows-Konsole).
  */
 import {
-  STILLSTAND_EINHEITEN,
+  STILLSTAND_WOCHEN,
   STANDARD_BEREICH,
   einheitenDerGruppe,
   istSteigerung,
   stillstandZaehler,
+  stillstandWochen,
   obenImBereich,
   erinnerung,
   WDH_GRENZEN,
@@ -27,6 +28,7 @@ import {
   knopfZustand,
   knopfText
 } from '../src/utils/steigerung.js'
+import { addDaysToDate } from '../src/utils/dateHelpers.js'
 
 let passed = 0
 const failures = []
@@ -54,11 +56,19 @@ const satz = (date, exerciseId, weight, reps, setNumber = 1, userId = U, extra =
   id: `s${++zaehlerId}`, workoutLogId: `w-${date}`, exerciseId, userId, date, setNumber, weight, reps, ...extra
 })
 
+// Tag in Woche n (0 = Woche ab Montag 2030-01-07), t = Tage ab Montag
+// (0 Mo ... 6 So). Woche -1 ist die Woche davor.
+const W = (n, t = 0) => addDaysToDate('2030-01-07', 7 * n + t)
+// Ohne Angabe liegt "heute" weit hinter allen Testdaten: jede Woche mit
+// Einheit ist dann eine volle Woche.
+const SPAETER = W(20)
+
 const erinnere = (setLogs, rest = {}) =>
-  erinnerung({ setLogs, gruppe: RING, exerciseId: KH, userId: U, ...rest })
+  erinnerung({ setLogs, gruppe: RING, exerciseId: KH, userId: U, heute: SPAETER, ...rest })
+const zaehlerVon = (setLogs, userId = U) => stillstandZaehler(einheitenDerGruppe(setLogs, RING, userId))
 
 // S0: Konstanten wie im Plan.
-equal('S0 drei Einheiten', STILLSTAND_EINHEITEN, 3)
+equal('S0 drei Wochen', STILLSTAND_WOCHEN, 3)
 equal('S0 Standardbereich 8-12', STANDARD_BEREICH, { min: 8, max: 12 })
 
 // S1: istSteigerung — mehr Gewicht ODER gleiches Gewicht mit mehr Wdh.
@@ -69,72 +79,88 @@ equal('S1 weniger Wdh', istSteigerung({ weight: 60, reps: 9 }, { weight: 60, rep
 equal('S1 weniger Gewicht', istSteigerung({ weight: 57.5, reps: 15 }, { weight: 60, reps: 10 }), false)
 equal('S1 kein Bestwert', istSteigerung({ weight: 60, reps: 10 }, null), false)
 
-// S2: Gabriels Beispiel — 3x 60x10, beim 4. Mal die Erinnerung.
+// S2: Gabriels Beispiel (22.11.2026) — Steigerung in Woche 0, danach drei
+// volle Trainingswochen Ruhe, erst ab Woche 4 die Erinnerung. Bis v2.17.0
+// kam sie schon beim dritten Training (der Steigerungstag zaehlte mit).
 {
   const logs = [
-    satz('2030-01-01', KH, 60, 10),
-    satz('2030-01-04', KH, 60, 10),
-    satz('2030-01-08', KH, 60, 10)
+    satz(W(-1, 2), KH, 57.5, 10),
+    satz(W(0, 2), KH, 60, 10), // Mittwoch Woche 0: Steigerung
+    satz(W(1, 2), KH, 60, 10),
+    satz(W(2, 2), KH, 60, 10),
+    satz(W(3, 2), KH, 60, 10)
   ]
-  equal('S2 Zaehler 3', stillstandZaehler(einheitenDerGruppe(logs, RING, U)), 3)
-  equal('S2 faellig wegen Stillstand', erinnere(logs), { faellig: true, grund: 'stillstand', zaehler: 3 })
-  equal('S2 nach zwei Mal noch nicht', erinnere(logs.slice(0, 2)), { faellig: false, grund: null, zaehler: 2 })
+  equal('S2 vier Einheiten seit der Steigerung', zaehlerVon(logs), 4)
+  equal('S2 Fall vom 22.11.: zwei Trainings ohne Steigerung, drittes Training -> keine Erinnerung',
+    erinnere(logs.slice(0, 4), { heute: W(3, 2) }), { faellig: false, grund: null, wochen: 2 })
+  equal('S2 Woche 3 trainiert, aber noch nicht vorbei -> keine Erinnerung',
+    erinnere(logs, { heute: W(3, 6) }), { faellig: false, grund: null, wochen: 2 })
+  equal('S2 Montag Woche 4 -> Erinnerung', erinnere(logs, { heute: W(4, 0) }), { faellig: true, grund: 'stillstand', wochen: 3 })
+  equal('S2 Mittwoch Woche 4 vor dem ersten Satz -> Erinnerung', erinnere(logs, { heute: W(4, 2) }).faellig, true)
+  equal('S2 Woche der Steigerung selbst zaehlt nie', erinnere(logs.slice(0, 2), { heute: W(0, 6) }).wochen, 0)
 }
 
 // S3: Wechsel zwischen den Uebungen einer Gruppe — Vergleich je Uebung,
 // gezaehlt fuer die Gruppe. Erstes Mal je Uebung ist ein Neuanfang.
 {
   const logs = [
-    satz('2030-01-01', KH, 20, 10),
-    satz('2030-01-03', LH, 60, 10),
-    satz('2030-01-05', KH, 20, 10),
-    satz('2030-01-07', LH, 60, 10)
+    satz(W(0), KH, 20, 10),
+    satz(W(1), LH, 60, 10), // erstes Mal LH = Neuanfang, Woche 1 ist die Startwoche
+    satz(W(2), KH, 20, 10),
+    satz(W(3), LH, 60, 10),
+    satz(W(4), KH, 20, 10)
   ]
-  equal('S3 KH, LH, KH, LH -> Zaehler 3', stillstandZaehler(einheitenDerGruppe(logs, RING, U)), 3)
-  equal('S3 Karte LH erinnert auch', erinnere(logs, { exerciseId: LH }).faellig, true)
+  equal('S3 KH, LH, KH, LH, KH -> Zaehler 4', zaehlerVon(logs), 4)
+  equal('S3 Wochen 2, 3, 4 voll -> faellig', erinnere(logs, { heute: W(5) }), { faellig: true, grund: 'stillstand', wochen: 3 })
+  equal('S3 Karte LH erinnert auch', erinnere(logs, { exerciseId: LH, heute: W(5) }).faellig, true)
   // Kurzhantel 22 ist Steigerung gegen KH 20, nie gegen LH 60 (nie quer).
-  const weiter = [...logs, satz('2030-01-09', KH, 22, 10)]
-  equal('S3 KH 22 nach LH 60 ist Steigerung', stillstandZaehler(einheitenDerGruppe(weiter, RING, U)), 1)
+  const weiter = [...logs, satz(W(5), KH, 22, 10)]
+  equal('S3 KH 22 nach LH 60 ist Steigerung', zaehlerVon(weiter), 1)
+  equal('S3 nach KH 22 keine Erinnerung mehr', erinnere(weiter, { heute: W(5) }), { faellig: false, grund: null, wochen: 0 })
 }
 
-// S4: 60x10, 60x9, 60x10 sind drei Einheiten ohne Steigerung.
+// S4: 60x10, 60x9, 60x10 sind Wochen ohne Steigerung.
 {
   const logs = [
-    satz('2030-01-01', KH, 60, 10),
-    satz('2030-01-04', KH, 60, 9),
-    satz('2030-01-08', KH, 60, 10)
+    satz(W(0), KH, 60, 10),
+    satz(W(1), KH, 60, 9),
+    satz(W(2), KH, 60, 10),
+    satz(W(3), KH, 60, 10)
   ]
-  equal('S4 Zaehler 3', erinnere(logs).zaehler, 3)
-  equal('S4 faellig', erinnere(logs).faellig, true)
+  equal('S4 Zaehler 4', zaehlerVon(logs), 4)
+  equal('S4 drei volle Wochen', erinnere(logs, { heute: W(4) }).wochen, 3)
+  equal('S4 faellig', erinnere(logs, { heute: W(4) }).faellig, true)
 }
 
-// S5: Steigerung setzt den Zaehler zurueck.
+// S5: Steigerung setzt zurueck; ohne Training danach waechst nichts.
 {
   const logs = [
-    satz('2030-01-01', KH, 60, 10),
-    satz('2030-01-04', KH, 60, 10),
-    satz('2030-01-08', KH, 60, 11)
+    satz(W(0), KH, 60, 10),
+    satz(W(1), KH, 60, 10),
+    satz(W(2), KH, 60, 11)
   ]
-  equal('S5 mehr Wdh -> Zaehler 1', erinnere(logs).zaehler, 1)
-  equal('S5 nicht faellig', erinnere(logs).faellig, false)
+  equal('S5 mehr Wdh -> Zaehler 1', zaehlerVon(logs), 1)
+  equal('S5 Wochen ohne Training zaehlen nicht', erinnere(logs, { heute: W(9) }), { faellig: false, grund: null, wochen: 0 })
 }
 
 // S6: Neuanfang mit weniger Gewicht — Zaehler neu, neuer Bestwert.
 {
   const logs = [
-    satz('2030-01-01', KH, 60, 10),
-    satz('2030-01-04', KH, 60, 10),
-    satz('2030-01-08', KH, 50, 10),
-    satz('2030-01-11', KH, 50, 10)
+    satz(W(0), KH, 60, 10),
+    satz(W(1), KH, 60, 10),
+    satz(W(2), KH, 50, 10),
+    satz(W(3), KH, 50, 10)
   ]
-  equal('S6 Neuanfang -> Zaehler 2', erinnere(logs).zaehler, 2)
+  equal('S6 Neuanfang -> Zaehler 2', zaehlerVon(logs), 2)
+  equal('S6 Neuanfang -> Wochen ab dort', erinnere(logs).wochen, 1)
   // 55 ist gegen den neuen Bestwert 50 eine Steigerung (nicht gegen die alte 60).
-  equal('S6 55 nach Neuanfang ist Steigerung', erinnere([...logs, satz('2030-01-14', KH, 55, 10)]).zaehler, 1)
+  equal('S6 55 nach Neuanfang ist Steigerung', zaehlerVon([...logs, satz(W(4), KH, 55, 10)]), 1)
 }
 
-// S7: Erstes Mal in der Uebung = Neuanfang, Zaehler 1; ohne Saetze 0.
-equal('S7 erstes Mal', erinnere([satz('2030-01-01', KH, 60, 10)]), { faellig: false, grund: null, zaehler: 1 })
-equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 })
+// S7: Erstes Mal in der Uebung = Neuanfang, 0 Wochen; ohne Saetze 0.
+equal('S7 erstes Mal', erinnere([satz(W(0), KH, 60, 10)]), { faellig: false, grund: null, wochen: 0 })
+equal('S7 erstes Mal Zaehler 1', zaehlerVon([satz(W(0), KH, 60, 10)]), 1)
+equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, wochen: 0 })
 
 // S8: Wdh null — der Satz zaehlt nur mit dem Gewicht.
 {
@@ -142,11 +168,12 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   equal('S8 10 vs null bei gleichem Gewicht', istSteigerung({ weight: 60, reps: 10 }, { weight: 60, reps: null }), false)
   equal('S8 mehr Gewicht ohne Wdh', istSteigerung({ weight: 62.5, reps: null }, { weight: 60, reps: 10 }), true)
   const logs = [
-    satz('2030-01-01', KH, 60, null),
-    satz('2030-01-04', KH, 60, null),
-    satz('2030-01-08', KH, 60, null)
+    satz(W(0), KH, 60, null),
+    satz(W(1), KH, 60, null),
+    satz(W(2), KH, 60, null),
+    satz(W(3), KH, 60, null)
   ]
-  equal('S8 dreimal ohne Wdh -> Stillstand', erinnere(logs), { faellig: true, grund: 'stillstand', zaehler: 3 })
+  equal('S8 drei Wochen ohne Wdh -> Stillstand', erinnere(logs, { heute: W(4) }), { faellig: true, grund: 'stillstand', wochen: 3 })
   equal('S8 null ist nie oben', obenImBereich([satz('2030-01-01', KH, 60, null)], { min: 8, max: 12 }), false)
 }
 
@@ -154,11 +181,12 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
 {
   equal('S9 0 kg mehr Wdh', istSteigerung({ weight: 0, reps: 9 }, { weight: 0, reps: 8 }), true)
   const logs = [
-    satz('2030-01-01', KH, 0, 8),
-    satz('2030-01-04', KH, 0, 8),
-    satz('2030-01-08', KH, 0, 8)
+    satz(W(0), KH, 0, 8),
+    satz(W(1), KH, 0, 8),
+    satz(W(2), KH, 0, 8),
+    satz(W(3), KH, 0, 8)
   ]
-  equal('S9 0 kg dreimal gleich', erinnere(logs), { faellig: true, grund: 'stillstand', zaehler: 3 })
+  equal('S9 0 kg drei Wochen gleich', erinnere(logs, { heute: W(4) }), { faellig: true, grund: 'stillstand', wochen: 3 })
 }
 
 // S10: Mehrere Saetze am selben Tag sind EINE Einheit; Wert = bester Satz
@@ -182,7 +210,7 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   equal('S11 alle Saetze oben', obenImBereich(alle, bereich), true)
   equal('S11 nur Satz 1 oben', obenImBereich(nurErster, bereich), false)
   equal('S11 leer ist nicht oben', obenImBereich([], bereich), false)
-  equal('S11 Erinnerung alle oben', erinnere(alle, { bereich }), { faellig: true, grund: 'oben', zaehler: 1 })
+  equal('S11 Erinnerung alle oben', erinnere(alle, { bereich }), { faellig: true, grund: 'oben', wochen: 0 })
   equal('S11 keine Erinnerung nur Satz 1', erinnere(nurErster, { bereich }).faellig, false)
   // Nur die LETZTE Einheit der Uebung auf der Karte zaehlt.
   const frueher = [...alle, satz('2030-01-05', KH, 22, 10, 1), satz('2030-01-05', KH, 22, 9, 2)]
@@ -191,44 +219,44 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   const lhOben = [satz('2030-01-01', LH, 60, 12), satz('2030-01-02', KH, 20, 10)]
   equal('S11 LH oben, Karte KH nicht', erinnere(lhOben, { bereich }).faellig, false)
   // Oben UND Stillstand -> Grund "oben".
-  const beides = [satz('2030-01-01', KH, 20, 12), satz('2030-01-04', KH, 20, 12), satz('2030-01-08', KH, 20, 12)]
-  equal('S11 beides -> oben', erinnere(beides, { bereich }), { faellig: true, grund: 'oben', zaehler: 3 })
+  const beides = [satz(W(0), KH, 20, 12), satz(W(1), KH, 20, 12), satz(W(2), KH, 20, 12), satz(W(3), KH, 20, 12)]
+  equal('S11 beides -> oben', erinnere(beides, { bereich, heute: W(4) }), { faellig: true, grund: 'oben', wochen: 3 })
 }
 
 // S12: Heute mit und ohne Satz — heute zaehlt, sobald ein Satz da ist.
 {
-  const vorher = [satz('2030-01-01', KH, 60, 10), satz('2030-01-04', KH, 60, 10)]
-  equal('S12 heute ohne Satz: noch nicht', erinnere(vorher).faellig, false)
-  const heute = [...vorher, satz('2030-01-08', KH, 60, 10)]
-  equal('S12 heute 3. Mal gleich: direkt faellig', erinnere(heute), { faellig: true, grund: 'stillstand', zaehler: 3 })
-  const dreiVorher = [...heute]
-  equal('S12 vor dem ersten Satz von heute gilt die Erinnerung', erinnere(dreiVorher).faellig, true)
-  equal('S12 heute gesteigert: weg', erinnere([...dreiVorher, satz('2030-01-11', KH, 61.25, 10)]).faellig, false)
+  const vorher = [satz(W(0), KH, 60, 10), satz(W(1), KH, 60, 10), satz(W(2), KH, 60, 10), satz(W(3), KH, 60, 10)]
+  equal('S12 Woche 4 vor dem ersten Satz: faellig', erinnere(vorher, { heute: W(4, 1) }).faellig, true)
+  equal('S12 heute gleich gespeichert: bleibt faellig',
+    erinnere([...vorher, satz(W(4, 1), KH, 60, 10)], { heute: W(4, 1) }), { faellig: true, grund: 'stillstand', wochen: 3 })
+  equal('S12 heute gesteigert: weg',
+    erinnere([...vorher, satz(W(4, 1), KH, 61.25, 10)], { heute: W(4, 1) }), { faellig: false, grund: null, wochen: 0 })
   equal('S12 heute 12 geschafft: direkt faellig',
-    erinnere([satz('2030-01-01', KH, 20, 10), satz('2030-01-08', KH, 20, 12)]).grund, 'oben')
+    erinnere([satz(W(0), KH, 20, 10), satz(W(1), KH, 20, 12)], { heute: W(1) }).grund, 'oben')
 }
 
 // S13: Schon markiert -> keine Erinnerung (Merker increaseNextTime an den
 // Saetzen der letzten Einheit; ausdruecklich uebergeben gewinnt).
 {
   const logs = [
-    satz('2030-01-01', KH, 60, 10),
-    satz('2030-01-04', KH, 60, 10),
-    satz('2030-01-08', KH, 60, 10, 1, U, { increaseNextTime: true })
+    satz(W(0), KH, 60, 10),
+    satz(W(1), KH, 60, 10),
+    satz(W(2), KH, 60, 10),
+    satz(W(3), KH, 60, 10, 1, U, { increaseNextTime: true })
   ]
-  equal('S13 Merker in den Daten', erinnere(logs), { faellig: false, grund: null, zaehler: 3 })
+  equal('S13 Merker in den Daten', erinnere(logs), { faellig: false, grund: null, wochen: 3 })
   const ohne = logs.map(s => ({ ...s, increaseNextTime: false }))
   equal('S13 markiert uebergeben', erinnere(ohne, { markiert: true }).faellig, false)
   equal('S13 nicht markiert', erinnere(ohne, { markiert: false }).faellig, true)
   // Ein Merker auf einer aelteren Einheit gilt nicht mehr.
-  const alt = [satz('2030-01-01', KH, 60, 10, 1, U, { increaseNextTime: true }), ...ohne.slice(1), satz('2030-01-11', KH, 60, 10)]
+  const alt = [satz(W(0), KH, 60, 10, 1, U, { increaseNextTime: true }), ...ohne.slice(1), satz(W(4), KH, 60, 10)]
   equal('S13 alter Merker zaehlt nicht', erinnere(alt).faellig, true)
 }
 
 // S14: Einstellung aus -> keine Erinnerung; fehlt = an.
 {
-  const logs = [satz('2030-01-01', KH, 60, 10), satz('2030-01-04', KH, 60, 10), satz('2030-01-08', KH, 60, 10)]
-  equal('S14 aus', erinnere(logs, { aktiv: false }), { faellig: false, grund: null, zaehler: 3 })
+  const logs = [satz(W(0), KH, 60, 10), satz(W(1), KH, 60, 10), satz(W(2), KH, 60, 10), satz(W(3), KH, 60, 10)]
+  equal('S14 aus', erinnere(logs, { aktiv: false }), { faellig: false, grund: null, wochen: 3 })
   equal('S14 an', erinnere(logs, { aktiv: true }).faellig, true)
   equal('S14 fehlt = an', erinnere(logs, { aktiv: undefined }).faellig, true)
 }
@@ -255,20 +283,22 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   equal('S16 61.25 > 60', istSteigerung({ weight: 61.25, reps: 10 }, { weight: 60, reps: 10 }), true)
   equal('S16 61.25 = 61.25', istSteigerung({ weight: 61.25, reps: 10 }, { weight: 61.25, reps: 10 }), false)
   equal('S16 61.25 < 62.5', istSteigerung({ weight: 61.25, reps: 12 }, { weight: 62.5, reps: 10 }), false)
-  const logs = [satz('2030-01-01', KH, 61.25, 10), satz('2030-01-04', KH, 61.25, 10), satz('2030-01-08', KH, 61.25, 10)]
-  equal('S16 dreimal 61.25', erinnere(logs).zaehler, 3)
+  const logs = [satz(W(0), KH, 61.25, 10), satz(W(1), KH, 61.25, 10), satz(W(2), KH, 61.25, 10), satz(W(3), KH, 61.25, 10)]
+  equal('S16 viermal 61.25', zaehlerVon(logs), 4)
+  equal('S16 viermal 61.25 -> drei Wochen', erinnere(logs).wochen, 3)
   equal('S16 Wert bleibt 61.25', einheitenDerGruppe(logs, RING, U)[0].werte[KH].weight, 61.25)
 }
 
 // S17: Uebung ohne Alternativen — die Gruppe ist die Uebung allein.
 {
-  const logs = [satz('2030-01-01', 'curl', 15, 10), satz('2030-01-04', 'curl', 15, 10), satz('2030-01-08', 'curl', 15, 10)]
-  equal('S17 Gruppe allein', erinnerung({ setLogs: logs, gruppe: ['curl'], exerciseId: 'curl', userId: U }).zaehler, 3)
-  equal('S17 Gruppe leer -> Uebung allein', erinnerung({ setLogs: logs, gruppe: [], exerciseId: 'curl', userId: U }).zaehler, 3)
+  const logs = [satz(W(0), 'curl', 15, 10), satz(W(1), 'curl', 15, 10), satz(W(2), 'curl', 15, 10), satz(W(3), 'curl', 15, 10)]
+  equal('S17 Gruppe allein', erinnerung({ setLogs: logs, gruppe: ['curl'], exerciseId: 'curl', userId: U, heute: W(4) }), { faellig: true, grund: 'stillstand', wochen: 3 })
+  equal('S17 Gruppe leer -> Uebung allein', erinnerung({ setLogs: logs, gruppe: [], exerciseId: 'curl', userId: U, heute: W(4) }).wochen, 3)
 }
 
 // S18: Entscheidung 7 — ein Tag mit Saetzen nur AUSSERHALB der Gruppe
-// aendert deren Zaehler nicht (auch keine Steigerung dort).
+// aendert deren Zaehler nicht (auch keine Steigerung dort). Eine Woche nur
+// mit anderen Uebungen ist fuer die Gruppe keine Trainingswoche.
 {
   const logs = [
     satz('2030-01-01', KH, 60, 10),
@@ -279,19 +309,28 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   ]
   equal('S18 fremder Tag ist keine Einheit', einheitenDerGruppe(logs, RING, U).map(e => e.date),
     ['2030-01-01', '2030-01-04', '2030-01-08'])
-  equal('S18 Zaehler bleibt 3', erinnere(logs).zaehler, 3)
-  equal('S18 Zaehler vor dem 3. Mal bleibt 2', erinnere(logs.slice(0, 4)).zaehler, 2)
+  equal('S18 Zaehler bleibt 3', zaehlerVon(logs), 3)
+  equal('S18 Zaehler vor dem 3. Mal bleibt 2', zaehlerVon(logs.slice(0, 4)), 2)
+  const wochen = [
+    satz(W(0), KH, 60, 10),
+    satz(W(1), KH, 60, 10),
+    satz(W(2), 'kniebeuge', 100, 5), // Woche 2: Gruppe nicht trainiert
+    satz(W(3), KH, 60, 10)
+  ]
+  equal('S18 Woche nur mit fremder Uebung zaehlt nicht', erinnere(wochen, { heute: W(4) }), { faellig: false, grund: null, wochen: 2 })
 }
 
 // S19: Nur die eigene Person zaehlt.
 {
   const logs = [
-    satz('2030-01-01', KH, 60, 10),
-    satz('2030-01-04', KH, 60, 10),
-    satz('2030-01-08', KH, 60, 10, 1, 'user2')
+    satz(W(0), KH, 60, 10),
+    satz(W(1), KH, 60, 10),
+    satz(W(2), KH, 60, 10, 1, 'user2'),
+    satz(W(3), KH, 60, 10, 1, 'user2')
   ]
-  equal('S19 fremde Person zaehlt nicht', erinnere(logs).zaehler, 2)
-  equal('S19 user2 hat eine Einheit', erinnere(logs, { userId: 'user2' }).zaehler, 1)
+  equal('S19 fremde Person zaehlt nicht', zaehlerVon(logs), 2)
+  equal('S19 fremde Person zaehlt nicht (Wochen)', erinnere(logs).wochen, 1)
+  equal('S19 user2 eigene Wochen', erinnere(logs, { userId: 'user2' }).wochen, 1)
 }
 
 // S20: Zwei Uebungen der Gruppe am selben Tag sind eine Einheit; eine
@@ -304,7 +343,8 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   ]
   equal('S20 gleicher Tag eine Einheit', einheitenDerGruppe(logs, RING, U).length, 3)
   // LH zum ersten Mal = Neuanfang an diesem Tag -> Zaehler 1.
-  equal('S20 Neuanfang in einer Uebung setzt zurueck', erinnere(logs).zaehler, 1)
+  equal('S20 Neuanfang in einer Uebung setzt zurueck', zaehlerVon(logs), 1)
+  equal('S20 Neuanfang -> 0 Wochen', erinnere(logs).wochen, 0)
 }
 
 // S21: Reihenfolge der Eingabe egal, Tagesfolge nach Datum.
@@ -315,7 +355,7 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
     satz('2030-01-04', KH, 62.5, 10)
   ]
   // 60 -> 62.5 (Steigerung) -> 60 (Neuanfang) = Zaehler 1.
-  equal('S21 unsortiert', erinnere(logs).zaehler, 1)
+  equal('S21 unsortiert', zaehlerVon(logs), 1)
 }
 
 // S22: Speicherorte und Einstellung (P2). Schluessel wie scripts/wdh-bereiche.mjs.
@@ -373,22 +413,50 @@ equal('S7 gar nichts', erinnere([]), { faellig: false, grund: null, zaehler: 0 }
   equal('S25 ohne Angaben', knopfZustand(), 'aus')
 
   // Zusammenspiel mit erinnerung(): schon markierte Uebung ist nie faellig
-  const logs = [1, 2, 3].map(d => ({ exerciseId: 'a', userId: 'u', date: `2026-11-0${d}`, setNumber: 1, weight: 60, reps: 10 }))
-  const r = erinnerung({ setLogs: logs, gruppe: ['a'], exerciseId: 'a', userId: 'u', markiert: istMarkiert([], logs.slice(-1)) })
-  equal('S25 3x 60x10 ohne Merker -> Ring', knopfZustand({ markiert: false, faellig: r.faellig, aktiv: true }), 'erinnern')
-  const markiertLogs = logs.map((s, i) => i === 2 ? { ...s, increaseNextTime: true } : s)
+  const logs = [0, 1, 2, 3].map(n => ({ exerciseId: 'a', userId: 'u', date: W(n), setNumber: 1, weight: 60, reps: 10 }))
+  const r = erinnerung({ setLogs: logs, gruppe: ['a'], exerciseId: 'a', userId: 'u', markiert: istMarkiert([], logs.slice(-1)), heute: W(4) })
+  equal('S25 drei Wochen 60x10 ohne Merker -> Ring', knopfZustand({ markiert: false, faellig: r.faellig, aktiv: true }), 'erinnern')
+  const markiertLogs = logs.map((s, i) => i === 3 ? { ...s, increaseNextTime: true } : s)
   const m = istMarkiert([], markiertLogs.slice(-1))
-  const r2 = erinnerung({ setLogs: markiertLogs, gruppe: ['a'], exerciseId: 'a', userId: 'u', markiert: m })
-  equal('S25 3x 60x10 markiert -> kein Ring', knopfZustand({ markiert: m, faellig: r2.faellig, aktiv: true }), 'markiert')
+  const r2 = erinnerung({ setLogs: markiertLogs, gruppe: ['a'], exerciseId: 'a', userId: 'u', markiert: m, heute: W(4) })
+  equal('S25 drei Wochen 60x10 markiert -> kein Ring', knopfZustand({ markiert: m, faellig: r2.faellig, aktiv: true }), 'markiert')
 }
 
 // S26: Text fuer Vorleseprogramme nennt den Grund
 {
   equal('S26 oben', knopfText({ zustand: 'erinnern', grund: 'oben', max: 12, name: 'Eins' }), 'Eins: Steigern, 12 Wdh erreicht')
   equal('S26 oben ohne Bereich = 12', knopfText({ zustand: 'erinnern', grund: 'oben' }), 'Steigern, 12 Wdh erreicht')
-  equal('S26 stillstand', knopfText({ zustand: 'erinnern', grund: 'stillstand', zaehler: 3, name: 'Eins' }), 'Eins: Steigern, 3 Mal ohne Steigerung')
+  equal('S26 stillstand', knopfText({ zustand: 'erinnern', grund: 'stillstand', wochen: 3, name: 'Eins' }), 'Eins: Steigern, 3 Wochen ohne Steigerung')
+  equal('S26 stillstand 5 Wochen', knopfText({ zustand: 'erinnern', grund: 'stillstand', wochen: 5 }), 'Steigern, 5 Wochen ohne Steigerung')
+  equal('S26 stillstand ohne Zahl = 3', knopfText({ zustand: 'erinnern', grund: 'stillstand' }), 'Steigern, 3 Wochen ohne Steigerung')
   check('S26 markiert', knopfText({ zustand: 'markiert', name: 'Eins' }).startsWith('Eins: Steigern markiert'))
   check('S26 aus', knopfText({ zustand: 'aus', name: 'Eins' }).startsWith('Eins: Gewicht beim'))
+}
+
+// S27: Volle Trainingswochen im Detail (Gabriel 22.11.2026).
+{
+  const e = (logs) => einheitenDerGruppe(logs, RING, U)
+  // Zweimal pro Woche: Steigerung Montag Woche 0, Donnerstag gleich.
+  const zweimal = [satz(W(0, 0), KH, 60, 10), satz(W(0, 3), KH, 60, 10)]
+  for (const n of [1, 2, 3]) zweimal.push(satz(W(n, 0), KH, 60, 10), satz(W(n, 3), KH, 60, 10))
+  equal('S27 zweimal pro Woche: Do Woche 3 -> 2', stillstandWochen(e(zweimal), W(3, 3)), 2)
+  equal('S27 zweimal pro Woche: Mo Woche 4 -> 3', stillstandWochen(e(zweimal), W(4, 0)), 3)
+  // Urlaub in Woche 2: die Woche ohne Training zaehlt nicht.
+  const urlaub = [satz(W(0), KH, 60, 10), satz(W(1), KH, 60, 10), satz(W(3), KH, 60, 10), satz(W(4), KH, 60, 10)]
+  equal('S27 Urlaubswoche zaehlt nicht (Woche 4 laeuft)', stillstandWochen(e(urlaub), W(4, 3)), 2)
+  equal('S27 nach Urlaub erst in Woche 5', erinnere(urlaub, { heute: W(5) }), { faellig: true, grund: 'stillstand', wochen: 3 })
+  // Sonntag/Montag: Woche endet am Sonntag.
+  const sonntag = [satz(W(0, 6), KH, 60, 10), satz(W(1, 0), KH, 60, 10)]
+  equal('S27 Steigerung Sonntag, Training Montag: Woche 1 laeuft noch', stillstandWochen(e(sonntag), W(1, 6)), 0)
+  equal('S27 Montag danach ist Woche 1 voll', stillstandWochen(e(sonntag), W(2, 0)), 1)
+  // Jahreswechsel: Steigerung Mi 25.12.2030, Wochen 30.12., 06.01., 13.01.
+  const jahr = ['2030-12-25', '2031-01-01', '2031-01-08', '2031-01-15'].map(d => satz(d, KH, 60, 10))
+  equal('S27 ueber den Jahreswechsel', stillstandWochen(e(jahr), '2031-01-20'), 3)
+  equal('S27 Sonntag davor noch 2', stillstandWochen(e(jahr), '2031-01-19'), 2)
+  // Randfaelle: nichts, heute vor den Daten (Geraeteuhr falsch)
+  equal('S27 keine Einheiten', stillstandWochen([], W(4)), 0)
+  equal('S27 ohne Liste', stillstandWochen(undefined, W(4)), 0)
+  equal('S27 heute vor den Daten', stillstandWochen(e(urlaub), W(-3)), 0)
 }
 
 if (failures.length) {
