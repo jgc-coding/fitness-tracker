@@ -21,6 +21,12 @@
   `wdh-bereiche.mjs --jetzt` geschrieben (Gabriels Freigabe), Nachkontrolle
   bestanden. Sicherung vorher:
   `privat\cloud-sicherung-meta-2026-11-18T07-39-23-795Z.json`.
+- **Row-Korrektur in der Cloud (22.11., Gabriels Auftrag):** 18 Saetze von
+  user1 (13.10.-16.11.) von "low row" auf "cable row (without chest support)"
+  umgehaengt — der gemeinsame Stern stand dort auf Low Row, die Karte startete
+  so jede Woche falsch. Stern des Row-Platzes im Pull-Tag jetzt fuer alle auf
+  Cable Row. Saetze anderer Personen unberuehrt, Nachkontrolle bestanden.
+  Sicherung: `privat\cloud-sicherung-row-umhaengen-2026-11-22T11-27-44-187Z.json`.
 - **Worktrees:** `add-bizeps-machine-exercise-8f0f28` und
   `fittrack-workout-save-cycle-3a5977` (beide sauber, gemergt) und ein
   LEERER Ordner `.claude\worktrees\exercise-images-crop-e10a06`
