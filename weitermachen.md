@@ -1,17 +1,16 @@
-# Weitermachen — Stand 2026-11-22 (v2.17.1)
+# Weitermachen — Stand 2026-11-22 (v2.18.0)
 
-## Offener Auftrag (22.11.2026): Deload-Wochen
-- Gabriel will Deload-Wochen tracken: Startbildschirm unter den
-  Farbkreisen, alle 8 volle Wochen eine Deload-Woche, dezente Erinnerung
-  (Feld faerbt sich), manuell setzen/nachtragen. Vorschlag samt Bild:
-  `docs/entwuerfe/deload-entwurf.html`. **Wartet auf Gabriels Freigabe**
-  und drei Entscheidungen (je Person vs. gemeinsam, alten Planungs-
-  Schalter "Deload-Wochen alle X Wochen" ersetzen, Vorwert nach dem Deload
-  aus der Woche davor). Danach v2.18.0 bauen; Regeln in `utils/deload.js`
-  mit Vertragstest, Speicher `db.meta` `deload_<userId>_<montag>`.
-- Wechselwirkung mit der Steigern-Erinnerung: Deload-Saetze aus
-  `einheitenDerGruppe` herausnehmen (sonst wirkt die Woche danach wie eine
-  Steigerung), in der Deload-Woche kein Ring.
+## v2.18.0 Deload-Wochen (22.11.2026, live, Tag `v2.18.0` auf `32ead4a`)
+- Freigegeben nach Entwurf `docs/entwuerfe/deload-entwurf.html`: je
+  Person, alter Planungs-Schalter ersetzt, Vorschlag nach dem Deload aus
+  der Woche davor; dazu auf Gabriels Wunsch die History-Markierung.
+  Regeln in der CLAUDE.md ("Deload-Wochen je Person"), Aenderungen im
+  CHANGELOG.
+- Gate gruen (deload-test 71, steigerung-test 145), Browser-Tests
+  `v218-test` 39/39, `v2171-test` 54/54, `v216-test` und `v215-regress`
+  gruen. Live-Seite liefert 2.18.0 aus.
+- Mitgemacht: "Veraenderung im Zeitraum" (Auswertung) vergleicht ohne
+  Deload-Tage, sonst stand nach jeder Deload-Woche "gesunken" da.
 
 ## v2.17.1 (22.11.2026, live, Tag `v2.17.1` auf `27ef73a`)
 - Steigern-Erinnerung erst nach drei VOLLEN Trainingswochen
@@ -58,8 +57,10 @@
   starten (lauscht nur auf ::1), sonst Abbruch "Zeitueberschreitung
   .bottom-nav". Die Version liest er seit 22.11. aus package.json.
 - **Browser-Tests liegen in `privat\browsertests\`** (gitignoriert, nur im
-  Hauptbaum): `v2171-test.mjs` (Steigern-Erinnerung, startet eigenen
-  Server; ersetzt `v217-test.mjs`), `v216-test.mjs`
+  Hauptbaum): `v218-test.mjs` (Deload-Wochen, eigener Server),
+  `v2171-test.mjs` (Steigern-Erinnerung, startet eigenen
+  Server; ersetzt `v217-test.mjs`), `v216-test.mjs` (braucht wie
+  v215-regress den Server auf 4199)
   (Zyklus), `v215-regress.mjs`. `v217-test` brach zweimal bei
   "[Einstellung] Zeitueberschreitung: Aus aktiv" ab, der naechste Lauf war
   gruen — vermutlich Wettlauf zwischen Tipp und Laden der Einstellungen;
@@ -135,6 +136,7 @@
 ## Was Gabriel selbst tun muss
 - [ ] Gerätetest v2.17.0: docs/tests/geraetetest-plan-steigern-erinnerung.md durchklicken (seit 2026-11-18)
 - [ ] Handy-Test v2.17.1: docs/tests/v2.17.1-handy.md (gestrichelter Ring, drei volle Wochen) (seit 2026-11-22)
-- [ ] Deload-Vorschlag ansehen und freigeben: docs/entwuerfe/deload-entwurf.html (seit 2026-11-22)
+- [ ] Je Person die letzte echte Deload-Woche eintragen (Startbildschirm, Zeile antippen, Woche in der Liste antippen), sonst steht dort "Noch keine Deload-Woche eingetragen" (seit 2026-11-22)
+- [ ] Handy-Test v2.18.0: docs/tests/v2.18.0-handy.md (Deload-Wochen) (seit 2026-11-22)
 - [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
   V15-Rest in `verbesserungen.md`.
