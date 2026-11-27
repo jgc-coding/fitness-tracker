@@ -100,7 +100,7 @@
                 </tr>
                 <!-- Exercise rows -->
                 <tr v-for="ex in group.exercises" :key="ex.id" class="exercise-row">
-                  <td class="col-exercise sticky-col">{{ toTitleCase(ex.name) }}</td>
+                  <td class="col-exercise sticky-col"><UebungsName :name="toTitleCase(ex.name)" /></td>
                   <td class="col-max sticky-max">
                     <span v-if="ex.max > 0" class="max-value">{{ ex.max }}</span>
                   </td>
@@ -160,7 +160,7 @@
           <!-- Ausgelassene Saetze (v2.15.0) dieses Trainings -->
           <ul v-if="ausgelasseneFuer(log).length > 0" class="day-log-ausgelassen">
             <li v-for="e in ausgelasseneFuer(log)" :key="e.exerciseId + e.userId">
-              {{ e.name }}: {{ satzListeText(e.saetze) }} ausgelassen ({{ authStore.getUserName(e.userId) }})
+              <UebungsName :name="e.name" />: {{ satzListeText(e.saetze) }} ausgelassen ({{ authStore.getUserName(e.userId) }})
             </li>
           </ul>
           <div class="day-log-actions">
@@ -238,6 +238,7 @@ import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
+import UebungsName from '../components/shared/UebungsName.vue'
 import { db } from '../db/dexie.js'
 import { pushRecord } from '../services/syncService.js'
 import { useAuthStore } from '../stores/auth.js'

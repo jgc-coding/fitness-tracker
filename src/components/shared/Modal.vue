@@ -5,7 +5,9 @@
         <div class="modal-content" :class="{ 'modal-full': fullHeight, 'mit-tastatur': tastatur }">
           <div class="modal-grabber" aria-hidden="true"></div>
           <div class="modal-header">
-            <h2 class="modal-title">{{ title }}</h2>
+            <!-- Slot "titel" (v2.19.0): Titel mit Inhalt statt reinem Text,
+                 z. B. Uebungsname mit Hantel-Bildchen. Ohne Slot gilt title. -->
+            <h2 class="modal-title"><slot name="titel">{{ title }}</slot></h2>
             <button class="modal-close" @click="close">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>

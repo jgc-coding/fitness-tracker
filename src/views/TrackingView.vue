@@ -153,7 +153,7 @@
             </div>
             <Transition :name="schiebeName" mode="out-in">
               <h3 :key="karte.kopf" class="exercise-name">
-                {{ getExerciseName(karte.kopf) }}<span
+                <UebungsName :name="getExerciseName(karte.kopf)" /><span
                   v-if="getExerciseNotes(karte.kopf)"
                   class="exercise-notes-inline"
                 > ({{ getExerciseNotes(karte.kopf) }})</span>
@@ -232,7 +232,7 @@
                    steht ihr Name in ihrer Farbe da. Der naechste Wechsel
                    bringt alle wieder zusammen. -->
               <div v-if="z.eigene" class="user-eigene" :style="{ color: z.user.color }">
-                {{ getExerciseName(z.eigene) }}
+                <UebungsName :name="getExerciseName(z.eigene)" />
               </div>
             </div>
           </div>
@@ -251,7 +251,7 @@
                 @click.stop="tapRing(karte.index)"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h13m0 0l-3-3m3 3l-3 3M20 17H7m0 0l3 3m-3-3l3-3"/></svg>
-                <span class="ring-name">{{ getExerciseName(karte.ziel) }}</span>
+                <span class="ring-name"><UebungsName :name="getExerciseName(karte.ziel)" /></span>
               </button>
               <button
                 v-if="karte.standardMoeglich"
@@ -305,6 +305,7 @@
 
     <!-- Wheel Picker Modal for exercise input -->
     <Modal v-model="showWheelPicker" :title="activeExerciseName">
+      <template #titel><UebungsName :name="activeExerciseName" /></template>
       <div v-if="activeExerciseIndex >= 0" class="picker-content">
         <!-- User tabs -->
         <div class="user-tabs">
@@ -519,8 +520,8 @@
       <!-- Schritt 2: nur heute oder dauerhaft in den Plan uebernehmen? -->
       <div v-if="swapTargetId" class="swap-confirm">
         <p class="swap-confirm-text">
-          <strong>{{ getExerciseName(swapTargetId) }}</strong> statt
-          {{ swapOriginalName }} — nur fuer heute oder dauerhaft im Plan?
+          <strong><UebungsName :name="getExerciseName(swapTargetId)" /></strong> statt
+          <UebungsName :name="swapOriginalName" /> — nur fuer heute oder dauerhaft im Plan?
         </p>
         <button class="btn btn-primary btn-block" @click="applySwap(false)">Nur heute</button>
         <button
@@ -540,7 +541,7 @@
           <template v-for="section in swapSections" :key="section.label">
             <div v-if="section.items.length && section.label" class="swap-section-label">{{ section.label }}</div>
             <button v-for="ex in section.items" :key="ex.id" class="swap-item" @click="swapTargetId = ex.id">
-              <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+              <span class="swap-name"><UebungsName :name="toTitleCase(ex.name)" /></span>
               <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
             </button>
           </template>
@@ -555,7 +556,7 @@
         <template v-for="section in quickAddSections" :key="section.label">
           <div v-if="section.items.length && section.label" class="swap-section-label">{{ section.label }}</div>
           <button v-for="ex in section.items" :key="ex.id" class="swap-item" @click="quickAddExercise(ex)">
-            <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+            <span class="swap-name"><UebungsName :name="toTitleCase(ex.name)" /></span>
             <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
           </button>
         </template>
@@ -576,7 +577,7 @@
           <span class="swap-check">
             <svg v-if="customSelectedIds.includes(ex.id)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
           </span>
-          <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+          <span class="swap-name"><UebungsName :name="toTitleCase(ex.name)" /></span>
           <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
         </button>
       </div>
@@ -603,6 +604,7 @@ import StartNutzerwahl from '../components/tracking/StartNutzerwahl.vue'
 import ExerciseDetail from '../components/tracking/ExerciseDetail.vue'
 import WheelPicker from '../components/shared/WheelPicker.vue'
 import MuscleMap from '../components/shared/MuscleMap.vue'
+import UebungsName from '../components/shared/UebungsName.vue'
 import { useWorkoutStore } from '../stores/workout.js'
 import { usePlansStore } from '../stores/plans.js'
 import { useAuthStore } from '../stores/auth.js'

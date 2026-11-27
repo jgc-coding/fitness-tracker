@@ -32,10 +32,13 @@ src/
   services/syncService.js  Login, Firestore-Listener, Reconcile, Tombstones, Retry-Queue
   stores/running.js      Laufplaene, Laeufe, Import/Merge, Status-Export
   composables/useHistory.js  Spreadsheet-Daten, letzte Werte, Steigerungslogik
-  components/shared/     Modal (Android-Back schliesst; folgt der Tastatur),
+  components/shared/     Modal (Android-Back schliesst; folgt der Tastatur;
+                         Slot "titel" fuer Titel mit Inhalt),
                          UserSelectModal (Besetzung im laufenden Workout),
                          MuscleMap (graue KI-Figur + Maske je Muskel,
-                         ohne Manifest-Eintrag die Grobgruppe)
+                         ohne Manifest-Eintrag die Grobgruppe),
+                         UebungsName (jeder angezeigte Uebungsname, mit
+                         Hantel-Bildchen vor DB/BB)
   components/tracking/   ExerciseDetail (Bild-Ueberblendung, MuscleMap, Notizen,
                          Verlauf), StartNutzerwahl (Farbkreise Startbildschirm),
                          DeloadLeiste (Deload-Zeilen + Fenster darunter),
@@ -53,7 +56,7 @@ src/
                          planReihenfolge, radWerte (Vorwert ausserhalb des
                          Rasters nie still ersetzen), gewichtProSeite,
                          verlauf, auswertung, steigerung, deload, trainingGeraet,
-                         runPlanMerge, runMatch, laufEintrag, zyklusTag;
+                         hantelBild, runPlanMerge, runMatch, laufEintrag, zyklusTag;
                          dazu runPlanSchema (Format),
                          intervalsApi (Browser + Node), exportData (CSV mit
                          BOM, JSON-Backup, Import merge-only), formatters
@@ -214,6 +217,17 @@ npm run preview   # Build lokal testen (Port 4173)
   `VerlaufMini`, `veraenderung(..., deloadWochen)` ohne Deload-Tage. Der
   alte Plan-Schalter (`deloadEnabled` & Co. an Plaenen) ist entfallen und
   wird nicht mehr gelesen.
+- **Hantel-Bildchen vor DB/BB** (Gabriel 27.11.2026, v2.19.0): Jeder
+  angezeigte Uebungsname laeuft durch `components/shared/UebungsName.vue`
+  (neue Anzeigestellen auch; Modal-Titel ueber den Slot `titel`). Nur reiner
+  Text bleibt ohne Bild: `aria-label`, `<option>`, Notification, Export.
+  Regeln NUR in `utils/hantelBild.js` (Vertrag `scripts/hantelbild-test.mjs`):
+  Bild vor dem ganzen, grossgeschriebenen Wort DB bzw. BB im angezeigten
+  Namen, das Kuerzel bleibt stehen. Einstellung je Person in `db.meta`
+  `hantelBild_<userId>` (gesynct, auth store); ohne Eintrag gilt
+  `USERS[].hantelBilder` aus constants.js (user1 und user3 an). Sichtbar,
+  sobald eine der `activeUserIds` es an hat — in jeder Ansicht, nicht nur
+  im Training.
 - **Exercise Picker (Planung):** sammelt lokal, speichert batch beim Schliessen.
 - **Umsortieren in der Planung:** langer Druck (HALTEN_MS) hebt eine Gruppe samt
   Alternativen an. Touch- und Maus-Events, KEINE Pointer-Events (nur ein

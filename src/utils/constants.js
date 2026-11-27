@@ -25,10 +25,12 @@ export const EQUIPMENT_TYPES = [
 // ersetzen beim Laden den Platzhalter hier (stores/auth.js). Namen nur ueber
 // den auth store lesen, nie aus dieser Liste.
 // zyklus: true blendet fuer diese Kennung die Zyklustag-Erfassung ein.
+// hantelBilder: true = Hantel-Bildchen vor DB/BB standardmaessig an, solange
+// die Person in den Einstellungen nichts gewaehlt hat (utils/hantelBild.js).
 export const USERS = [
-  { id: 'user1', name: 'Person 1', color: 'var(--color-user1)', bgColor: 'var(--color-user1-bg)', zyklus: true },
+  { id: 'user1', name: 'Person 1', color: 'var(--color-user1)', bgColor: 'var(--color-user1-bg)', zyklus: true, hantelBilder: true },
   { id: 'user2', name: 'Person 2', color: 'var(--color-user2)', bgColor: 'var(--color-user2-bg)' },
-  { id: 'user3', name: 'Person 3', color: 'var(--color-user3)', bgColor: 'var(--color-user3-bg)' }
+  { id: 'user3', name: 'Person 3', color: 'var(--color-user3)', bgColor: 'var(--color-user3-bg)', hantelBilder: true }
 ]
 
 export const PLAN_TYPES = [

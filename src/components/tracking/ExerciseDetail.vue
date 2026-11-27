@@ -4,6 +4,7 @@
     :title="titel"
     @update:model-value="v => emit('update:modelValue', v)"
   >
+    <template #titel><UebungsName :name="titel" /></template>
     <!-- Verlauf (seit v2.8): ersetzt den Inhalt, bis "Zurueck zur Uebung" -->
     <div v-if="exercise && ansicht === 'verlauf'" ref="inhaltEl" class="detail-content">
       <button type="button" class="btn btn-ghost detail-zurueck" @click="zeigeAnsicht('uebung')">
@@ -126,6 +127,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onUnmounted, nextTick } from 'vue'
 import Modal from '../shared/Modal.vue'
+import UebungsName from '../shared/UebungsName.vue'
 import MuscleMap from '../shared/MuscleMap.vue'
 import UebungsVerlauf from './UebungsVerlauf.vue'
 import WheelPicker from '../shared/WheelPicker.vue'

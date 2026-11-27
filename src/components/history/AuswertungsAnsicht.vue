@@ -89,7 +89,7 @@
           <li v-for="z in rang" :key="z.id">
             <button type="button" class="aw-rang-zeile" @click="springeZu(z.id)">
               <span class="aw-rang-text">
-                <span class="aw-rang-name">{{ z.name }}</span>
+                <span class="aw-rang-name"><UebungsName :name="z.name" /></span>
                 <span class="aw-rang-detail">{{ rangDetail(z) }}</span>
               </span>
               <span class="aw-rang-spur" aria-hidden="true">
@@ -131,7 +131,7 @@
         </div>
         <article v-for="z in karten" :id="'aw-karte-' + z.id" :key="z.id" class="card aw-karte">
           <header class="aw-karte-kopf">
-            <h4 class="aw-karte-name">{{ z.name }}</h4>
+            <h4 class="aw-karte-name"><UebungsName :name="z.name" /></h4>
             <button type="button" class="aw-karte-verlauf" @click="oeffneVerlauf(z.id)">Verlauf ›</button>
           </header>
           <VerlaufMini
@@ -154,7 +154,7 @@
         <h4 class="aw-wahl-titel">{{ g.label }}</h4>
         <label v-for="u in g.uebungen" :key="u.id" class="aw-wahl-zeile">
           <input type="checkbox" :checked="eigeneSet.has(u.id)" @change="schalteEigene(u.id)" />
-          <span class="aw-wahl-name">{{ u.name }}</span>
+          <span class="aw-wahl-name"><UebungsName :name="u.name" /></span>
           <span class="aw-wahl-anzahl">{{ u.tage }} {{ u.tage === 1 ? 'Tag' : 'Tage' }}</span>
         </label>
       </div>
@@ -167,6 +167,7 @@
 
     <!-- Einzelverlauf wie in der Uebungs-Detailansicht -->
     <Modal v-model="showVerlauf" :title="verlaufName">
+      <template #titel><UebungsName :name="verlaufName" /></template>
       <UebungsVerlauf v-if="verlaufId" :key="verlaufId" :exercise-id="verlaufId" :start-user-id="userId" />
     </Modal>
   </div>
@@ -175,6 +176,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import Modal from '../shared/Modal.vue'
+import UebungsName from '../shared/UebungsName.vue'
 import VerlaufMini from './VerlaufMini.vue'
 import UebungsVerlauf from '../tracking/UebungsVerlauf.vue'
 import { db } from '../../db/dexie.js'

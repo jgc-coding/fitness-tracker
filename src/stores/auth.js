@@ -5,6 +5,7 @@ import { USERS } from '../utils/constants.js'
 import { pushRecord } from '../services/syncService.js'
 import { satzZahlGueltig } from '../utils/saetze.js'
 import { erinnerungAn, erinnerungSchluessel } from '../utils/steigerung.js'
+import { hantelBildAn, hantelBildSchluessel, hantelBilderSichtbar } from '../utils/hantelBild.js'
 
 // Der Standard-Nutzer ist eine GERAETE-Einstellung, kein geteilter Datensatz:
 // auf dem Handy von user1 soll user1 vorausgewaehlt sein, auf dem von user2
@@ -70,6 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
         loadUserNames()
         // Erinnerung an/aus vom anderen Handy sofort wirksam (v2.17.0)
         loadSteigernErinnerungen()
+        loadHantelBilder()
       }
     })
   }
@@ -141,6 +143,46 @@ export const useAuthStore = defineStore('auth', () => {
     }
     erinnerungen.value = { ...erinnerungen.value, [userId]: an }
     const key = erinnerungSchluessel(userId)
+    const record = { key, value: an, updatedAt: new Date().toISOString() }
+    await db.meta.put(record)
+    pushRecord('meta', key, record)
+  }
+
+  // Hantel-Bildchen je Person (Gabriel 27.11.2026, v2.19.0, Regeln in
+  // utils/hantelBild.js): geteilt wie die Satzzahl (db.meta, gesynct). Ohne
+  // Eintrag gilt der Standard der Person aus constants.js (USERS[].hantelBilder).
+  // Sichtbar, sobald eine der ausgewaehlten Personen (activeUserIds) es an hat.
+  const hantelGespeichert = ref({})
+
+  function hantelBild(userId) {
+    const standard = users.value.find(u => u.id === userId)?.hantelBilder
+    return hantelBildAn(hantelGespeichert.value[userId], standard)
+  }
+
+  const hantelBilderZeigen = computed(() =>
+    hantelBilderSichtbar(activeUserIds.value, hantelBild)
+  )
+
+  async function loadHantelBilder() {
+    const werte = {}
+    for (const user of users.value) {
+      const stored = await db.meta.get(hantelBildSchluessel(user.id))
+      if (stored && typeof stored.value !== 'boolean') {
+        // Nicht still ueberdecken: ein kaputter Wert gehoert ins Log
+        console.warn('[FitTrack] [WARN] Ungueltige Hantel-Bild-Einstellung ignoriert, nutze Standard:', user.id, stored.value)
+      }
+      if (typeof stored?.value === 'boolean') werte[user.id] = stored.value
+    }
+    hantelGespeichert.value = werte
+  }
+
+  async function setHantelBild(userId, an) {
+    if (typeof an !== 'boolean' || !users.value.some(u => u.id === userId)) {
+      console.warn('[FitTrack] [WARN] Hantel-Bild-Einstellung nicht gespeichert (ungueltig):', userId, an)
+      return
+    }
+    hantelGespeichert.value = { ...hantelGespeichert.value, [userId]: an }
+    const key = hantelBildSchluessel(userId)
     const record = { key, value: an, updatedAt: new Date().toISOString() }
     await db.meta.put(record)
     pushRecord('meta', key, record)
@@ -241,6 +283,11 @@ export const useAuthStore = defineStore('auth', () => {
   loadDeviceId()
   loadDefaultUser()
   loadActiveUsers()
+  // Asynchron: bis die Einstellungen da sind, gilt der Standard je Person.
+  // Die Bildchen erscheinen in fast jeder Ansicht, darum hier statt je View.
+  loadHantelBilder().catch(err =>
+    console.warn('[FitTrack] [WARN] Hantel-Bild-Einstellungen nicht geladen, nutze Standard:', err)
+  )
 
   return {
     users,
@@ -259,6 +306,10 @@ export const useAuthStore = defineStore('auth', () => {
     steigernErinnerung,
     loadSteigernErinnerungen,
     setSteigernErinnerung,
+    hantelBild,
+    hantelBilderZeigen,
+    loadHantelBilder,
+    setHantelBild,
     setDefaultUser,
     setActiveUsers,
     resetActiveUsers,

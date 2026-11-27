@@ -108,7 +108,7 @@
                 @contextmenu="onKontextmenue"
               >
                 <div class="day-exercise">
-                  <span class="day-exercise-name">{{ getExerciseName(ex.exerciseId) }}</span>
+                  <span class="day-exercise-name"><UebungsName :name="getExerciseName(ex.exerciseId)" /></span>
                   <div class="day-exercise-controls">
                     <input
                       type="number"
@@ -135,7 +135,7 @@
                 <div v-for="altId in (ex.alternativen || [])" :key="altId" class="day-alternative">
                   <button class="day-alternative-name" title="Alternativen bearbeiten" @click="openAlternativenPicker(day, idx)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6v6a3 3 0 0 0 3 3h10l-4-4m0 8l4-4"/></svg>
-                    <span>{{ getExerciseName(altId) }}</span>
+                    <span><UebungsName :name="getExerciseName(altId)" /></span>
                   </button>
                   <button
                     class="btn-icon small"
@@ -273,7 +273,7 @@
             <span class="swap-check">
               <svg v-if="isExerciseInDay(ex.id)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             </span>
-            <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+            <span class="swap-name"><UebungsName :name="toTitleCase(ex.name)" /></span>
             <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
           </button>
         </template>
@@ -286,7 +286,8 @@
     </Modal>
 
     <!-- Alternativen Picker Modal (P9) -->
-    <Modal v-model="showAltPicker" :title="altTitle" fullHeight>
+    <Modal v-model="showAltPicker" fullHeight>
+      <template #titel>Alternativen<template v-if="altBaseExerciseId">: <UebungsName :name="getExerciseName(altBaseExerciseId)" /></template></template>
       <input
         v-model="altSearch"
         type="text"
@@ -314,7 +315,7 @@
             <span class="swap-check">
               <svg v-if="altSelectedIds.includes(ex.id)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             </span>
-            <span class="swap-name">{{ toTitleCase(ex.name) }}</span>
+            <span class="swap-name"><UebungsName :name="toTitleCase(ex.name)" /></span>
             <span class="swap-meta">{{ getMuscleLabel(ex.muscleGroup) }}</span>
           </button>
         </template>
@@ -333,6 +334,7 @@ import { ref, shallowRef, computed, onMounted, onBeforeUnmount, reactive } from 
 import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
+import UebungsName from '../components/shared/UebungsName.vue'
 import { usePlansStore } from '../stores/plans.js'
 import { useExercises } from '../composables/useExercises.js'
 import { PLAN_TYPES, MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'
@@ -544,11 +546,6 @@ const altBaseExerciseId = ref(null)
 const altSearch = ref('')
 const altSelectedIds = ref([])
 
-const altTitle = computed(() => {
-  return altBaseExerciseId.value
-    ? `Alternativen: ${getExerciseName(altBaseExerciseId.value)}`
-    : 'Alternativen'
-})
 
 const groupedAltExercises = computed(() => {
   const base = getExerciseById(altBaseExerciseId.value)

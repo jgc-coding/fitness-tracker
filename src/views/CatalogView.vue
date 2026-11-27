@@ -58,7 +58,7 @@
             <MuscleMap v-else :fallback-group="ex.muscleGroup || ''" :size="40" />
           </div>
           <div class="exercise-info">
-            <h3 class="exercise-name">{{ toTitleCase(ex.name) }}</h3>
+            <h3 class="exercise-name"><UebungsName :name="toTitleCase(ex.name)" /></h3>
             <div class="exercise-tags">
               <span class="tag">{{ getMuscleLabel(ex.muscleGroup) }}</span>
               <span class="tag">{{ getEquipmentLabel(ex.equipment) }}</span>
@@ -171,6 +171,7 @@ import TopBar from '../components/layout/TopBar.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import Modal from '../components/shared/Modal.vue'
 import MuscleMap from '../components/shared/MuscleMap.vue'
+import UebungsName from '../components/shared/UebungsName.vue'
 import ExerciseDetail from '../components/tracking/ExerciseDetail.vue'
 import { useExercises } from '../composables/useExercises.js'
 import { MUSCLE_GROUPS, EQUIPMENT_TYPES } from '../utils/constants.js'

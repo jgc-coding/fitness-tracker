@@ -95,6 +95,35 @@
             </div>
           </div>
         </div>
+
+        <!-- Hantel-Bildchen je Person (v2.19.0): gesynct, Standard je Person
+             aus constants.js (USERS[].hantelBilder) -->
+        <div class="default-user">
+          <span class="user-label-id">Hantel-Bildchen</span>
+          <p class="settings-desc">
+            Ein kleines Bild vor den Kuerzeln hilft beim Merken:
+            <UebungsName name="DB" immer /> ist die Kurzhantel (Dumbbell),
+            <UebungsName name="BB" immer /> die Langhantel (Barbell). Es
+            erscheint, wenn eine der ausgewaehlten Personen es an hat. Die
+            Einstellung gilt auf allen Geraeten.
+          </p>
+          <div v-for="user in authStore.users" :key="user.id" class="satz-zeile">
+            <span class="satz-name" :style="{ borderLeftColor: user.color }">{{ user.name }}</span>
+            <div class="user-toggle satz-auswahl" role="group" :aria-label="`Hantel-Bildchen fuer ${user.name}`">
+              <button
+                v-for="wahl in ERINNERUNG_WAHL"
+                :key="wahl.text"
+                class="toggle-btn"
+                :class="{ active: authStore.hantelBild(user.id) === wahl.an }"
+                :style="{ '--user-color': user.color }"
+                :aria-pressed="authStore.hantelBild(user.id) === wahl.an"
+                @click="authStore.setHantelBild(user.id, wahl.an)"
+              >
+                {{ wahl.text }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Seed exercises -->
@@ -240,6 +269,12 @@
         <p class="bildnachweis">
           Uebungsbilder und Muskelgrafik sind KI-generiert.
         </p>
+        <!-- Hantel-Bildchen (v2.19.0): CC0 verlangt keinen Nachweis, die
+             Projektregel nennt trotzdem jede ausgelieferte Bildquelle -->
+        <p class="bildnachweis">
+          Hantel-Bildchen: Langhantel aus „Pinhead Map Icons“ von Quincy
+          Morgan (CC0), Kurzhanteln selbst gezeichnet.
+        </p>
       </div>
     </div>
   </div>
@@ -248,6 +283,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import TopBar from '../components/layout/TopBar.vue'
+import UebungsName from '../components/shared/UebungsName.vue'
 import { useAuthStore } from '../stores/auth.js'
 import { db, generateId } from '../db/dexie.js'
 import {
@@ -269,7 +305,7 @@ import bildKatalog from '../data/uebungskatalog.json'
 import { STANDARD_UEBUNGEN } from '../data/standardUebungen.js'
 
 const authStore = useAuthStore()
-// Knoepfe der Steigern-Erinnerung (An zuerst, Standard)
+// Knoepfe An/Aus (An zuerst) fuer Steigern-Erinnerung und Hantel-Bildchen
 const ERINNERUNG_WAHL = [{ an: true, text: 'An' }, { an: false, text: 'Aus' }]
 const { updateExercise } = useExercises()
 const seedMessage = ref('')
@@ -347,6 +383,7 @@ async function doBackupImport(event) {
     await authStore.loadUserNames()
     await authStore.loadSatzZahlen()
     await authStore.loadSteigernErinnerungen()
+    await authStore.loadHantelBilder()
     resyncAll() // bringt neue lokale Daten in die Cloud (falls angemeldet)
     backupError.value = false
     backupMessage.value = `Import fertig: ${imported} uebernommen, ${skipped} unveraendert.`
@@ -603,6 +640,7 @@ onMounted(() => {
   authStore.loadUserNames()
   authStore.loadSatzZahlen()
   authStore.loadSteigernErinnerungen()
+  authStore.loadHantelBilder()
 })
 </script>
 

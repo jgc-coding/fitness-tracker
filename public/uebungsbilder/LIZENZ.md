@@ -39,3 +39,18 @@ Git-Historie und dort weiter unter CC BY-SA 4.0.
 Kommt je wieder eine Zeichnung aus dieser Sammlung ins Manifest
 (`scripts/uebungsbilder-holen.mjs`), gehoert der vollstaendige Nachweis
 zurueck: hier und in der App unter Einstellungen -> Info.
+
+## Hantel-Bildchen vor DB und BB (seit Version 2.19.0)
+
+Die kleinen Bilder vor den Kuerzeln stehen als SVG direkt im Code
+(`src/components/shared/UebungsName.vue`), nicht in diesem Ordner.
+
+- **Langhantel (BB):** Symbol `barbell` aus **Pinhead Map Icons** von
+  Quincy Morgan (https://github.com/waysidemapping/pinhead), Lizenz
+  [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/deed.de),
+  also gemeinfrei. Unveraendert uebernommen; CC0 verlangt keinen Nachweis,
+  er steht trotzdem hier und in der App unter Einstellungen -> Info.
+- **Zwei Kurzhanteln (DB):** fuer das Projekt selbst gezeichnet, im Stil
+  der Langhantel.
+
+Auswahl und verworfene Varianten: `docs/entwuerfe/hantel-bildchen-varianten.html`.

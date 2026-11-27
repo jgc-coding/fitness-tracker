@@ -3,6 +3,29 @@
 Alle nennenswerten Aenderungen am Keto Hybrid Fitness Tracker.
 Format: Datum + Stichpunkte je Version (SemVer).
 
+## [2.19.0] — 2026-11-27
+
+### Features
+- **Hantel-Bildchen vor DB und BB** (Wunsch Gabriel): Vor dem Kuerzel DB
+  stehen zwei kleine Kurzhanteln, vor BB eine lange Stange. Das Kuerzel
+  bleibt stehen, so lernt man es nebenbei. Das Bild erscheint ueberall,
+  wo Uebungsnamen stehen: Trainingskarte, Rad-Fenster beim Eintragen,
+  Wechsel-Zeile, Tauschen und Hinzufuegen, Detailansicht, Planung samt
+  Alternativen, History-Tabelle, Auswertung und Katalog.
+- **Je Person ein- und ausschaltbar** unter Einstellungen -> Benutzer ->
+  Hantel-Bildchen, gilt auf allen Handys. Standard: an fuer Person 1 und
+  Person 3, aus fuer Person 2. Sichtbar, sobald eine der ausgewaehlten
+  Personen es an hat; trainiert Person 2 allein, bleibt alles wie bisher.
+
+### Intern
+- Neuer Baustein `UebungsName.vue` fuer jeden angezeigten Uebungsnamen,
+  Regeln in `utils/hantelBild.js` mit Vertragstest
+  `scripts/hantelbild-test.mjs` (prueft auch, dass jedes DB/BB der
+  Standardliste zum hinterlegten Geraet passt). `Modal.vue` hat einen
+  optionalen Slot `titel`.
+- Bildnachweis (Pinhead Map Icons, CC0) in Einstellungen -> Info und
+  `public/uebungsbilder/LIZENZ.md`.
+
 ## [2.18.0] — 2026-11-22
 
 ### Features
