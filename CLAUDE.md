@@ -447,6 +447,10 @@ npm run preview   # Build lokal testen (Port 4173)
   user1-3. Anzeigenamen liest die App aus `db.meta` (`userName_<id>`, gesynct)
   ueber den auth store, `constants.js` traegt nur Platzhalter "Person n". Die Konto-E-Mail steht als Platzhalter `FITNESS-KONTO@BEISPIEL.DE` in
   `firestore.rules`; die echte nur in der Firebase Console und Claudes Memory.
+  Commits nur mit der GitHub-noreply-Adresse (im Repo per `git config --local
+  user.email` gesetzt, ein neuer Klon braucht das erneut). Die Historie wurde
+  am 27.11.2026 von Namen und Mailadresse bereinigt; Commit-Kennungen von
+  davor gelten nicht mehr, Versionen ueber ihre Tags finden.
 - **Console-Arbeit** ueber Claude-in-Chrome: Rules-Editor ist CodeMirror 5
   (`document.querySelector('.CodeMirror').CodeMirror.setValue(...)`); der
   Anonym-Anbieter-Dialog ist nicht scrollbar — Speichern per Skript-Klick.

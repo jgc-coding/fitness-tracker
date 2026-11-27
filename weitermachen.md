@@ -9,19 +9,24 @@
   CHANGELOG.
 - Gate gruen (neu: `hantelbild-test` 47 Faelle), Browser-Tests
   `v219-test` 31/31, `v218-test` 39/39, `v2171-test` 54/54, `v216-test`
-  und `v215-regress` gruen. Push `b317759`, Tag `v2.19.0`.
-- **Rueckkehrpunkte:** `c530592` (vor v2.19.0, nur der Entwurf dazu),
-  `32ead4a` (v2.18.0), `27ef73a` (v2.17.1), `d258e58` (v2.17.0),
-  `719fb82` (v2.16.0), `c125c34` (v2.15.0), `460ba37` (v2.14.1),
-  `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f` (v2.12.0),
-  `8eaa3de` (v2.11.0), `6deda0f` (v2.10.0), `01031c1` (v2.6.0).
-  Datenbank-Schema seit v2.x unveraendert (Dexie v4); v2.19.0 nutzt nur
-  neue `db.meta`-Schluessel (`hantelBild_<userId>`). Cloud-Sicherungen in
-  `privat\`.
-- **Worktrees:** `add-bizeps-machine-exercise-8f0f28` und
-  `fittrack-workout-save-cycle-3a5977` (beide sauber, gemergt) und ein
-  LEERER Ordner `.claude\worktrees\exercise-images-crop-e10a06`
-  (gitignoriert, harmlos). Befehle zum Entfernen im save-state-Bericht.
+  und `v215-regress` gruen. Commit `8edce63`, Tag `v2.19.0`.
+- **Historie bereinigt (27.11.2026, V15, Gabriels Freigabe):** alle 175
+  Commits und 37 Tags per git-filter-repo umgeschrieben (Vornamen ->
+  user1/2/3, private Mailadresse -> Platzhalter, Autor -> GitHub-noreply),
+  per Force-Push auf GitHub. Heutiger Dateistand byte-gleich (Baum
+  `8f83bbf`). Alle Commit-Kennungen von vor dem 27.11. gelten nicht mehr.
+  Sicherung der alten Historie: `privat\historie-vor-umschreiben-2026-11-27.bundle`
+  (enthaelt die Namen, nie hochladen). Die zwei alten Worktrees samt
+  Branches sind entfernt, ihre `.claude`-Reste in
+  `privat\worktree-reste-2026-11-27.zip`.
+- **Rueckkehrpunkte (neue Kennungen):** `ae449eb` (vor v2.19.0),
+  `60583bc` (v2.18.0), `fff294e` (v2.17.1), `3884fef` (v2.17.0),
+  `81f8cf4` (v2.16.0), `c93e0cc` (v2.15.0), `8d218e3` (v2.14.1),
+  `cc437fd` (v2.14.0), `8dcb6fe` (v2.13.0), `4bdfb2d` (v2.12.0),
+  `c4b7201` (v2.11.0), `dceae27` (v2.10.0), `b9e7498` (v2.6.0); jede
+  Version auch ueber ihren Tag. Datenbank-Schema seit v2.x unveraendert
+  (Dexie v4); v2.19.0 nutzt nur neue `db.meta`-Schluessel
+  (`hantelBild_<userId>`). Cloud-Sicherungen in `privat\`.
 
 ## Stolperfallen (aktuell)
 - **`v215-regress.mjs` und `v216-test.mjs` starten KEINEN eigenen Server:**
@@ -77,8 +82,8 @@
 2. **Hantel-Bildchen nach Gabriels Rueckmeldung nachjustieren:** Groesse und
    Farbe stehen nur in `src/components/shared/UebungsName.vue` (Stil
    `.hantel-bild`), die Regel nur in `src/utils/hantelBild.js`.
-3. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
-   `verbesserungen.md`.
+3. **GitHub-Support-Anfrage:** Gabriel schickt sie (Text im Chat vom
+   27.11.); danach sind alte Staende auch per Direktlink weg.
 4. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
    `utils/trainingGeraet.js`; v2.8 `UebungsVerlauf.vue`; v2.7
    `StartNutzerwahl.vue`, `resetActiveUsers`; v2.4 Tastatur `Modal.vue`,
@@ -113,5 +118,4 @@
 - [ ] Handy-Test v2.17.1: docs/tests/v2.17.1-handy.md (gestrichelter Ring, drei volle Wochen) (seit 2026-11-22)
 - [ ] Je Person die letzte echte Deload-Woche eintragen (Startbildschirm, Zeile antippen, Woche in der Liste antippen), sonst steht dort "Noch keine Deload-Woche eingetragen" (seit 2026-11-22)
 - [ ] Handy-Test v2.18.0: docs/tests/v2.18.0-handy.md (Deload-Wochen) (seit 2026-11-22)
-- [ ] **Entscheiden, ob die alten Namen aus der Git-Historie sollen** (seit 2026-10-04)
-  V15-Rest in `verbesserungen.md`.
+- [ ] Anfrage an den GitHub-Support schicken, damit alte Stände auch per Direktlink verschwinden (Text im Chat vom 27.11.) (seit 2026-11-27)

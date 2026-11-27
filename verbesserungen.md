@@ -23,7 +23,7 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
 - [ ] **V8** (C) Direkteingabe im Gewichts-Rad — zurueckgestellt 2026-08-16 (Gabriel)
       Tipp auf den Wert oeffnet Ziffernblock; Rad bleibt fuer Feinjustage.
       Beleg: WheelPicker.vue ohne Eingabefeld; bis zu 300 Rad-Positionen. · Aufwand: S-M
-- [ ] **V15** (B) Rest: die alten Vornamen stehen noch in der Git-Historie — Entscheidung Gabriel
+- [x] **V15** (B) Rest: die alten Vornamen stehen noch in der Git-Historie — Entscheidung Gabriel
       Gefahr: Wer im oeffentlichen Repo alte Versionen aufruft, sieht weiter, wer die drei
       Nutzer sind und wer die Zyklustage erfasst. Code, Doku und Tests sind seit v2.10.0
       sauber (Namen nur noch in `db.meta`).
@@ -31,6 +31,10 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       Optionen: Historie neu schreiben (Force-Push, alle Kennungen und Tags aendern sich,
       GitHub haelt alte Staende noch eine Weile per Direktlink) oder Repo privat stellen
       (GitHub Pages braucht dann ein bezahltes Konto) oder so lassen.
+      Erledigt am 2026-11-27: Historie mit git-filter-repo umgeschrieben (Vornamen ->
+      user1/2/3, private Mailadresse -> Platzhalter, Autor -> GitHub-noreply), Force-Push
+      von master und 37 Tags; geprueft: 0 Treffer in Inhalten, Nachrichten, Tags und
+      Autorenangaben, heutiger Baum byte-gleich. Offen nur die Support-Anfrage bei GitHub.
 - [x] **V18** (B) Steigern-Knopf nach einem Satz vom Sperrbildschirm neu rechnen — Abnahme plan-steigern-erinnerung (P3)
       Gefahr: Wer einen Satz per Quick-Log in der Benachrichtigung speichert, waehrend die
       App im Hintergrund offen ist, sieht danach einen veralteten Knopf: 12 Wdh geschafft,
