@@ -1,70 +1,41 @@
-# Weitermachen — Stand 2026-11-22 (v2.18.0)
-
-## v2.18.0 Deload-Wochen (22.11.2026, live, Tag `v2.18.0` auf `32ead4a`)
-- Freigegeben nach Entwurf `docs/entwuerfe/deload-entwurf.html`: je
-  Person, alter Planungs-Schalter ersetzt, Vorschlag nach dem Deload aus
-  der Woche davor; dazu auf Gabriels Wunsch die History-Markierung.
-  Regeln in der CLAUDE.md ("Deload-Wochen je Person"), Aenderungen im
-  CHANGELOG.
-- Gate gruen (deload-test 71, steigerung-test 145), Browser-Tests
-  `v218-test` 39/39, `v2171-test` 54/54, `v216-test` und `v215-regress`
-  gruen. Live-Seite liefert 2.18.0 aus.
-- Mitgemacht: "Veraenderung im Zeitraum" (Auswertung) vergleicht ohne
-  Deload-Tage, sonst stand nach jeder Deload-Woche "gesunken" da.
-
-## v2.17.1 (22.11.2026, live, Tag `v2.17.1` auf `27ef73a`)
-- Steigern-Erinnerung erst nach drei VOLLEN Trainingswochen
-  (`stillstandWochen`), gestrichelter statt pulsierender Ring.
-- Gate gruen (steigerung-test 138), `privat\browsertests\v2171-test.mjs`
-  54/54 (ersetzt `v217-test.mjs`, das noch Puls und Einheiten-Regel prueft),
-  `v215-regress.mjs` gruen. Live-Seite liefert 2.17.1 aus.
+# Weitermachen — Stand 2026-11-27 (v2.19.0)
 
 ## Stand
 
-- Letzte Abnahme (Autopilot): 18.11.2026, 07:31 Uhr · `docs/plan-steigern-erinnerung.md` · Nachabnahme sauber · Tests: pruefen.txt 18 Vertragstests grün (steigerung-test 114 Fälle) · npm run build grün · v217-test 50/50 grün · v216-test 28/28 grün · v215-regress 57/57 grün
-- **v2.17.0 Steigern-Erinnerung** per Autopilot gebaut (P1-P5 am 18.11.
-  07:01-07:19, Abnahme fand V18, Reparatur R1, Nachabnahme sauber). Regeln
-  in der CLAUDE.md ("Steigern-Erinnerung"), Aenderungen im CHANGELOG.
-- **Live (save-state clean, 18.11.):** Gate erneut gruen (19 Befehle),
-  master `d258e58` = origin, Actions-Lauf 44251992031 gruen, Live-Seite
-  liefert 2.17.0 aus (SettingsView-Chunk geprueft). Git-Tag `v2.17.0`
-  auf `d258e58` gesetzt und gepusht (18.11.).
-- **Rueckkehrpunkte:** `d258e58` (v2.17.0, vor dem clean-Lauf; nichts
-  gemergt), `719fb82` (v2.16.0), `c125c34` (v2.15.0), `460ba37` (v2.14.1),
-  `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f` (v2.12.0), `8eaa3de`
-  (v2.11.0), `6deda0f` (v2.10.0), `01031c1` (v2.6.0). Datenbank-Schema seit
-  v2.x unveraendert (Dexie v4); v2.17.0 nutzt nur neue `db.meta`-Schluessel
-  (`steigernErinnerung_<userId>`, `wdhBereich_<userId>_<exerciseId>`).
-  Cloud-Sicherungen in `privat\`.
-- **Wdh-Bereich-Startwerte in der Cloud (18.11., 07:39):** 14 Bereiche per
-  `wdh-bereiche.mjs --jetzt` geschrieben (Gabriels Freigabe), Nachkontrolle
-  bestanden. Sicherung vorher:
-  `privat\cloud-sicherung-meta-2026-11-18T07-39-23-795Z.json`.
-- **Row-Korrektur in der Cloud (22.11., Gabriels Auftrag):** 18 Saetze von
-  user1 (13.10.-16.11.) von "low row" auf "cable row (without chest support)"
-  umgehaengt — der gemeinsame Stern stand dort auf Low Row, die Karte startete
-  so jede Woche falsch. Stern des Row-Platzes im Pull-Tag jetzt fuer alle auf
-  Cable Row. Saetze anderer Personen unberuehrt, Nachkontrolle bestanden.
-  Sicherung: `privat\cloud-sicherung-row-umhaengen-2026-11-22T11-27-44-187Z.json`.
+- **v2.19.0 Hantel-Bildchen vor DB und BB (27.11.2026, live):** Gabriels
+  Wahl war Variante B aus `docs/entwuerfe/hantel-bildchen-varianten.html`.
+  Je Person schaltbar, Standard an fuer user1 und user3, aus fuer user2.
+  Regeln in der CLAUDE.md ("Hantel-Bildchen vor DB/BB"), Aenderungen im
+  CHANGELOG.
+- Gate gruen (neu: `hantelbild-test` 47 Faelle), Browser-Tests
+  `v219-test` 31/31, `v218-test` 39/39, `v2171-test` 54/54, `v216-test`
+  und `v215-regress` gruen. Push `b317759`, Tag `v2.19.0`.
+- **Rueckkehrpunkte:** `c530592` (vor v2.19.0, nur der Entwurf dazu),
+  `32ead4a` (v2.18.0), `27ef73a` (v2.17.1), `d258e58` (v2.17.0),
+  `719fb82` (v2.16.0), `c125c34` (v2.15.0), `460ba37` (v2.14.1),
+  `d725233` (v2.14.0), `e6e555d` (v2.13.0), `1799e4f` (v2.12.0),
+  `8eaa3de` (v2.11.0), `6deda0f` (v2.10.0), `01031c1` (v2.6.0).
+  Datenbank-Schema seit v2.x unveraendert (Dexie v4); v2.19.0 nutzt nur
+  neue `db.meta`-Schluessel (`hantelBild_<userId>`). Cloud-Sicherungen in
+  `privat\`.
 - **Worktrees:** `add-bizeps-machine-exercise-8f0f28` und
   `fittrack-workout-save-cycle-3a5977` (beide sauber, gemergt) und ein
   LEERER Ordner `.claude\worktrees\exercise-images-crop-e10a06`
   (gitignoriert, harmlos). Befehle zum Entfernen im save-state-Bericht.
 
 ## Stolperfallen (aktuell)
-- **`v215-regress.mjs` startet KEINEN eigenen Server:** vorher
-  `node node_modules/vite/bin/vite.js preview --port 4199 --strictPort`
+- **`v215-regress.mjs` und `v216-test.mjs` starten KEINEN eigenen Server:**
+  vorher `node node_modules/vite/bin/vite.js preview --port 4199 --strictPort`
   starten (lauscht nur auf ::1), sonst Abbruch "Zeitueberschreitung
-  .bottom-nav". Die Version liest er seit 22.11. aus package.json.
+  .bottom-nav". `v219-test`, `v218-test` und `v2171-test` starten ihren
+  eigenen Server.
 - **Browser-Tests liegen in `privat\browsertests\`** (gitignoriert, nur im
-  Hauptbaum): `v218-test.mjs` (Deload-Wochen, eigener Server),
-  `v2171-test.mjs` (Steigern-Erinnerung, startet eigenen
-  Server; ersetzt `v217-test.mjs`), `v216-test.mjs` (braucht wie
-  v215-regress den Server auf 4199)
-  (Zyklus), `v215-regress.mjs`. `v217-test` brach zweimal bei
-  "[Einstellung] Zeitueberschreitung: Aus aktiv" ab, der naechste Lauf war
-  gruen — vermutlich Wettlauf zwischen Tipp und Laden der Einstellungen;
-  einfach erneut laufen lassen.
+  Hauptbaum): `v219-test.mjs` (Hantel-Bildchen), `v218-test.mjs`
+  (Deload-Wochen), `v2171-test.mjs` (Steigern-Erinnerung), `v216-test.mjs`
+  (Zyklus), `v215-regress.mjs`. `v217-test.mjs` ist veraltet (prueft noch
+  Puls und Einheiten-Regel). Bricht ein Test bei "[Einstellung]
+  Zeitueberschreitung" ab, war es vermutlich ein Wettlauf zwischen Tipp und
+  Laden der Einstellungen; einfach erneut laufen lassen.
 - **Quick-Log vom Sperrbildschirm** ist im Browser nur nachgestellt
   (IndexedDB-Schreiben plus MessageEvent); der echte Service Worker laeuft
   nur am Handy (Geraetetest-Liste).
@@ -103,24 +74,27 @@
    alten Versionen getestet, alles funktioniert"). Kommt doch noch etwas:
    Regeln stehen in der CLAUDE.md, Aenderungen je Version im CHANGELOG,
    Checklisten unter `docs/tests/`.
-2. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
+2. **Hantel-Bildchen nach Gabriels Rueckmeldung nachjustieren:** Groesse und
+   Farbe stehen nur in `src/components/shared/UebungsName.vue` (Stil
+   `.hantel-bild`), die Regel nur in `src/utils/hantelBild.js`.
+3. **V15-Rest (Git-Historie)** nur nach Gabriels Entscheidung, siehe
    `verbesserungen.md`.
-3. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
+4. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
    `utils/trainingGeraet.js`; v2.8 `UebungsVerlauf.vue`; v2.7
    `StartNutzerwahl.vue`, `resetActiveUsers`; v2.4 Tastatur `Modal.vue`,
    Saetze `scripts/saetze-test.mjs`; Quick-Log `buildNotificationQuickLog`,
    `public/sw-custom.js`; v2.5 `PlanningView.vue`; v2.6 Bilder nach
    `docs/uebungsbilder-chatgpt.md`. Neue Uebungen: zuerst `uebungen-cloud.mjs`.
-4. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
+5. **Weitere Bilder nur auf Zuruf** (Kandidaten: Kurzhantel- und
     Schraegbank-Kurzhantel-Druecken); Herunterladen nur mit Gabriels Ja.
-5. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
+6. **Vorgaben nachrechnen, sobald echte Laeufe da sind:** Ablauf in
     `docs/laufplan-vorgaben.md` Abschnitt 5; Garmin-Abgleich zuerst in
     `scripts/runmatch-test.mjs`.
-6. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
+7. Rueckmeldungen in die Plananpassung einbauen (`lauf-cloud.mjs holen`,
     Regeln in `docs/laufplan-format.md` Abschnitt 5) — seit v2.12 mit
     Zyklustag (`feedback.cycleDay`) und ungeplanten Laeufen ("Stattdessen: ...").
-7. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
-8. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
+8. Wdh-Luecke erneut gemeldet: Diagnose in die App bauen, nicht raten.
+9. Paket 3 des Laufplaners (Wochenbericht per Telegram) nur nach
     ausdruecklicher Freigabe.
 
 ## Offen
@@ -134,6 +108,7 @@
   **I9** — Beschreibungen in `verbesserungen.md`.
 
 ## Was Gabriel selbst tun muss
+- [ ] Handy-Test v2.19.0: docs/tests/v2.19.0-handy.md (Hantel-Bildchen, Groesse am Handy beurteilen) (seit 2026-11-27)
 - [ ] Gerätetest v2.17.0: docs/tests/geraetetest-plan-steigern-erinnerung.md durchklicken (seit 2026-11-18)
 - [ ] Handy-Test v2.17.1: docs/tests/v2.17.1-handy.md (gestrichelter Ring, drei volle Wochen) (seit 2026-11-22)
 - [ ] Je Person die letzte echte Deload-Woche eintragen (Startbildschirm, Zeile antippen, Woche in der Liste antippen), sonst steht dort "Noch keine Deload-Woche eingetragen" (seit 2026-11-22)
