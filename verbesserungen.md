@@ -34,7 +34,7 @@ entschieden neu: Satzzahl je Person einstellbar (v2.4.0, Regel in der CLAUDE.md)
       Erledigt am 2026-11-27: Historie mit git-filter-repo umgeschrieben (Vornamen ->
       user1/2/3, private Mailadresse -> Platzhalter, Autor -> GitHub-noreply), Force-Push
       von master und 37 Tags; geprueft: 0 Treffer in Inhalten, Nachrichten, Tags und
-      Autorenangaben, heutiger Baum byte-gleich. Offen nur die Support-Anfrage bei GitHub.
+      Autorenangaben, heutiger Baum byte-gleich. Alte Commit-Links liefern bei GitHub 404.
 - [x] **V18** (B) Steigern-Knopf nach einem Satz vom Sperrbildschirm neu rechnen — Abnahme plan-steigern-erinnerung (P3)
       Gefahr: Wer einen Satz per Quick-Log in der Benachrichtigung speichert, waehrend die
       App im Hintergrund offen ist, sieht danach einen veralteten Knopf: 12 Wdh geschafft,

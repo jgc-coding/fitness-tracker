@@ -82,8 +82,9 @@
 2. **Hantel-Bildchen nach Gabriels Rueckmeldung nachjustieren:** Groesse und
    Farbe stehen nur in `src/components/shared/UebungsName.vue` (Stil
    `.hantel-bild`), die Regel nur in `src/utils/hantelBild.js`.
-3. **GitHub-Support-Anfrage:** Gabriel schickt sie (Text im Chat vom
-   27.11.); danach sind alte Staende auch per Direktlink weg.
+3. **Alte Commit-Links:** am 27.11. lieferten zwei alte Kennungen bei
+   GitHub schon 404, darum keine Support-Anfrage. Taucht ein alter Stand
+   doch wieder auf, Support bitten, "cached views" zu entfernen.
 4. **Fruehere Versionen:** v2.9 1RM in `utils/verlauf.js`; v2.8.1
    `utils/trainingGeraet.js`; v2.8 `UebungsVerlauf.vue`; v2.7
    `StartNutzerwahl.vue`, `resetActiveUsers`; v2.4 Tastatur `Modal.vue`,
@@ -118,4 +119,3 @@
 - [ ] Handy-Test v2.17.1: docs/tests/v2.17.1-handy.md (gestrichelter Ring, drei volle Wochen) (seit 2026-11-22)
 - [ ] Je Person die letzte echte Deload-Woche eintragen (Startbildschirm, Zeile antippen, Woche in der Liste antippen), sonst steht dort "Noch keine Deload-Woche eingetragen" (seit 2026-11-22)
 - [ ] Handy-Test v2.18.0: docs/tests/v2.18.0-handy.md (Deload-Wochen) (seit 2026-11-22)
-- [ ] Anfrage an den GitHub-Support schicken, damit alte Stände auch per Direktlink verschwinden (Text im Chat vom 27.11.) (seit 2026-11-27)
